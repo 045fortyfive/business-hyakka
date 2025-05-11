@@ -72,7 +72,7 @@ const mockCategories: Category[] = [
   {
     id: "1",
     name: "基本ビジネススキル",
-    slug: "basic-business-skills",
+    slug: "basic",
     description: "ビジネスの基本となるスキルを学びましょう",
   },
   {
@@ -499,8 +499,120 @@ export async function getContentBySlug(slug: string, preview = false): Promise<C
   }
 }
 
+// カテゴリ一覧を取得
+export async function getCategories(preview = false): Promise<Category[]> {
+  if (useMockData) {
+    console.log("Using mock data for getCategories")
+    return mockCategories
+  }
+
+  try {
+    console.log("Fetching from Contentful for getCategories")
+    const contentfulClient = getClient(preview)
+
+    if (!contentfulClient) {
+      console.warn("Contentful client is not available. Using mock data instead.")
+      return mockCategories
+    }
+
+    const response = await contentfulClient.getEntries({
+      content_type: "category",
+      order: "fields.name",
+    })
+
+    console.log("Contentful response for getCategories:", {
+      total: response.total,
+      itemCount: response.items.length,
+    })
+
+    return response.items.map(mapContentfulCategory)
+  } catch (error) {
+    console.error("Error fetching categories from Contentful:", error)
+    // エラー時はモックデータを返す
+    return mockCategories
+  }
+}
+
+// スラッグでカテゴリを取得
+export async function getCategoryBySlug(slug: string, preview = false): Promise<Category | null> {
+  if (useMockData) {
+    console.log(`Using mock data for getCategoryBySlug: ${slug}`)
+    const category = mockCategories.find((item) => item.slug === slug)
+    return category || null
+  }
+
+  try {
+    console.log(`Fetching from Contentful for getCategoryBySlug: ${slug}`)
+    const contentfulClient = getClient(preview)
+
+    if (!contentfulClient) {
+      console.warn("Contentful client is not available. Using mock data instead.")
+      const category = mockCategories.find((item) => item.slug === slug)
+      return category || null
+    }
+
+    const response = await contentfulClient.getEntries({
+      content_type: "category",
+      "fields.slug": slug,
+      limit: 1,
+    })
+
+    console.log(`Contentful response for getCategoryBySlug ${slug}:`, {
+      total: response.total,
+      itemCount: response.items.length,
+    })
+
+    if (response.items.length === 0) {
+      return null
+    }
+
+    return mapContentfulCategory(response.items[0])
+  } catch (error) {
+    console.error(`Error fetching category with slug ${slug} from Contentful:`, error)
+    // エラー時はモックデータを返す
+    const category = mockCategories.find((item) => item.slug === slug)
+    return category || null
+  }
+}
+
 // カテゴリIDでコンテンツを取得
-export async function getContentByCategory(
+export async function getContentByCategory(categoryId: string, preview = false): Promise<ContentItem[]> {
+  if (useMockData) {
+    console.log(`Using mock data for getContentByCategory: ${categoryId}`)
+    return mockContentItems.filter((item) => item.categoryId === categoryId)
+  }
+
+  try {
+    console.log(`Fetching from Contentful for getContentByCategory: ${categoryId}`)
+    const contentfulClient = getClient(preview)
+
+    if (!contentfulClient) {
+      console.warn("Contentful client is not available. Using mock data instead.")
+      return mockContentItems.filter((item) => item.categoryId === categoryId)
+    }
+
+    const response = await contentfulClient.getEntries({
+      content_type: "content",
+      "fields.category.sys.id": categoryId,
+      include: 2,
+      order: "-sys.createdAt",
+    })
+
+    console.log(`Contentful response for getContentByCategory ${categoryId}:`, {
+      total: response.total,
+      itemCount: response.items.length,
+    })
+
+    return response.items.map(mapContentfulContent)
+  } catch (error) {
+    console.error(`Error fetching content for category ${categoryId} from Contentful:`, error)
+    // エラー時はモックデータを返す
+    return mockContentItems.filter((item) => item.categoryId === categoryId)
+  }
+}
+
+// カテゴリIDでコンテンツを取得（ページネーション対応）
+export async function getContentByCategoryPaginated(
   categoryId: string,
   options: { limit?: number; skip?: number; preview?: boolean } = {},
 ): Promise<{
