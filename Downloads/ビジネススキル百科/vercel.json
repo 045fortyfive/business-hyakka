@@ -1,5 +1,6 @@
 {
   "version": 2,
+  "name": "business-hyakka",
   "buildCommand": "npm run build",
   "devCommand": "npm run dev",
   "installCommand": "npm install",
