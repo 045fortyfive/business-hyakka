@@ -24,15 +24,8 @@ export async function getArticles(limit = 10, skip = 0): Promise<ContentCollecti
   console.log('==============================');
 
   try {
-    // モックデータを使用するかどうかを確認（文字列の'true'だけでなく、'1'や'yes'なども考慮）
-    const useMockData = ['true', '1', 'yes'].includes(String(process.env.NEXT_PUBLIC_USE_MOCK_DATA).toLowerCase());
-    console.log('モックデータを使用:', useMockData ? 'はい' : 'いいえ');
-
-    if (useMockData) {
-      console.log('モックデータを使用します');
-      // モックデータを返す
-      return getMockArticles(limit, skip);
-    }
+    // モックデータは使用しない
+    console.log('モックデータは使用しません。Contentfulから実データを取得します。');
 
     // Contentfulのクエリパラメータを表示
     console.log('Query parameters:', {
@@ -72,9 +65,15 @@ export async function getArticles(limit = 10, skip = 0): Promise<ContentCollecti
     return response;
   } catch (error) {
     console.error('Error fetching articles:', error);
-    // エラーが発生した場合はモックデータを返す
-    console.log('エラーが発生したため、モックデータを返します');
-    return getMockArticles(limit, skip);
+    // エラーが発生した場合は空のレスポンスを返す
+    console.log('エラーが発生したため、空のレスポンスを返します');
+    return {
+      items: [],
+      total: 0,
+      skip: 0,
+      limit: limit,
+      includes: {},
+    } as ContentCollection;
   }
 }
 
@@ -201,12 +200,8 @@ export async function getArticleBySlug(slug: string): Promise<Content | null> {
 export async function getVideos(limit = 10, skip = 0): Promise<ContentCollection> {
   console.log(`Fetching videos: limit=${limit}, skip=${skip}`);
   try {
-    // モックデータを使用するかどうかを確認
-    const useMockData = ['true', '1', 'yes'].includes(String(process.env.NEXT_PUBLIC_USE_MOCK_DATA).toLowerCase());
-    if (useMockData) {
-      console.log('モックデータを使用します（動画）');
-      return getMockVideos(limit, skip);
-    }
+    // モックデータは使用しない
+    console.log('モックデータは使用しません。Contentfulから実データを取得します（動画）');
 
     // Contentfulクライアントの再作成
     const client = createContentfulClient();
@@ -223,8 +218,14 @@ export async function getVideos(limit = 10, skip = 0): Promise<ContentCollection
     return response;
   } catch (error) {
     console.error('Error fetching videos:', error);
-    console.log('エラーが発生したため、モックデータを返します（動画）');
-    return getMockVideos(limit, skip);
+    console.log('エラーが発生したため、空のレスポンスを返します（動画）');
+    return {
+      items: [],
+      total: 0,
+      skip: 0,
+      limit: limit,
+      includes: {},
+    } as ContentCollection;
   }
 }
 
@@ -312,12 +313,8 @@ export async function getVideoBySlug(slug: string): Promise<Content | null> {
 export async function getAudios(limit = 10, skip = 0): Promise<ContentCollection> {
   console.log(`Fetching audios: limit=${limit}, skip=${skip}`);
   try {
-    // モックデータを使用するかどうかを確認
-    const useMockData = ['true', '1', 'yes'].includes(String(process.env.NEXT_PUBLIC_USE_MOCK_DATA).toLowerCase());
-    if (useMockData) {
-      console.log('モックデータを使用します（音声）');
-      return getMockAudios(limit, skip);
-    }
+    // モックデータは使用しない
+    console.log('モックデータは使用しません。Contentfulから実データを取得します（音声）');
 
     // Contentfulクライアントの再作成
     const client = createContentfulClient();
@@ -334,8 +331,14 @@ export async function getAudios(limit = 10, skip = 0): Promise<ContentCollection
     return response;
   } catch (error) {
     console.error('Error fetching audios:', error);
-    console.log('エラーが発生したため、モックデータを返します（音声）');
-    return getMockAudios(limit, skip);
+    console.log('エラーが発生したため、空のレスポンスを返します（音声）');
+    return {
+      items: [],
+      total: 0,
+      skip: 0,
+      limit: limit,
+      includes: {},
+    } as ContentCollection;
   }
 }
 
@@ -423,12 +426,8 @@ export async function getAudioBySlug(slug: string): Promise<Content | null> {
 export async function getCategories(): Promise<CategoryCollection> {
   console.log('Fetching categories');
   try {
-    // モックデータを使用するかどうかを確認
-    const useMockData = ['true', '1', 'yes'].includes(String(process.env.NEXT_PUBLIC_USE_MOCK_DATA).toLowerCase());
-    if (useMockData) {
-      console.log('モックデータを使用します（カテゴリ）');
-      return getMockCategories();
-    }
+    // モックデータは使用しない
+    console.log('モックデータは使用しません。Contentfulから実データを取得します（カテゴリ）');
 
     // Contentfulクライアントの再作成
     const client = createContentfulClient();
@@ -441,8 +440,14 @@ export async function getCategories(): Promise<CategoryCollection> {
     return response;
   } catch (error) {
     console.error('Error fetching categories:', error);
-    console.log('エラーが発生したため、モックデータを返します（カテゴリ）');
-    return getMockCategories();
+    console.log('エラーが発生したため、空のレスポンスを返します（カテゴリ）');
+    return {
+      items: [],
+      total: 0,
+      skip: 0,
+      limit: 100,
+      includes: {},
+    } as CategoryCollection;
   }
 }
 

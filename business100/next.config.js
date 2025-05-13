@@ -34,7 +34,7 @@ const nextConfig = {
     CONTENTFUL_SPACE_ID: process.env.CONTENTFUL_SPACE_ID || 'vxy009lryi3x',
     CONTENTFUL_ACCESS_TOKEN: process.env.CONTENTFUL_ACCESS_TOKEN || 'qLylkb9h2iMqBUPBh6JXy3Wk5WQWHdJ91LaI8SKkb60',
     CONTENTFUL_PREVIEW_ACCESS_TOKEN: process.env.CONTENTFUL_PREVIEW_ACCESS_TOKEN || 'MEaR0N8DIyemaORDO4XK33a7JZs5TB2QYdyC8VF7MfY',
-    NEXT_PUBLIC_USE_MOCK_DATA: process.env.NEXT_PUBLIC_USE_MOCK_DATA || 'false',
+    NEXT_PUBLIC_USE_MOCK_DATA: 'false', // モックデータは使用しない
   },
   // 実験的な機能を有効化
   experimental: {
