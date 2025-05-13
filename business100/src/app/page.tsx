@@ -2,8 +2,11 @@ import { getArticles, getVideos, getAudios, getCategories } from "@/lib/api";
 import { HeroCarousel } from "@/components/hero-carousel";
 import { ContentSection } from "@/components/content-section";
 import { CategorySection } from "@/components/category-section";
+import { CategoryTags } from "@/components/category-tags";
+import { CategoryCarousel } from "@/components/category-carousel";
 import { getImageProps } from "@/lib/utils";
 import { CONTENT_TYPES } from "@/lib/types";
+import { CategoryName } from "@/utils/category-colors";
 
 // トップページは静的生成
 export const revalidate = 3600; // 1時間ごとに再検証
@@ -89,6 +92,23 @@ export default async function Home() {
       ? articlesData.items.slice(carouselItemCount)
       : articlesData.items;
 
+    // カテゴリー別にコンテンツを分類
+    const categorizeContent = (items: any[], categoryName: CategoryName) => {
+      return items.filter(item => {
+        if (item.fields.category && item.fields.category.length > 0) {
+          const itemCategory = item.fields.category[0]?.fields?.name;
+          return itemCategory === categoryName;
+        }
+        return false;
+      });
+    };
+
+    // 各カテゴリーのコンテンツを取得
+    const basicSkillsContent = categorizeContent([...articlesData.items, ...videosData.items, ...audiosData.items], '基本ビジネススキル');
+    const thinkingContent = categorizeContent([...articlesData.items, ...videosData.items, ...audiosData.items], '思考法');
+    const managementContent = categorizeContent([...articlesData.items, ...videosData.items, ...audiosData.items], 'マネジメントスキル');
+    const improvementContent = categorizeContent([...articlesData.items, ...videosData.items, ...audiosData.items], '業務改善');
+
     return (
       <div className="container mx-auto px-4 py-8">
         {/* ヒーローカルーセル */}
@@ -122,6 +142,46 @@ export default async function Home() {
           </section>
         )}
 
+        {/* カテゴリータグ */}
+        <CategoryTags categories={categoriesData.items} />
+
+        {/* カテゴリー別カルーセル */}
+        {basicSkillsContent.length > 0 && (
+          <CategoryCarousel
+            title="基本ビジネススキル"
+            categoryName="基本ビジネススキル"
+            viewAllLink="/categories/basic-business-skills"
+            items={basicSkillsContent}
+          />
+        )}
+
+        {thinkingContent.length > 0 && (
+          <CategoryCarousel
+            title="思考法"
+            categoryName="思考法"
+            viewAllLink="/categories/thinking"
+            items={thinkingContent}
+          />
+        )}
+
+        {managementContent.length > 0 && (
+          <CategoryCarousel
+            title="マネジメントスキル"
+            categoryName="マネジメントスキル"
+            viewAllLink="/categories/management"
+            items={managementContent}
+          />
+        )}
+
+        {improvementContent.length > 0 && (
+          <CategoryCarousel
+            title="業務改善"
+            categoryName="業務改善"
+            viewAllLink="/categories/improvement"
+            items={improvementContent}
+          />
+        )}
+
         {/* 最新記事セクション */}
         <ContentSection
           title="最新の記事"
@@ -145,12 +205,6 @@ export default async function Home() {
           items={audiosData.items}
           contentType="audio"
         />
-
-        {/* カテゴリセクション */}
-        <section className="mb-16">
-          <h2 className="text-2xl font-bold mb-6">カテゴリから探す</h2>
-          <CategorySection categories={categoriesData.items} />
-        </section>
       </div>
     );
   } catch (error) {
