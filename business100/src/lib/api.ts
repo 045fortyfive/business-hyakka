@@ -1,5 +1,6 @@
 import { contentfulClient } from './contentful';
 import { CONTENT_TYPE } from './contentful';
+import { createClient } from 'contentful';
 import {
   Content,
   ContentCollection,
@@ -23,6 +24,16 @@ export async function getArticles(limit = 10, skip = 0): Promise<ContentCollecti
   console.log('==============================');
 
   try {
+    // モックデータを使用するかどうかを確認（文字列の'true'だけでなく、'1'や'yes'なども考慮）
+    const useMockData = ['true', '1', 'yes'].includes(String(process.env.NEXT_PUBLIC_USE_MOCK_DATA).toLowerCase());
+    console.log('モックデータを使用:', useMockData ? 'はい' : 'いいえ');
+
+    if (useMockData) {
+      console.log('モックデータを使用します');
+      // モックデータを返す
+      return getMockArticles(limit, skip);
+    }
+
     // Contentfulのクエリパラメータを表示
     console.log('Query parameters:', {
       content_type: CONTENT_TYPE.CONTENT,
@@ -33,20 +44,10 @@ export async function getArticles(limit = 10, skip = 0): Promise<ContentCollecti
       include: 2,
     });
 
-    // モックデータを使用するかどうかを確認
-    const useMockData = process.env.NEXT_PUBLIC_USE_MOCK_DATA === 'true';
-    if (useMockData) {
-      console.log('モックデータを使用します');
-      return {
-        items: [],
-        total: 0,
-        skip: 0,
-        limit: limit,
-        includes: {},
-      } as ContentCollection;
-    }
+    // Contentfulクライアントの再作成（環境変数が正しく読み込まれていない場合に備えて）
+    const client = createContentfulClient();
 
-    const response = await contentfulClient.getEntries<Content['fields']>({
+    const response = await client.getEntries<Content['fields']>({
       content_type: CONTENT_TYPE.CONTENT,
       'fields.contentType': CONTENT_TYPES.ARTICLE, // contentTypeフィールドに'記事'が含まれているエントリを取得
       order: '-sys.createdAt',
@@ -71,15 +72,109 @@ export async function getArticles(limit = 10, skip = 0): Promise<ContentCollecti
     return response;
   } catch (error) {
     console.error('Error fetching articles:', error);
-    // エラーが発生した場合は空のレスポンスを返す
-    return {
-      items: [],
-      total: 0,
-      skip: 0,
-      limit: limit,
-      includes: {},
-    } as ContentCollection;
+    // エラーが発生した場合はモックデータを返す
+    console.log('エラーが発生したため、モックデータを返します');
+    return getMockArticles(limit, skip);
   }
+}
+
+// Contentfulクライアントを再作成する関数
+function createContentfulClient() {
+  const spaceId = process.env.CONTENTFUL_SPACE_ID;
+  const accessToken = process.env.CONTENTFUL_ACCESS_TOKEN;
+  const environment = process.env.CONTENTFUL_ENVIRONMENT || 'master';
+
+  console.log('Creating new Contentful client with:');
+  console.log('- Space ID:', spaceId);
+  console.log('- Access Token:', accessToken ? `設定済み (${accessToken.substring(0, 5)}...)` : '未設定');
+  console.log('- Environment:', environment);
+
+  if (!spaceId || !accessToken) {
+    throw new Error('Contentfulの設定が不完全です。環境変数を確認してください。');
+  }
+
+  return createClient({
+    space: spaceId,
+    accessToken: accessToken,
+    environment: environment,
+  });
+}
+
+// モック記事データを生成する関数
+function getMockArticles(limit = 10, skip = 0): ContentCollection {
+  // モックカテゴリの作成
+  const mockCategory = {
+    sys: {
+      id: 'mock-category-1',
+      type: 'Entry',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      contentType: {
+        sys: {
+          id: 'category',
+          type: 'Link',
+          linkType: 'ContentType'
+        }
+      }
+    },
+    fields: {
+      name: 'ビジネススキル',
+      slug: 'business-skills',
+      description: 'ビジネスに必要な基本的なスキルに関する記事'
+    }
+  };
+
+  // モック記事の作成
+  const mockArticles = Array.from({ length: Math.min(limit, 5) }, (_, i) => ({
+    sys: {
+      id: `mock-article-${i + 1 + skip}`,
+      type: 'Entry',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      contentType: {
+        sys: {
+          id: 'content',
+          type: 'Link',
+          linkType: 'ContentType'
+        }
+      }
+    },
+    fields: {
+      title: `モック記事 ${i + 1 + skip}`,
+      slug: `mock-article-${i + 1 + skip}`,
+      contentType: [CONTENT_TYPES.ARTICLE],
+      description: `これはモック記事 ${i + 1 + skip} の説明です。`,
+      category: [mockCategory],
+      body: {
+        nodeType: 'document',
+        data: {},
+        content: [
+          {
+            nodeType: 'paragraph',
+            data: {},
+            content: [
+              {
+                nodeType: 'text',
+                value: `これはモック記事 ${i + 1 + skip} の本文です。`,
+                marks: [],
+                data: {}
+              }
+            ]
+          }
+        ]
+      }
+    }
+  }));
+
+  return {
+    items: mockArticles,
+    total: 10,
+    skip,
+    limit,
+    includes: {
+      Entry: [mockCategory]
+    }
+  } as ContentCollection;
 }
 
 // 特定の記事を取得
@@ -106,7 +201,17 @@ export async function getArticleBySlug(slug: string): Promise<Content | null> {
 export async function getVideos(limit = 10, skip = 0): Promise<ContentCollection> {
   console.log(`Fetching videos: limit=${limit}, skip=${skip}`);
   try {
-    const response = await contentfulClient.getEntries<Content['fields']>({
+    // モックデータを使用するかどうかを確認
+    const useMockData = ['true', '1', 'yes'].includes(String(process.env.NEXT_PUBLIC_USE_MOCK_DATA).toLowerCase());
+    if (useMockData) {
+      console.log('モックデータを使用します（動画）');
+      return getMockVideos(limit, skip);
+    }
+
+    // Contentfulクライアントの再作成
+    const client = createContentfulClient();
+
+    const response = await client.getEntries<Content['fields']>({
       content_type: CONTENT_TYPE.CONTENT,
       'fields.contentType': CONTENT_TYPES.VIDEO, // contentTypeフィールドに'動画'が含まれているエントリを取得
       order: '-sys.createdAt',
@@ -118,14 +223,69 @@ export async function getVideos(limit = 10, skip = 0): Promise<ContentCollection
     return response;
   } catch (error) {
     console.error('Error fetching videos:', error);
-    return {
-      items: [],
-      total: 0,
-      skip: 0,
-      limit: limit,
-      includes: {},
-    } as ContentCollection;
+    console.log('エラーが発生したため、モックデータを返します（動画）');
+    return getMockVideos(limit, skip);
   }
+}
+
+// モック動画データを生成する関数
+function getMockVideos(limit = 10, skip = 0): ContentCollection {
+  // モックカテゴリの作成
+  const mockCategory = {
+    sys: {
+      id: 'mock-category-2',
+      type: 'Entry',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      contentType: {
+        sys: {
+          id: 'category',
+          type: 'Link',
+          linkType: 'ContentType'
+        }
+      }
+    },
+    fields: {
+      name: 'プレゼンテーション',
+      slug: 'presentation',
+      description: 'プレゼンテーションスキルに関する動画'
+    }
+  };
+
+  // モック動画の作成
+  const mockVideos = Array.from({ length: Math.min(limit, 3) }, (_, i) => ({
+    sys: {
+      id: `mock-video-${i + 1 + skip}`,
+      type: 'Entry',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      contentType: {
+        sys: {
+          id: 'content',
+          type: 'Link',
+          linkType: 'ContentType'
+        }
+      }
+    },
+    fields: {
+      title: `モック動画 ${i + 1 + skip}`,
+      slug: `mock-video-${i + 1 + skip}`,
+      contentType: [CONTENT_TYPES.VIDEO],
+      description: `これはモック動画 ${i + 1 + skip} の説明です。`,
+      category: [mockCategory],
+      videoUrl: `https://www.example.com/videos/mock-video-${i + 1 + skip}`
+    }
+  }));
+
+  return {
+    items: mockVideos,
+    total: 5,
+    skip,
+    limit,
+    includes: {
+      Entry: [mockCategory]
+    }
+  } as ContentCollection;
 }
 
 // 特定の動画を取得
@@ -152,7 +312,17 @@ export async function getVideoBySlug(slug: string): Promise<Content | null> {
 export async function getAudios(limit = 10, skip = 0): Promise<ContentCollection> {
   console.log(`Fetching audios: limit=${limit}, skip=${skip}`);
   try {
-    const response = await contentfulClient.getEntries<Content['fields']>({
+    // モックデータを使用するかどうかを確認
+    const useMockData = ['true', '1', 'yes'].includes(String(process.env.NEXT_PUBLIC_USE_MOCK_DATA).toLowerCase());
+    if (useMockData) {
+      console.log('モックデータを使用します（音声）');
+      return getMockAudios(limit, skip);
+    }
+
+    // Contentfulクライアントの再作成
+    const client = createContentfulClient();
+
+    const response = await client.getEntries<Content['fields']>({
       content_type: CONTENT_TYPE.CONTENT,
       'fields.contentType': CONTENT_TYPES.AUDIO, // contentTypeフィールドに'音声'が含まれているエントリを取得
       order: '-sys.createdAt',
@@ -164,14 +334,69 @@ export async function getAudios(limit = 10, skip = 0): Promise<ContentCollection
     return response;
   } catch (error) {
     console.error('Error fetching audios:', error);
-    return {
-      items: [],
-      total: 0,
-      skip: 0,
-      limit: limit,
-      includes: {},
-    } as ContentCollection;
+    console.log('エラーが発生したため、モックデータを返します（音声）');
+    return getMockAudios(limit, skip);
   }
+}
+
+// モック音声データを生成する関数
+function getMockAudios(limit = 10, skip = 0): ContentCollection {
+  // モックカテゴリの作成
+  const mockCategory = {
+    sys: {
+      id: 'mock-category-3',
+      type: 'Entry',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      contentType: {
+        sys: {
+          id: 'category',
+          type: 'Link',
+          linkType: 'ContentType'
+        }
+      }
+    },
+    fields: {
+      name: 'コミュニケーション',
+      slug: 'communication',
+      description: 'コミュニケーションスキルに関する音声コンテンツ'
+    }
+  };
+
+  // モック音声の作成
+  const mockAudios = Array.from({ length: Math.min(limit, 3) }, (_, i) => ({
+    sys: {
+      id: `mock-audio-${i + 1 + skip}`,
+      type: 'Entry',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      contentType: {
+        sys: {
+          id: 'content',
+          type: 'Link',
+          linkType: 'ContentType'
+        }
+      }
+    },
+    fields: {
+      title: `モック音声 ${i + 1 + skip}`,
+      slug: `mock-audio-${i + 1 + skip}`,
+      contentType: [CONTENT_TYPES.AUDIO],
+      description: `これはモック音声 ${i + 1 + skip} の説明です。`,
+      category: [mockCategory],
+      audioUrl: `https://www.example.com/audios/mock-audio-${i + 1 + skip}`
+    }
+  }));
+
+  return {
+    items: mockAudios,
+    total: 5,
+    skip,
+    limit,
+    includes: {
+      Entry: [mockCategory]
+    }
+  } as ContentCollection;
 }
 
 // 特定の音声を取得
@@ -198,7 +423,17 @@ export async function getAudioBySlug(slug: string): Promise<Content | null> {
 export async function getCategories(): Promise<CategoryCollection> {
   console.log('Fetching categories');
   try {
-    const response = await contentfulClient.getEntries<Category['fields']>({
+    // モックデータを使用するかどうかを確認
+    const useMockData = ['true', '1', 'yes'].includes(String(process.env.NEXT_PUBLIC_USE_MOCK_DATA).toLowerCase());
+    if (useMockData) {
+      console.log('モックデータを使用します（カテゴリ）');
+      return getMockCategories();
+    }
+
+    // Contentfulクライアントの再作成
+    const client = createContentfulClient();
+
+    const response = await client.getEntries<Category['fields']>({
       content_type: CONTENT_TYPE.CATEGORY,
       order: 'fields.name',
     });
@@ -206,15 +441,104 @@ export async function getCategories(): Promise<CategoryCollection> {
     return response;
   } catch (error) {
     console.error('Error fetching categories:', error);
-    // エラーが発生した場合は空のレスポンスを返す
-    return {
-      items: [],
-      total: 0,
-      skip: 0,
-      limit: 100,
-      includes: {},
-    } as CategoryCollection;
+    console.log('エラーが発生したため、モックデータを返します（カテゴリ）');
+    return getMockCategories();
   }
+}
+
+// モックカテゴリデータを生成する関数
+function getMockCategories(): CategoryCollection {
+  // モックカテゴリの作成
+  const mockCategories = [
+    {
+      sys: {
+        id: 'mock-category-1',
+        type: 'Entry',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        contentType: {
+          sys: {
+            id: 'category',
+            type: 'Link',
+            linkType: 'ContentType'
+          }
+        }
+      },
+      fields: {
+        name: 'ビジネススキル',
+        slug: 'business-skills',
+        description: 'ビジネスに必要な基本的なスキルに関する記事'
+      }
+    },
+    {
+      sys: {
+        id: 'mock-category-2',
+        type: 'Entry',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        contentType: {
+          sys: {
+            id: 'category',
+            type: 'Link',
+            linkType: 'ContentType'
+          }
+        }
+      },
+      fields: {
+        name: 'プレゼンテーション',
+        slug: 'presentation',
+        description: 'プレゼンテーションスキルに関する動画'
+      }
+    },
+    {
+      sys: {
+        id: 'mock-category-3',
+        type: 'Entry',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        contentType: {
+          sys: {
+            id: 'category',
+            type: 'Link',
+            linkType: 'ContentType'
+          }
+        }
+      },
+      fields: {
+        name: 'コミュニケーション',
+        slug: 'communication',
+        description: 'コミュニケーションスキルに関する音声コンテンツ'
+      }
+    },
+    {
+      sys: {
+        id: 'mock-category-4',
+        type: 'Entry',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        contentType: {
+          sys: {
+            id: 'category',
+            type: 'Link',
+            linkType: 'ContentType'
+          }
+        }
+      },
+      fields: {
+        name: 'マネジメント',
+        slug: 'management',
+        description: 'マネジメントスキルに関するコンテンツ'
+      }
+    }
+  ];
+
+  return {
+    items: mockCategories,
+    total: mockCategories.length,
+    skip: 0,
+    limit: 100,
+    includes: {}
+  } as CategoryCollection;
 }
 
 // 特定のカテゴリを取得
