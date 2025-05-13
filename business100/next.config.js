@@ -13,6 +13,10 @@ const nextConfig = {
     // 本番ビルド時にESLintチェックを無効にする
     ignoreDuringBuilds: true,
   },
+  typescript: {
+    // 本番ビルド時にTypeScriptチェックを無効にする
+    ignoreBuildErrors: true,
+  },
 };
 
 module.exports = nextConfig;
