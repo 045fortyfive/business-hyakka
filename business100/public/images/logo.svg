@@ -1,25 +1,31 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 300">
+  <defs>
+    <linearGradient id="orangeGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#FF9500;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#FF5E00;stop-opacity:1" />
+    </linearGradient>
+  </defs>
   <g>
-    <!-- 本のアイコン -->
-    <path d="M270,100 L270,200 L170,200 L170,100 Z" fill="none" stroke="#FF8C00" stroke-width="10"/>
-    <path d="M170,100 L170,200 L120,180 L120,80 Z" fill="none" stroke="#FF8C00" stroke-width="10"/>
-    <path d="M270,100 L270,200 L320,180 L320,80 Z" fill="none" stroke="#FF8C00" stroke-width="10"/>
-    
+    <!-- 本のアイコン（開いた本） -->
+    <path d="M160,140 L160,220 L270,220 L270,140 C270,140 215,160 160,140 Z" fill="none" stroke="url(#orangeGradient)" stroke-width="8"/>
+    <path d="M160,140 C160,140 215,120 270,140" stroke="url(#orangeGradient)" stroke-width="8" fill="none"/>
+    <path d="M160,140 L160,220 L110,200 L110,120 Z" fill="none" stroke="url(#orangeGradient)" stroke-width="8"/>
+    <path d="M270,140 L270,220 L320,200 L320,120 Z" fill="none" stroke="url(#orangeGradient)" stroke-width="8"/>
+
     <!-- 電球アイコン -->
-    <circle cx="220" cy="120" r="40" fill="none" stroke="#FF8C00" stroke-width="10"/>
-    <path d="M220,160 L220,180" stroke="#FF8C00" stroke-width="10" stroke-linecap="round"/>
-    <path d="M200,180 L240,180" stroke="#FF8C00" stroke-width="10" stroke-linecap="round"/>
-    <path d="M220,80 L220,60" stroke="#FF8C00" stroke-width="10" stroke-linecap="round"/>
-    <path d="M260,120 L280,120" stroke="#FF8C00" stroke-width="10" stroke-linecap="round"/>
-    <path d="M180,120 L160,120" stroke="#FF8C00" stroke-width="10" stroke-linecap="round"/>
-    <path d="M250,90 L265,75" stroke="#FF8C00" stroke-width="10" stroke-linecap="round"/>
-    <path d="M190,90 L175,75" stroke="#FF8C00" stroke-width="10" stroke-linecap="round"/>
-    
+    <path d="M215,100 C175,100 175,150 215,170 C255,150 255,100 215,100 Z" fill="none" stroke="url(#orangeGradient)" stroke-width="8"/>
+    <path d="M215,170 L215,190" stroke="url(#orangeGradient)" stroke-width="8" stroke-linecap="round"/>
+    <path d="M200,190 L230,190" stroke="url(#orangeGradient)" stroke-width="8" stroke-linecap="round"/>
+    <path d="M215,80 L215,60" stroke="url(#orangeGradient)" stroke-width="8" stroke-linecap="round"/>
+    <path d="M250,90 L265,75" stroke="url(#orangeGradient)" stroke-width="8" stroke-linecap="round"/>
+    <path d="M180,90 L165,75" stroke="url(#orangeGradient)" stroke-width="8" stroke-linecap="round"/>
+    <path d="M250,130 L265,145" stroke="url(#orangeGradient)" stroke-width="8" stroke-linecap="round"/>
+
     <!-- Skillpedia テキスト -->
-    <text x="350" y="150" font-family="Arial, sans-serif" font-size="80" font-weight="bold" fill="#FF8C00">Skillpedia</text>
-    
+    <text x="400" y="150" font-family="Arial, sans-serif" font-size="80" font-weight="bold" fill="url(#orangeGradient)">Skillpedia</text>
+
     <!-- 20代のビジネススキル百科 テキスト -->
-    <text x="220" y="250" font-family="Arial, sans-serif" font-size="30" font-weight="bold" fill="#FF8C00" text-anchor="middle">２０代のビジネススキル百科</text>
+    <text x="400" y="220" font-family="Arial, sans-serif" font-size="30" font-weight="bold" fill="url(#orangeGradient)" text-anchor="middle">２０代のビジネススキル百科</text>
   </g>
 </svg>

@@ -38,21 +38,17 @@ export const getContentfulClient = (preview = false): ContentfulClient => {
     }
   }
 
-  try {
-    // Contentfulクライアントを作成して返す
-    const client = createClient({
-      space,
-      accessToken: preview ? previewAccessToken : accessToken,
-      environment,
-      host: preview ? 'preview.contentful.com' : 'cdn.contentful.com',
-    });
+  // Contentfulクライアントを作成して返す
+  const client = createClient({
+    space,
+    accessToken: preview ? previewAccessToken : accessToken,
+    environment,
+    host: preview ? 'preview.contentful.com' : 'cdn.contentful.com',
+  });
 
-    console.log(`Contentfulクライアント作成: ${preview ? 'プレビュー' : '公開'}モード`);
-    return client;
-  } catch (error) {
-    console.error('Contentfulクライアントの作成に失敗しました:', error);
-    throw error;
-  }
+  console.log(`Contentfulクライアント作成: ${preview ? 'プレビュー' : '公開'}モード`);
+
+  return client;
 };
 
 // デフォルトのContentfulクライアントを取得

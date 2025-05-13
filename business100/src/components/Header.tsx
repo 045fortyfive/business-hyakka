@@ -14,18 +14,19 @@ export default function Header() {
 
   return (
     <header className="bg-white shadow-md">
-      <div className="container mx-auto px-4 py-4">
+      <div className="container mx-auto px-4 py-6">
         <div className="flex items-center justify-between">
           {/* ロゴ */}
           <div className="flex-shrink-0">
-            <Link href="/" className="block">
+            <Link href="/" className="flex items-center">
               <Image
-                src="/images/logo.svg"
+                src="https://njazjixymhdfjiag.public.blob.vercel-storage.com/Header%20main%20edited-FrhGP5sX6hYOJRQvZkASlfnkkjvQAP.png"
                 alt="Skillpedia - 20代のビジネススキル百科"
-                width={200}
-                height={60}
+                width={400}
+                height={134}
+                className="h-24 w-auto"
                 priority
-                className="h-10 md:h-12 w-auto"
+                unoptimized
               />
             </Link>
           </div>

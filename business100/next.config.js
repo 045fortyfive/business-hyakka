@@ -7,9 +7,16 @@ const nextConfig = {
         hostname: 'images.ctfassets.net',
         pathname: '/**',
       },
+      {
+        protocol: 'https',
+        hostname: '*.public.blob.vercel-storage.com',
+        pathname: '/**',
+      },
     ],
     // 外部ドメインからの画像を許可
-    domains: ['images.ctfassets.net'],
+    domains: ['images.ctfassets.net', 'njazjixymhdfjiag.public.blob.vercel-storage.com'],
+    // 画像の最適化を無効化（ローカル画像をそのまま使用）
+    unoptimized: true,
   },
   eslint: {
     // 本番ビルド時にESLintチェックを無効にする

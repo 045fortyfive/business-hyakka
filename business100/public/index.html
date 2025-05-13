@@ -13,7 +13,7 @@
       --background: #ffffff;
       --foreground: #171717;
     }
-    
+
     body {
       background: var(--background);
       color: var(--foreground);
@@ -24,52 +24,52 @@
       display: flex;
       flex-direction: column;
     }
-    
+
     header {
       background-color: #fff;
       box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-      padding: 1rem;
+      padding: 1.5rem;
     }
-    
+
     .container {
       width: 100%;
       max-width: 1200px;
       margin: 0 auto;
       padding: 0 1rem;
     }
-    
+
     .header-content {
       display: flex;
       justify-content: space-between;
       align-items: center;
     }
-    
+
     .logo {
-      height: 40px;
+      height: 100px;
     }
-    
+
     nav ul {
       display: flex;
       list-style: none;
       margin: 0;
       padding: 0;
     }
-    
+
     nav li {
       margin-left: 2rem;
     }
-    
+
     nav a {
       color: #333;
       text-decoration: none;
       font-weight: 500;
     }
-    
+
     main {
       flex-grow: 1;
       padding: 2rem 0;
     }
-    
+
     .hero {
       background: linear-gradient(to right, #3b82f6, #2563eb);
       color: white;
@@ -77,18 +77,18 @@
       padding: 3rem 2rem;
       margin-bottom: 3rem;
     }
-    
+
     .hero h1 {
       font-size: 2.5rem;
       margin-bottom: 1rem;
     }
-    
+
     .hero p {
       font-size: 1.25rem;
       margin-bottom: 1.5rem;
       max-width: 600px;
     }
-    
+
     .btn {
       display: inline-block;
       padding: 0.75rem 1.5rem;
@@ -97,127 +97,127 @@
       text-decoration: none;
       transition: all 0.2s;
     }
-    
+
     .btn-primary {
       background-color: white;
       color: #2563eb;
     }
-    
+
     .btn-primary:hover {
       background-color: #f9fafb;
     }
-    
+
     .btn-secondary {
       background-color: transparent;
       border: 2px solid white;
       color: white;
     }
-    
+
     .btn-secondary:hover {
       background-color: rgba(255, 255, 255, 0.1);
     }
-    
+
     .section {
       margin-bottom: 4rem;
     }
-    
+
     .section-title {
       font-size: 1.5rem;
       margin-bottom: 1.5rem;
     }
-    
+
     .card-grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
       gap: 1.5rem;
     }
-    
+
     .card {
       border-radius: 0.5rem;
       overflow: hidden;
       box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
       transition: transform 0.3s, box-shadow 0.3s;
     }
-    
+
     .card:hover {
       transform: translateY(-5px);
       box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
     }
-    
+
     .card-image {
       height: 200px;
       background-color: #f3f4f6;
       position: relative;
     }
-    
+
     .card-content {
       padding: 1.5rem;
     }
-    
+
     .card-title {
       font-size: 1.25rem;
       margin-bottom: 0.5rem;
     }
-    
+
     .card-description {
       color: #4b5563;
       margin-bottom: 1rem;
     }
-    
+
     .card-meta {
       display: flex;
       justify-content: space-between;
       color: #6b7280;
       font-size: 0.875rem;
     }
-    
+
     footer {
       background-color: #f3f4f6;
       padding: 2rem 0;
       margin-top: auto;
     }
-    
+
     .footer-content {
       display: flex;
       justify-content: space-between;
       align-items: center;
     }
-    
+
     .footer-links {
       display: flex;
     }
-    
+
     .footer-links a {
       margin-left: 1.5rem;
       color: #4b5563;
       text-decoration: none;
     }
-    
+
     .copyright {
       color: #6b7280;
     }
-    
+
     @media (max-width: 768px) {
       nav {
         display: none;
       }
-      
+
       .hero h1 {
         font-size: 2rem;
       }
-      
+
       .hero p {
         font-size: 1rem;
       }
-      
+
       .footer-content {
         flex-direction: column;
       }
-      
+
       .footer-links {
         margin-top: 1rem;
       }
-      
+
       .footer-links a {
         margin: 0 0.75rem;
       }
@@ -229,7 +229,7 @@
     <div class="container">
       <div class="header-content">
         <a href="/">
-          <img src="/images/logo.svg" alt="Skillpedia - 20代のビジネススキル百科" class="logo">
+          <img src="https://njazjixymhdfjiag.public.blob.vercel-storage.com/Header%20main%20edited-FrhGP5sX6hYOJRQvZkASlfnkkjvQAP.png" alt="Skillpedia - 20代のビジネススキル百科" class="logo">
         </a>
         <nav>
           <ul>
@@ -242,7 +242,7 @@
       </div>
     </div>
   </header>
-  
+
   <main>
     <div class="container">
       <section class="hero">
@@ -253,7 +253,7 @@
           <a href="/videos" class="btn btn-secondary">動画を見る</a>
         </div>
       </section>
-      
+
       <section class="section">
         <h2 class="section-title">最新の記事</h2>
         <div class="card-grid">
@@ -294,7 +294,7 @@
       </section>
     </div>
   </main>
-  
+
   <footer>
     <div class="container">
       <div class="footer-content">
