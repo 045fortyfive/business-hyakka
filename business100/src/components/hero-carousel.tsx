@@ -155,7 +155,7 @@ export function HeroCarousel({
           {/* カードコンテナ - 中央揃えのためのフレックスコンテナ */}
           <div className="flex justify-center items-center">
             {/* カードラッパー - 実際のカルーセル部分 */}
-            <div className="relative w-full max-w-6xl h-[450px]">
+            <div className="relative w-full max-w-6xl h-[500px]">
               {/* カードトラック - スライド移動用 */}
               <div className="flex h-full">
                 {slides.map((slide, index) => {
@@ -182,7 +182,7 @@ export function HeroCarousel({
                   return (
                     <div
                       key={slide.id}
-                      className="absolute top-1/2 left-1/2 w-full md:w-1/2 lg:w-1/3 xl:w-1/4 px-3 transition-all duration-500"
+                      className="absolute top-1/2 left-1/2 w-full md:w-[280px] lg:w-[320px] xl:w-[360px] px-3 transition-all duration-500"
                       style={{
                         transform: `translate(-50%, -50%) translateX(${translateX}%) scale(${scale})`,
                         opacity,
@@ -190,43 +190,46 @@ export function HeroCarousel({
                       }}
                     >
                       <Link href={slide.linkUrl} className="block h-full">
-                        <div className={`bg-white/10 backdrop-blur-lg rounded-xl overflow-hidden hover:shadow-xl transition-all duration-300 hover:translate-y-[-5px] h-full flex flex-col border border-white/20 ${
+                        <div className={`bg-white/10 backdrop-blur-lg rounded-xl overflow-hidden hover:shadow-xl transition-all duration-300 hover:translate-y-[-5px] h-full border border-white/20 ${
                           isActive ? 'shadow-2xl' : 'shadow-md'
                         }`}>
-                          {/* カード画像 */}
-                          <div className="relative h-56 overflow-hidden">
-                            <Image
-                              src={slide.imageUrl}
-                              alt={slide.title}
-                              fill
-                              priority={isActive}
-                              className={`object-cover transition-transform duration-500 ${
-                                isActive ? 'scale-105' : 'scale-100'
-                              }`}
-                            />
-                            {slide.category && (
-                              <div className="absolute top-3 left-3 bg-black/60 backdrop-blur-sm text-white text-xs font-medium px-2.5 py-1 rounded-full">
-                                {slide.category}
-                              </div>
-                            )}
-                            {isActive && (
-                              <div className="absolute top-3 right-3 bg-blue-600/80 backdrop-blur-sm text-white text-xs font-semibold px-2.5 py-1 rounded-full">
-                                注目
-                              </div>
-                            )}
-                          </div>
+                          {/* カード全体を正方形に */}
+                          <div className="relative aspect-square overflow-hidden">
+                            {/* カード画像部分 - 上半分 */}
+                            <div className="relative h-1/2 overflow-hidden">
+                              <Image
+                                src={slide.imageUrl}
+                                alt={slide.title}
+                                fill
+                                priority={isActive}
+                                className={`object-cover transition-transform duration-500 ${
+                                  isActive ? 'scale-105' : 'scale-100'
+                                }`}
+                              />
+                              {slide.category && (
+                                <div className="absolute top-3 left-3 bg-black/60 backdrop-blur-sm text-white text-xs font-medium px-2.5 py-1 rounded-full">
+                                  {slide.category}
+                                </div>
+                              )}
+                              {isActive && (
+                                <div className="absolute top-3 right-3 bg-blue-600/80 backdrop-blur-sm text-white text-xs font-semibold px-2.5 py-1 rounded-full">
+                                  注目
+                                </div>
+                              )}
+                            </div>
 
-                          {/* カードコンテンツ */}
-                          <div className="p-5 bg-gradient-to-br from-gray-900/90 to-gray-800/90 text-white flex-grow">
-                            <h3 className={`font-semibold mb-2 line-clamp-2 transition-all duration-300 ${
-                              isActive ? 'text-xl' : 'text-lg'
-                            }`}>{slide.title}</h3>
-                            <p className="text-sm text-gray-300 mb-4 line-clamp-2">{slide.description}</p>
-                            <div className="mt-auto flex justify-between items-center">
-                              <span className="inline-block bg-blue-900/50 border border-blue-500/30 text-blue-200 px-3 py-1 rounded-full text-xs font-medium">
-                                {slide.linkText}
-                              </span>
-                              {isActive && <span className="text-xs text-gray-400">詳細を見る</span>}
+                            {/* カードコンテンツ - 下半分 */}
+                            <div className="absolute bottom-0 left-0 right-0 h-1/2 p-4 bg-gradient-to-br from-gray-900/90 to-gray-800/90 text-white">
+                              <h3 className={`font-semibold mb-2 line-clamp-2 transition-all duration-300 ${
+                                isActive ? 'text-lg' : 'text-base'
+                              }`}>{slide.title}</h3>
+                              <p className="text-sm text-gray-300 mb-3 line-clamp-2">{slide.description}</p>
+                              <div className="absolute bottom-4 left-4 right-4 flex justify-between items-center">
+                                <span className="inline-block bg-blue-900/50 border border-blue-500/30 text-blue-200 px-3 py-1 rounded-full text-xs font-medium">
+                                  {slide.linkText}
+                                </span>
+                                {isActive && <span className="text-xs text-gray-400">詳細を見る</span>}
+                              </div>
                             </div>
                           </div>
                         </div>
@@ -261,41 +264,42 @@ export function HeroCarousel({
           </div>
         )}
 
-        {/* ナビゲーションボタン */}
+        {/* インジケーターとナビゲーションの統合コントロール */}
         {slides.length > 1 && (
-          <>
+          <div className="absolute bottom-6 left-0 right-0 z-30 flex justify-between items-center px-6">
+            {/* 左矢印 */}
             <button
               onClick={prevSlide}
-              className="absolute left-6 top-1/2 -translate-y-1/2 z-30 bg-black/40 hover:bg-black/60 backdrop-blur-sm text-white rounded-full p-3 transition-colors shadow-lg"
+              className="bg-black/40 hover:bg-black/60 backdrop-blur-sm text-white rounded-full p-3 transition-colors shadow-lg"
               aria-label="前のスライド"
             >
-              <ChevronLeft className="h-6 w-6" />
+              <ChevronLeft className="h-5 w-5" />
             </button>
+
+            {/* 中央インジケーター */}
+            <div className="flex justify-center space-x-3">
+              {slides.map((_, index) => (
+                <button
+                  key={index}
+                  onClick={() => setCurrentSlide(index)}
+                  className={`w-2.5 h-2.5 rounded-full transition-all duration-300 ${
+                    index === currentSlide
+                      ? 'bg-white scale-125 shadow-md'
+                      : 'bg-white/30 hover:bg-white/60'
+                  }`}
+                  aria-label={`スライド ${index + 1} に移動`}
+                />
+              ))}
+            </div>
+
+            {/* 右矢印 */}
             <button
               onClick={nextSlide}
-              className="absolute right-6 top-1/2 -translate-y-1/2 z-30 bg-black/40 hover:bg-black/60 backdrop-blur-sm text-white rounded-full p-3 transition-colors shadow-lg"
+              className="bg-black/40 hover:bg-black/60 backdrop-blur-sm text-white rounded-full p-3 transition-colors shadow-lg"
               aria-label="次のスライド"
             >
-              <ChevronRight className="h-6 w-6" />
+              <ChevronRight className="h-5 w-5" />
             </button>
-          </>
-        )}
-
-        {/* インジケーター */}
-        {slides.length > 1 && (
-          <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-30 flex justify-center space-x-3">
-            {slides.map((_, index) => (
-              <button
-                key={index}
-                onClick={() => setCurrentSlide(index)}
-                className={`w-3 h-3 rounded-full transition-all duration-300 ${
-                  index === currentSlide
-                    ? 'bg-white scale-110 shadow-md'
-                    : 'bg-white/30 hover:bg-white/60'
-                }`}
-                aria-label={`スライド ${index + 1} に移動`}
-              />
-            ))}
           </div>
         )}
       </div>
