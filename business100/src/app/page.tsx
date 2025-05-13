@@ -53,44 +53,95 @@ export default async function Home() {
 
     console.log(`取得結果: 記事=${articlesData.items.length}, 動画=${videosData.items.length}, 音声=${audiosData.items.length}, カテゴリ=${categoriesData.items.length}`);
 
-    // カルーセルに表示する記事数（最大5件、ただし記事が5件未満の場合は全件）
-    const carouselItemCount = Math.min(articlesData.items.length, 5);
-
     // ヒーローカルーセル用のスライドを作成
-    const heroSlides = articlesData.items.slice(0, carouselItemCount).map(article => {
-      // 記事のカテゴリを取得
-      const category = article.fields.category && article.fields.category.length > 0
-        ? article.fields.category[0]?.fields?.name
-        : "ビジネススキル";
+    const heroSlides = [];
 
-      // 記事の画像URLを取得
-      let imageUrl = "/placeholder.svg";
-      if (article.fields.featuredImage && article.fields.featuredImage.fields && article.fields.featuredImage.fields.file) {
-        const fileUrl = article.fields.featuredImage.fields.file.url;
-        imageUrl = fileUrl.startsWith('//') ? `https:${fileUrl}` : fileUrl;
+    // すべての記事をヒーローカルーセルに追加
+    articlesData.items.forEach(article => {
+      if (article.fields && article.fields.title) {
+        // カテゴリー情報の取得
+        const category = article.fields.category && article.fields.category.length > 0
+          ? article.fields.category[0]?.fields?.name
+          : "ビジネススキル";
+
+        // 画像URLの取得
+        let imageUrl = "/placeholder.svg";
+        if (article.fields.featuredImage && article.fields.featuredImage.fields && article.fields.featuredImage.fields.file) {
+          const fileUrl = article.fields.featuredImage.fields.file.url;
+          imageUrl = fileUrl.startsWith('//') ? `https:${fileUrl}` : fileUrl;
+        }
+
+        console.log(`Hero slide for article "${article.fields.title}":`, {
+          id: article.sys.id,
+          imageUrl: imageUrl,
+          category: category,
+        });
+
+        heroSlides.push({
+          id: article.sys.id,
+          title: article.fields.title,
+          description: article.fields.description || `${category}に関する記事です。`,
+          imageUrl: imageUrl,
+          linkUrl: `/articles/${article.fields.slug}`,
+          linkText: "記事を読む",
+          category: category,
+        });
       }
-
-      console.log(`Hero slide for article "${article.fields.title}":`, {
-        id: article.sys.id,
-        imageUrl: imageUrl,
-        category: category,
-      });
-
-      return {
-        id: article.sys.id,
-        title: article.fields.title,
-        description: article.fields.description || `${category}に関する記事です。`,
-        imageUrl: imageUrl,
-        linkUrl: `/articles/${article.fields.slug}`,
-        linkText: "記事を読む",
-      };
     });
 
-    // 記事セクション用のアイテムは、カルーセルで使用した記事を除いた残りを使用
-    // 記事が少ない場合は、カルーセルと同じ記事を表示する
-    const articleItems = articlesData.items.length > carouselItemCount
-      ? articlesData.items.slice(carouselItemCount)
-      : articlesData.items;
+    // 動画コンテンツもヒーローカルーセルに追加
+    videosData.items.forEach(video => {
+      if (video.fields && video.fields.title) {
+        // カテゴリー情報の取得
+        const category = video.fields.category && video.fields.category.length > 0
+          ? video.fields.category[0]?.fields?.name
+          : "ビジネススキル";
+
+        // 画像URLの取得
+        let imageUrl = "/placeholder.svg";
+        if (video.fields.featuredImage && video.fields.featuredImage.fields && video.fields.featuredImage.fields.file) {
+          const fileUrl = video.fields.featuredImage.fields.file.url;
+          imageUrl = fileUrl.startsWith('//') ? `https:${fileUrl}` : fileUrl;
+        }
+
+        heroSlides.push({
+          id: video.sys.id,
+          title: video.fields.title,
+          description: video.fields.description || `${category}に関する動画です。`,
+          imageUrl: imageUrl,
+          linkUrl: `/videos/${video.fields.slug}`,
+          linkText: "動画を見る",
+          category: category,
+        });
+      }
+    });
+
+    // 音声コンテンツもヒーローカルーセルに追加
+    audiosData.items.forEach(audio => {
+      if (audio.fields && audio.fields.title) {
+        // カテゴリー情報の取得
+        const category = audio.fields.category && audio.fields.category.length > 0
+          ? audio.fields.category[0]?.fields?.name
+          : "ビジネススキル";
+
+        // 画像URLの取得
+        let imageUrl = "/placeholder.svg";
+        if (audio.fields.featuredImage && audio.fields.featuredImage.fields && audio.fields.featuredImage.fields.file) {
+          const fileUrl = audio.fields.featuredImage.fields.file.url;
+          imageUrl = fileUrl.startsWith('//') ? `https:${fileUrl}` : fileUrl;
+        }
+
+        heroSlides.push({
+          id: audio.sys.id,
+          title: audio.fields.title,
+          description: audio.fields.description || `${category}に関する音声です。`,
+          imageUrl: imageUrl,
+          linkUrl: `/audios/${audio.fields.slug}`,
+          linkText: "音声を聴く",
+          category: category,
+        });
+      }
+    });
 
     // カテゴリー別にコンテンツを分類
     const categorizeContent = (items: any[], categoryName: CategoryName) => {
@@ -181,30 +232,6 @@ export default async function Home() {
             items={improvementContent}
           />
         )}
-
-        {/* 最新記事セクション */}
-        <ContentSection
-          title="最新の記事"
-          viewAllLink="/articles"
-          items={articleItems}
-          contentType="article"
-        />
-
-        {/* 最新動画セクション */}
-        <ContentSection
-          title="最新の動画"
-          viewAllLink="/videos"
-          items={videosData.items}
-          contentType="video"
-        />
-
-        {/* 最新音声セクション */}
-        <ContentSection
-          title="最新の音声"
-          viewAllLink="/audios"
-          items={audiosData.items}
-          contentType="audio"
-        />
       </div>
     );
   } catch (error) {

@@ -1,8 +1,9 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
 
 interface HeroSlide {
   id: string
@@ -11,6 +12,7 @@ interface HeroSlide {
   imageUrl: string
   linkUrl: string
   linkText: string
+  category?: string
 }
 
 interface HeroCarouselProps {
@@ -73,14 +75,28 @@ export function HeroCarousel({ slides, autoplayInterval = 5000 }: HeroCarouselPr
   }
 
   return (
-    <div className="mb-12">
+    <div className="mb-16">
       <div className="mb-6">
         <h2 className="text-2xl font-bold">注目のコンテンツ</h2>
       </div>
 
-      <div className="relative">
+      <div className="relative overflow-hidden rounded-2xl">
+        {/* 背景ブラー効果 */}
+        <div className="absolute inset-0 z-0 overflow-hidden">
+          {slides.length > 0 && (
+            <Image
+              src={slides[currentSlide].imageUrl}
+              alt="Background"
+              fill
+              className="object-cover scale-110 blur-2xl opacity-40"
+              priority
+            />
+          )}
+          <div className="absolute inset-0 bg-gradient-to-r from-black/40 via-black/20 to-black/40 backdrop-blur-md" />
+        </div>
+
         {/* カードカルーセル */}
-        <div className="overflow-hidden">
+        <div className="relative z-10 py-12 px-4">
           <div
             className="flex transition-transform duration-500 ease-in-out"
             style={{ transform: `translateX(-${currentSlide * (100 / slides.length)}%)` }}
@@ -88,32 +104,38 @@ export function HeroCarousel({ slides, autoplayInterval = 5000 }: HeroCarouselPr
             {slides.map((slide, index) => (
               <div
                 key={slide.id}
-                className="w-full md:w-1/2 lg:w-1/3 xl:w-1/5 flex-shrink-0 px-2"
+                className="w-full md:w-1/2 lg:w-1/3 xl:w-1/4 flex-shrink-0 px-3"
               >
                 <Link href={slide.linkUrl} className="block h-full">
-                  <div className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-all duration-300 hover:translate-y-[-5px] h-full flex flex-col">
+                  <div className="bg-white/10 backdrop-blur-lg rounded-xl overflow-hidden hover:shadow-xl transition-all duration-300 hover:translate-y-[-5px] h-full flex flex-col border border-white/20">
                     {/* カード画像 */}
-                    <div className="relative h-48">
+                    <div className="relative h-56 overflow-hidden">
                       <Image
                         src={slide.imageUrl}
                         alt={slide.title}
                         fill
                         priority={index === 0}
-                        className="object-cover"
+                        className="object-cover hover:scale-105 transition-transform duration-500"
                       />
-                      <div className="absolute top-0 right-0 bg-blue-600 text-white text-xs font-semibold px-2 py-1 rounded-bl-lg">
+                      {slide.category && (
+                        <div className="absolute top-3 left-3 bg-black/60 backdrop-blur-sm text-white text-xs font-medium px-2.5 py-1 rounded-full">
+                          {slide.category}
+                        </div>
+                      )}
+                      <div className="absolute top-3 right-3 bg-blue-600/80 backdrop-blur-sm text-white text-xs font-semibold px-2.5 py-1 rounded-full">
                         注目
                       </div>
                     </div>
 
                     {/* カードコンテンツ */}
-                    <div className="p-4 bg-gradient-to-br from-white via-blue-50/20 to-purple-50/30 flex-grow">
+                    <div className="p-5 bg-gradient-to-br from-gray-900/90 to-gray-800/90 text-white flex-grow">
                       <h3 className="text-lg font-semibold mb-2 line-clamp-2">{slide.title}</h3>
-                      <p className="text-sm text-gray-600 mb-4 line-clamp-2">{slide.description}</p>
-                      <div className="mt-auto">
-                        <span className="inline-block bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-xs font-medium">
+                      <p className="text-sm text-gray-300 mb-4 line-clamp-2">{slide.description}</p>
+                      <div className="mt-auto flex justify-between items-center">
+                        <span className="inline-block bg-blue-900/50 border border-blue-500/30 text-blue-200 px-3 py-1 rounded-full text-xs font-medium">
                           {slide.linkText}
                         </span>
+                        <span className="text-xs text-gray-400">詳細を見る</span>
                       </div>
                     </div>
                   </div>
@@ -123,67 +145,41 @@ export function HeroCarousel({ slides, autoplayInterval = 5000 }: HeroCarouselPr
           </div>
         </div>
 
-      {/* ナビゲーションボタン */}
-      {slides.length > 1 && (
-        <>
-          <button
-            onClick={prevSlide}
-            className="absolute left-0 top-1/2 -translate-y-1/2 z-30 bg-white shadow-md hover:bg-gray-100 rounded-r-full p-3 text-gray-700 transition-colors"
-            aria-label="前のスライド"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="h-5 w-5"
-            >
-              <path d="m15 18-6-6 6-6" />
-            </svg>
-          </button>
-          <button
-            onClick={nextSlide}
-            className="absolute right-0 top-1/2 -translate-y-1/2 z-30 bg-white shadow-md hover:bg-gray-100 rounded-l-full p-3 text-gray-700 transition-colors"
-            aria-label="次のスライド"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="h-5 w-5"
-            >
-              <path d="m9 18 6-6-6-6" />
-            </svg>
-          </button>
-        </>
-      )}
-
-      {/* インジケーター */}
-      {slides.length > 1 && (
-        <div className="mt-6 flex justify-center space-x-2">
-          {slides.map((_, index) => (
+        {/* ナビゲーションボタン */}
+        {slides.length > 1 && (
+          <>
             <button
-              key={index}
-              onClick={() => setCurrentSlide(index)}
-              className={`w-2.5 h-2.5 rounded-full transition-colors ${
-                index === currentSlide ? 'bg-blue-600' : 'bg-gray-300'
-              }`}
-              aria-label={`スライド ${index + 1} に移動`}
-            />
-          ))}
-        </div>
-      )}
+              onClick={prevSlide}
+              className="absolute left-4 top-1/2 -translate-y-1/2 z-30 bg-black/30 hover:bg-black/50 backdrop-blur-sm text-white rounded-full p-3 transition-colors"
+              aria-label="前のスライド"
+            >
+              <ChevronLeft className="h-6 w-6" />
+            </button>
+            <button
+              onClick={nextSlide}
+              className="absolute right-4 top-1/2 -translate-y-1/2 z-30 bg-black/30 hover:bg-black/50 backdrop-blur-sm text-white rounded-full p-3 transition-colors"
+              aria-label="次のスライド"
+            >
+              <ChevronRight className="h-6 w-6" />
+            </button>
+          </>
+        )}
+
+        {/* インジケーター */}
+        {slides.length > 1 && (
+          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-30 flex justify-center space-x-2">
+            {slides.map((_, index) => (
+              <button
+                key={index}
+                onClick={() => setCurrentSlide(index)}
+                className={`w-2.5 h-2.5 rounded-full transition-colors ${
+                  index === currentSlide ? 'bg-white' : 'bg-white/40'
+                }`}
+                aria-label={`スライド ${index + 1} に移動`}
+              />
+            ))}
+          </div>
+        )}
       </div>
     </div>
   )
