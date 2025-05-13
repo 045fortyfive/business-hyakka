@@ -34,6 +34,8 @@ const nextConfig = {
     CONTENTFUL_PREVIEW_ACCESS_TOKEN: process.env.CONTENTFUL_PREVIEW_ACCESS_TOKEN,
     NEXT_PUBLIC_USE_MOCK_DATA: process.env.NEXT_PUBLIC_USE_MOCK_DATA,
   },
+  // サーバーコンポーネントのキャッシュを無効化
+  serverExternalPackages: ['contentful'],
 };
 
 module.exports = nextConfig;
