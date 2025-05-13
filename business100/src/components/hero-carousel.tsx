@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
@@ -18,31 +18,81 @@ interface HeroSlide {
 interface HeroCarouselProps {
   slides: HeroSlide[]
   autoplayInterval?: number
+  pauseOnHover?: boolean
 }
 
-export function HeroCarousel({ slides, autoplayInterval = 5000 }: HeroCarouselProps) {
+export function HeroCarousel({
+  slides,
+  autoplayInterval = 5000,
+  pauseOnHover = true
+}: HeroCarouselProps) {
   const [currentSlide, setCurrentSlide] = useState(0)
+  const [isPaused, setIsPaused] = useState(false)
+  const carouselRef = useRef<HTMLDivElement>(null)
+  const autoplayTimerRef = useRef<NodeJS.Timeout | null>(null)
+
+  // スライドの総数に基づいて表示位置を計算
+  const getSlidePosition = useCallback((index: number) => {
+    // 現在のスライドからの相対位置を計算
+    const totalSlides = slides.length
+    let relativePosition = index - currentSlide
+
+    // 最短経路で移動するための調整
+    if (relativePosition > totalSlides / 2) {
+      relativePosition -= totalSlides
+    } else if (relativePosition < -totalSlides / 2) {
+      relativePosition += totalSlides
+    }
+
+    return relativePosition
+  }, [currentSlide, slides.length])
 
   // 自動スライド切り替え
   useEffect(() => {
-    if (slides.length <= 1) return
+    if (slides.length <= 1 || isPaused) return
 
-    const interval = setInterval(() => {
-      setCurrentSlide((prev) => (prev + 1) % slides.length)
-    }, autoplayInterval)
+    const startAutoplay = () => {
+      if (autoplayTimerRef.current) {
+        clearInterval(autoplayTimerRef.current)
+      }
 
-    return () => clearInterval(interval)
-  }, [slides.length, autoplayInterval])
+      autoplayTimerRef.current = setInterval(() => {
+        setCurrentSlide((prev) => (prev + 1) % slides.length)
+      }, autoplayInterval)
+    }
+
+    startAutoplay()
+
+    return () => {
+      if (autoplayTimerRef.current) {
+        clearInterval(autoplayTimerRef.current)
+        autoplayTimerRef.current = null
+      }
+    }
+  }, [slides.length, autoplayInterval, isPaused])
+
+  // ホバー時の一時停止
+  const handleMouseEnter = useCallback(() => {
+    if (pauseOnHover) {
+      setIsPaused(true)
+    }
+  }, [pauseOnHover])
+
+  const handleMouseLeave = useCallback(() => {
+    if (pauseOnHover) {
+      setIsPaused(false)
+    }
+  }, [pauseOnHover])
 
   // 前のスライドに移動
-  const prevSlide = () => {
+  const prevSlide = useCallback(() => {
     setCurrentSlide((prev) => (prev - 1 + slides.length) % slides.length)
-  }
+  }, [slides.length])
 
   // 次のスライドに移動
-  const nextSlide = () => {
+  const nextSlide = useCallback(() => {
     setCurrentSlide((prev) => (prev + 1) % slides.length)
-  }
+  }, [slides.length])
 
   if (slides.length === 0) {
     return (
@@ -80,7 +130,12 @@ export function HeroCarousel({ slides, autoplayInterval = 5000 }: HeroCarouselPr
         <h2 className="text-2xl font-bold">注目のコンテンツ</h2>
       </div>
 
-      <div className="relative overflow-hidden rounded-2xl">
+      <div
+        className="relative overflow-hidden rounded-2xl"
+        ref={carouselRef}
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
+      >
         {/* 背景ブラー効果 */}
         <div className="absolute inset-0 z-0 overflow-hidden">
           {slides.length > 0 && (
@@ -97,71 +152,114 @@ export function HeroCarousel({ slides, autoplayInterval = 5000 }: HeroCarouselPr
 
         {/* カードカルーセル */}
         <div className="relative z-10 py-16 px-4">
-          <div
-            className="flex transition-transform duration-500 ease-in-out"
-            style={{ transform: `translateX(-${currentSlide * (100 / slides.length)}%)` }}
-          >
-            {slides.map((slide, index) => {
-              // 現在のスライドかどうかを判定
-              const isActive = index === currentSlide;
-              // 現在のスライドの前後のスライドかどうかを判定
-              const isAdjacent = index === (currentSlide - 1 + slides.length) % slides.length ||
-                                index === (currentSlide + 1) % slides.length;
+          {/* カードコンテナ - 中央揃えのためのフレックスコンテナ */}
+          <div className="flex justify-center items-center">
+            {/* カードラッパー - 実際のカルーセル部分 */}
+            <div className="relative w-full max-w-6xl overflow-hidden">
+              {/* カードトラック - スライド移動用 */}
+              <div className="flex">
+                {slides.map((slide, index) => {
+                  // スライドの相対位置を計算
+                  const position = getSlidePosition(index);
 
-              return (
-                <div
-                  key={slide.id}
-                  className={`w-full md:w-1/2 lg:w-1/3 xl:w-1/4 flex-shrink-0 px-3 transition-all duration-500 ${
-                    isActive ? 'scale-110 z-20' : isAdjacent ? 'scale-95 opacity-70' : 'scale-90 opacity-50'
-                  }`}
-                >
-                  <Link href={slide.linkUrl} className="block h-full">
-                    <div className={`bg-white/10 backdrop-blur-lg rounded-xl overflow-hidden hover:shadow-xl transition-all duration-300 hover:translate-y-[-5px] h-full flex flex-col border border-white/20 ${
-                      isActive ? 'shadow-2xl' : 'shadow-md'
-                    }`}>
-                      {/* カード画像 */}
-                      <div className="relative h-56 overflow-hidden">
-                        <Image
-                          src={slide.imageUrl}
-                          alt={slide.title}
-                          fill
-                          priority={isActive}
-                          className={`object-cover transition-transform duration-500 ${
-                            isActive ? 'scale-105' : 'scale-100'
-                          }`}
-                        />
-                        {slide.category && (
-                          <div className="absolute top-3 left-3 bg-black/60 backdrop-blur-sm text-white text-xs font-medium px-2.5 py-1 rounded-full">
-                            {slide.category}
-                          </div>
-                        )}
-                        {isActive && (
-                          <div className="absolute top-3 right-3 bg-blue-600/80 backdrop-blur-sm text-white text-xs font-semibold px-2.5 py-1 rounded-full">
-                            注目
-                          </div>
-                        )}
-                      </div>
+                  // 現在のスライドかどうかを判定
+                  const isActive = position === 0;
 
-                      {/* カードコンテンツ */}
-                      <div className="p-5 bg-gradient-to-br from-gray-900/90 to-gray-800/90 text-white flex-grow">
-                        <h3 className={`font-semibold mb-2 line-clamp-2 transition-all duration-300 ${
-                          isActive ? 'text-xl' : 'text-lg'
-                        }`}>{slide.title}</h3>
-                        <p className="text-sm text-gray-300 mb-4 line-clamp-2">{slide.description}</p>
-                        <div className="mt-auto flex justify-between items-center">
-                          <span className="inline-block bg-blue-900/50 border border-blue-500/30 text-blue-200 px-3 py-1 rounded-full text-xs font-medium">
-                            {slide.linkText}
-                          </span>
-                          {isActive && <span className="text-xs text-gray-400">詳細を見る</span>}
+                  // 隣接スライドかどうかを判定
+                  const isAdjacent = Math.abs(position) === 1;
+
+                  // 表示するかどうかを判定（パフォーマンス向上のため）
+                  const isVisible = Math.abs(position) <= 2;
+
+                  // 位置に基づいてスタイルを計算
+                  const translateX = `calc(${position * 100}% + ${position * 16}px)`;
+                  const zIndex = 20 - Math.abs(position) * 5;
+                  const scale = isActive ? 1.1 : isAdjacent ? 0.9 : 0.8;
+                  const opacity = isActive ? 1 : isAdjacent ? 0.7 : 0.4;
+
+                  if (!isVisible) return null;
+
+                  return (
+                    <div
+                      key={slide.id}
+                      className="absolute top-0 left-1/2 w-full md:w-1/2 lg:w-1/3 xl:w-1/4 px-3 transition-all duration-500"
+                      style={{
+                        transform: `translateX(-50%) translateX(${translateX}) scale(${scale})`,
+                        opacity,
+                        zIndex,
+                      }}
+                    >
+                      <Link href={slide.linkUrl} className="block h-full">
+                        <div className={`bg-white/10 backdrop-blur-lg rounded-xl overflow-hidden hover:shadow-xl transition-all duration-300 hover:translate-y-[-5px] h-full flex flex-col border border-white/20 ${
+                          isActive ? 'shadow-2xl' : 'shadow-md'
+                        }`}>
+                          {/* カード画像 */}
+                          <div className="relative h-56 overflow-hidden">
+                            <Image
+                              src={slide.imageUrl}
+                              alt={slide.title}
+                              fill
+                              priority={isActive}
+                              className={`object-cover transition-transform duration-500 ${
+                                isActive ? 'scale-105' : 'scale-100'
+                              }`}
+                            />
+                            {slide.category && (
+                              <div className="absolute top-3 left-3 bg-black/60 backdrop-blur-sm text-white text-xs font-medium px-2.5 py-1 rounded-full">
+                                {slide.category}
+                              </div>
+                            )}
+                            {isActive && (
+                              <div className="absolute top-3 right-3 bg-blue-600/80 backdrop-blur-sm text-white text-xs font-semibold px-2.5 py-1 rounded-full">
+                                注目
+                              </div>
+                            )}
+                          </div>
+
+                          {/* カードコンテンツ */}
+                          <div className="p-5 bg-gradient-to-br from-gray-900/90 to-gray-800/90 text-white flex-grow">
+                            <h3 className={`font-semibold mb-2 line-clamp-2 transition-all duration-300 ${
+                              isActive ? 'text-xl' : 'text-lg'
+                            }`}>{slide.title}</h3>
+                            <p className="text-sm text-gray-300 mb-4 line-clamp-2">{slide.description}</p>
+                            <div className="mt-auto flex justify-between items-center">
+                              <span className="inline-block bg-blue-900/50 border border-blue-500/30 text-blue-200 px-3 py-1 rounded-full text-xs font-medium">
+                                {slide.linkText}
+                              </span>
+                              {isActive && <span className="text-xs text-gray-400">詳細を見る</span>}
+                            </div>
+                          </div>
                         </div>
-                      </div>
+                      </Link>
                     </div>
-                  </Link>
-                </div>
-              );
-            })}
+                  );
+                })}
+              </div>
+            </div>
           </div>
         </div>
+
+        {/* 自動再生インジケーター */}
+        {slides.length > 1 && (
+          <div className="absolute top-4 right-4 z-30">
+            <button
+              onClick={() => setIsPaused(!isPaused)}
+              className="bg-black/30 hover:bg-black/50 backdrop-blur-sm text-white rounded-full p-2 transition-colors"
+              aria-label={isPaused ? "再生" : "一時停止"}
+            >
+              {isPaused ? (
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                </svg>
+              ) : (
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="6" y="4" width="4" height="16"></rect>
+                  <rect x="14" y="4" width="4" height="16"></rect>
+                </svg>
+              )}
+            </button>
+          </div>
+        )}
 
         {/* ナビゲーションボタン */}
         {slides.length > 1 && (
