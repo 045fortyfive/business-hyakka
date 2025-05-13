@@ -155,9 +155,9 @@ export function HeroCarousel({
           {/* カードコンテナ - 中央揃えのためのフレックスコンテナ */}
           <div className="flex justify-center items-center">
             {/* カードラッパー - 実際のカルーセル部分 */}
-            <div className="relative w-full max-w-6xl overflow-hidden">
+            <div className="relative w-full max-w-6xl h-[450px]">
               {/* カードトラック - スライド移動用 */}
-              <div className="flex">
+              <div className="flex h-full">
                 {slides.map((slide, index) => {
                   // スライドの相対位置を計算
                   const position = getSlidePosition(index);
@@ -172,19 +172,19 @@ export function HeroCarousel({
                   const isVisible = Math.abs(position) <= 2;
 
                   // 位置に基づいてスタイルを計算
-                  const translateX = `calc(${position * 100}% + ${position * 16}px)`;
+                  const translateX = position * 100;
                   const zIndex = 20 - Math.abs(position) * 5;
-                  const scale = isActive ? 1.1 : isAdjacent ? 0.9 : 0.8;
-                  const opacity = isActive ? 1 : isAdjacent ? 0.7 : 0.4;
+                  const scale = isActive ? 1.1 : isAdjacent ? 0.85 : 0.7;
+                  const opacity = isActive ? 1 : isAdjacent ? 0.7 : 0.3;
 
                   if (!isVisible) return null;
 
                   return (
                     <div
                       key={slide.id}
-                      className="absolute top-0 left-1/2 w-full md:w-1/2 lg:w-1/3 xl:w-1/4 px-3 transition-all duration-500"
+                      className="absolute top-1/2 left-1/2 w-full md:w-1/2 lg:w-1/3 xl:w-1/4 px-3 transition-all duration-500"
                       style={{
-                        transform: `translateX(-50%) translateX(${translateX}) scale(${scale})`,
+                        transform: `translate(-50%, -50%) translateX(${translateX}%) scale(${scale})`,
                         opacity,
                         zIndex,
                       }}
