@@ -134,18 +134,18 @@ export function HeroCarousel({
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
       >
-        {/* 背景ブラー効果 - 強化版 */}
+        {/* 背景ブラー効果 - 明るさ調整 */}
         <div className="absolute inset-0 z-0 overflow-hidden">
           {slides.length > 0 && (
             <Image
               src={slides[currentSlide].imageUrl}
               alt="Background"
               fill
-              className="object-cover scale-150 blur-3xl opacity-20"
+              className="object-cover scale-150 blur-3xl opacity-40"
               priority
             />
           )}
-          <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/50 to-black/70 backdrop-blur-xl" />
+          <div className="absolute inset-0 bg-gradient-to-r from-black/50 via-black/30 to-black/50 backdrop-blur-lg" />
         </div>
 
         {/* カードカルーセル - 複数カード表示 */}
@@ -164,20 +164,24 @@ export function HeroCarousel({
                 const isAdjacent = Math.abs(position) === 1;
 
                 // 表示するかどうかを判定（パフォーマンス向上のため）
+                // 中央と両サイドに2枚ずつ表示
                 const isVisible = Math.abs(position) <= 2;
 
                 // 位置に基づいてスタイルを計算
-                const translateX = position * 110; // 少し重なるように
+                // カードの間隔を調整
+                const translateX = position * 80; // 間隔を狭めて5枚表示できるようにする
                 const zIndex = 20 - Math.abs(position) * 5;
-                const scale = isActive ? 1 : 0.8;
-                const opacity = isActive ? 1 : isAdjacent ? 0.7 : 0.4;
+                // スケールを調整（中央が大きく、両サイドは少し小さく）
+                const scale = isActive ? 1 : isAdjacent ? 0.85 : 0.7;
+                // 透明度を調整（中央が最も明るく、両サイドは少し暗く）
+                const opacity = isActive ? 1 : isAdjacent ? 0.8 : 0.6;
 
                 if (!isVisible) return null;
 
                 return (
                   <div
                     key={slide.id}
-                    className="absolute top-1/2 left-1/2 w-[320px] transition-all duration-500"
+                    className="absolute top-1/2 left-1/2 w-[280px] transition-all duration-500"
                     style={{
                       transform: `translate(-50%, -50%) translateX(${translateX}%) scale(${scale})`,
                       opacity,
@@ -186,9 +190,9 @@ export function HeroCarousel({
                   >
                     <Link
                       href={slide.linkUrl}
-                      className={`block ${isActive ? 'cursor-pointer' : 'cursor-default pointer-events-none'}`}
+                      className={`block ${isActive || isAdjacent ? 'cursor-pointer' : 'cursor-default pointer-events-none'}`}
                     >
-                      <div className={`bg-white/10 backdrop-blur-lg rounded-xl overflow-hidden shadow-lg border border-white/20 transition-all duration-300 ${
+                      <div className={`bg-white/10 backdrop-blur-lg rounded-xl overflow-hidden shadow-lg border border-white/20 transition-all duration-500 ${
                         isActive ? 'shadow-2xl hover:translate-y-[-5px]' : 'shadow-md'
                       }`}>
                         {/* 正方形カード */}
