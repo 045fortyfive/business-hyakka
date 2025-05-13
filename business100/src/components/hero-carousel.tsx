@@ -114,7 +114,7 @@ export function HeroCarousel({
       </div>
 
       <div
-        className="relative overflow-hidden rounded-2xl bg-gray-900"
+        className="relative rounded-2xl bg-gray-900 h-[500px]"
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
       >
@@ -132,70 +132,62 @@ export function HeroCarousel({
           <div className="absolute inset-0 bg-gradient-to-r from-black/50 via-black/30 to-black/50 backdrop-blur-lg" />
         </div>
 
-        {/* カードカルーセル */}
-        <div className="relative z-10 py-16 px-4">
-          <div className="mx-auto max-w-6xl">
-            <div className="flex overflow-hidden">
-              <div
-                className="flex transition-transform duration-500 ease-in-out"
-                style={{ transform: `translateX(-${currentSlide * 100}%)` }}
-              >
-                {slides.map((slide, index) => (
-                  <div key={slide.id} className="w-full flex-shrink-0 px-4 flex justify-center">
-                    <div className="w-full max-w-sm">
-                      <Link href={slide.linkUrl} className="block">
-                        <div className="bg-white/10 backdrop-blur-lg rounded-xl overflow-hidden shadow-lg border border-white/20 transition-all duration-300 hover:shadow-xl hover:translate-y-[-5px]">
-                          {/* 正方形カード */}
-                          <div className="aspect-square relative">
-                            {/* 上半分：画像 */}
-                            <div className="absolute inset-0 h-1/2 overflow-hidden">
-                              <div className="relative w-full h-full">
-                                <Image
-                                  src={slide.imageUrl}
-                                  alt={slide.title}
-                                  fill
-                                  className="object-cover"
-                                  priority={index === currentSlide}
-                                />
-                              </div>
-                              {slide.category && (
-                                <div className="absolute top-3 left-3 bg-black/60 backdrop-blur-sm text-white text-xs font-medium px-2.5 py-1 rounded-full">
-                                  {slide.category}
-                                </div>
-                              )}
-                              {index === currentSlide && (
-                                <div className="absolute top-3 right-3 bg-blue-600/80 backdrop-blur-sm text-white text-xs font-semibold px-2.5 py-1 rounded-full">
-                                  注目
-                                </div>
-                              )}
-                            </div>
-
-                            {/* 下半分：コンテンツ */}
-                            <div className="absolute bottom-0 left-0 right-0 h-1/2 p-4 bg-gradient-to-br from-gray-900/90 to-gray-800/90 text-white">
-                              <h3 className="font-semibold mb-2 line-clamp-2 text-base sm:text-lg">
-                                {slide.title}
-                              </h3>
-                              <p className="text-sm text-gray-300 mb-3 line-clamp-2">
-                                {slide.description}
-                              </p>
-                              <div className="absolute bottom-4 left-4 right-4 flex justify-between items-center">
-                                <span className="inline-block bg-blue-900/50 border border-blue-500/30 text-blue-200 px-3 py-1 rounded-full text-xs font-medium">
-                                  {slide.linkText}
-                                </span>
-                                {index === currentSlide && (
-                                  <span className="text-xs text-gray-400">詳細を見る</span>
-                                )}
-                              </div>
-                            </div>
-                          </div>
+        {/* 現在のスライドのみ表示 */}
+        <div className="relative z-10 h-full flex items-center justify-center px-4">
+          {slides.map((slide, index) => (
+            <div
+              key={slide.id}
+              className={`transition-opacity duration-500 absolute ${
+                index === currentSlide ? 'opacity-100 z-20' : 'opacity-0 z-10'
+              }`}
+            >
+              <div className="w-[320px] mx-auto">
+                <Link href={slide.linkUrl} className="block">
+                  <div className="bg-white/10 backdrop-blur-lg rounded-xl overflow-hidden shadow-lg border border-white/20 transition-all duration-300 hover:shadow-xl hover:translate-y-[-5px]">
+                    {/* 正方形カード */}
+                    <div className="aspect-square relative">
+                      {/* 上半分：画像 */}
+                      <div className="absolute inset-0 h-1/2 overflow-hidden">
+                        <div className="relative w-full h-full">
+                          <Image
+                            src={slide.imageUrl}
+                            alt={slide.title}
+                            fill
+                            className="object-cover"
+                            priority={index === currentSlide}
+                          />
                         </div>
-                      </Link>
+                        {slide.category && (
+                          <div className="absolute top-3 left-3 bg-black/60 backdrop-blur-sm text-white text-xs font-medium px-2.5 py-1 rounded-full">
+                            {slide.category}
+                          </div>
+                        )}
+                        <div className="absolute top-3 right-3 bg-blue-600/80 backdrop-blur-sm text-white text-xs font-semibold px-2.5 py-1 rounded-full">
+                          注目
+                        </div>
+                      </div>
+
+                      {/* 下半分：コンテンツ */}
+                      <div className="absolute bottom-0 left-0 right-0 h-1/2 p-4 bg-gradient-to-br from-gray-900/90 to-gray-800/90 text-white">
+                        <h3 className="font-semibold mb-2 line-clamp-2 text-base sm:text-lg">
+                          {slide.title}
+                        </h3>
+                        <p className="text-sm text-gray-300 mb-3 line-clamp-2">
+                          {slide.description}
+                        </p>
+                        <div className="absolute bottom-4 left-4 right-4 flex justify-between items-center">
+                          <span className="inline-block bg-blue-900/50 border border-blue-500/30 text-blue-200 px-3 py-1 rounded-full text-xs font-medium">
+                            {slide.linkText}
+                          </span>
+                          <span className="text-xs text-gray-400">詳細を見る</span>
+                        </div>
+                      </div>
                     </div>
                   </div>
-                ))}
+                </Link>
               </div>
             </div>
-          </div>
+          ))}
         </div>
 
         {/* 自動再生インジケーター */}

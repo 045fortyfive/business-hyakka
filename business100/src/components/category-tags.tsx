@@ -17,7 +17,7 @@ interface CategoryTagsProps {
   }[];
 }
 
-export function CategoryTags({ categories }: CategoryTagsProps) {
+export default function CategoryTags({ categories }: CategoryTagsProps) {
   // カテゴリーがない場合は表示しない
   if (categories.length === 0) {
     return null;
@@ -26,7 +26,7 @@ export function CategoryTags({ categories }: CategoryTagsProps) {
   // グラデーションカラーのクラス名を取得
   const getGradientClass = (categoryName: string) => {
     const gradientColor = getGradientColorByCategory(categoryName);
-    
+
     switch (gradientColor) {
       case 'media-blue':
         return 'from-blue-400 via-sky-500 to-indigo-600';

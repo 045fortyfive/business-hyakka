@@ -2,7 +2,7 @@ import { getArticles, getVideos, getAudios, getCategories } from "@/lib/api";
 import { HeroCarousel } from "@/components/hero-carousel";
 import { ContentSection } from "@/components/content-section";
 import { CategorySection } from "@/components/category-section";
-import { CategoryTags } from "@/components/category-tags";
+import CategoryTags from "@/components/category-tags";
 import { CategoryCarousel } from "@/components/category-carousel";
 import { getImageProps } from "@/lib/utils";
 import { CONTENT_TYPES } from "@/lib/types";
