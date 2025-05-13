@@ -30,6 +30,22 @@ export function HeroCarousel({
   const [isPaused, setIsPaused] = useState(false)
   const autoplayTimerRef = useRef<NodeJS.Timeout | null>(null)
 
+  // スライドの総数に基づいて表示位置を計算
+  const getSlidePosition = useCallback((index: number) => {
+    // 現在のスライドからの相対位置を計算
+    const totalSlides = slides.length
+    let relativePosition = index - currentSlide
+
+    // 最短経路で移動するための調整
+    if (relativePosition > totalSlides / 2) {
+      relativePosition -= totalSlides
+    } else if (relativePosition < -totalSlides / 2) {
+      relativePosition += totalSlides
+    }
+
+    return relativePosition
+  }, [currentSlide, slides.length])
+
   // 自動スライド切り替え
   useEffect(() => {
     if (slides.length <= 1 || isPaused) return
@@ -114,76 +130,119 @@ export function HeroCarousel({
       </div>
 
       <div
-        className="relative overflow-hidden rounded-2xl bg-gray-900"
+        className="relative overflow-hidden rounded-2xl bg-gray-900 py-16"
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
       >
-        {/* 背景ブラー効果 */}
+        {/* 背景ブラー効果 - 強化版 */}
         <div className="absolute inset-0 z-0 overflow-hidden">
           {slides.length > 0 && (
             <Image
               src={slides[currentSlide].imageUrl}
               alt="Background"
               fill
-              className="object-cover scale-125 blur-3xl opacity-30"
+              className="object-cover scale-150 blur-3xl opacity-20"
               priority
             />
           )}
-          <div className="absolute inset-0 bg-gradient-to-r from-black/50 via-black/30 to-black/50 backdrop-blur-lg" />
+          <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/50 to-black/70 backdrop-blur-xl" />
         </div>
 
-        {/* カードカルーセル - 完全に再設計 */}
-        <div className="relative z-10 py-16 px-4">
-          <div className="flex justify-center items-center">
-            {/* 固定幅のコンテナ */}
-            <div className="w-[320px] h-[320px] relative">
-              {slides.map((slide, index) => (
-                <div
-                  key={slide.id}
-                  className={`absolute inset-0 transition-opacity duration-500 ${
-                    index === currentSlide ? 'opacity-100 z-10' : 'opacity-0 z-0'
-                  }`}
-                >
-                  <Link href={slide.linkUrl} className="block w-full h-full">
-                    <div className="w-full h-full bg-white/10 backdrop-blur-lg rounded-xl overflow-hidden shadow-lg border border-white/20 transition-all duration-300 hover:shadow-xl hover:translate-y-[-5px]">
-                      {/* 上半分：画像エリア */}
-                      <div className="w-full h-1/2 relative">
-                        <Image
-                          src={slide.imageUrl}
-                          alt={slide.title}
-                          fill
-                          className="object-cover"
-                          priority={index === currentSlide}
-                        />
-                        {slide.category && (
-                          <div className="absolute top-3 left-3 bg-black/60 backdrop-blur-sm text-white text-xs font-medium px-2.5 py-1 rounded-full">
-                            {slide.category}
-                          </div>
-                        )}
-                        <div className="absolute top-3 right-3 bg-blue-600/80 backdrop-blur-sm text-white text-xs font-semibold px-2.5 py-1 rounded-full">
-                          注目
-                        </div>
-                      </div>
+        {/* カードカルーセル - 複数カード表示 */}
+        <div className="relative z-10 mx-auto max-w-6xl px-4">
+          <div className="flex justify-center items-center h-[400px]">
+            {/* カードトラック */}
+            <div className="relative w-full">
+              {slides.map((slide, index) => {
+                // スライドの相対位置を計算
+                const position = getSlidePosition(index);
 
-                      {/* 下半分：テキストエリア */}
-                      <div className="w-full h-1/2 p-4 bg-gradient-to-br from-gray-900/90 to-gray-800/90 text-white flex flex-col">
-                        <h3 className="font-semibold mb-2 line-clamp-2 text-base">
-                          {slide.title}
-                        </h3>
-                        <p className="text-sm text-gray-300 mb-3 line-clamp-2 flex-grow">
-                          {slide.description}
-                        </p>
-                        <div className="flex justify-between items-center">
-                          <span className="inline-block bg-blue-900/50 border border-blue-500/30 text-blue-200 px-3 py-1 rounded-full text-xs font-medium">
-                            {slide.linkText}
-                          </span>
-                          <span className="text-xs text-gray-400">詳細を見る</span>
+                // 現在のスライドかどうかを判定
+                const isActive = position === 0;
+
+                // 隣接スライドかどうかを判定
+                const isAdjacent = Math.abs(position) === 1;
+
+                // 表示するかどうかを判定（パフォーマンス向上のため）
+                const isVisible = Math.abs(position) <= 2;
+
+                // 位置に基づいてスタイルを計算
+                const translateX = position * 110; // 少し重なるように
+                const zIndex = 20 - Math.abs(position) * 5;
+                const scale = isActive ? 1 : 0.8;
+                const opacity = isActive ? 1 : isAdjacent ? 0.7 : 0.4;
+
+                if (!isVisible) return null;
+
+                return (
+                  <div
+                    key={slide.id}
+                    className="absolute top-1/2 left-1/2 w-[320px] transition-all duration-500"
+                    style={{
+                      transform: `translate(-50%, -50%) translateX(${translateX}%) scale(${scale})`,
+                      opacity,
+                      zIndex,
+                    }}
+                  >
+                    <Link
+                      href={slide.linkUrl}
+                      className={`block ${isActive ? 'cursor-pointer' : 'cursor-default pointer-events-none'}`}
+                    >
+                      <div className={`bg-white/10 backdrop-blur-lg rounded-xl overflow-hidden shadow-lg border border-white/20 transition-all duration-300 ${
+                        isActive ? 'shadow-2xl hover:translate-y-[-5px]' : 'shadow-md'
+                      }`}>
+                        {/* 正方形カード */}
+                        <div className="w-full aspect-square relative">
+                          {/* 上半分：画像エリア */}
+                          <div className="absolute top-0 left-0 right-0 h-1/2 overflow-hidden">
+                            <div className="relative w-full h-full">
+                              <Image
+                                src={slide.imageUrl}
+                                alt={slide.title}
+                                fill
+                                className={`object-cover transition-transform duration-500 ${
+                                  isActive ? 'scale-105' : 'scale-100'
+                                }`}
+                                priority={isActive}
+                              />
+                            </div>
+                            {slide.category && (
+                              <div className="absolute top-3 left-3 bg-black/60 backdrop-blur-sm text-white text-xs font-medium px-2.5 py-1 rounded-full">
+                                {slide.category}
+                              </div>
+                            )}
+                            {isActive && (
+                              <div className="absolute top-3 right-3 bg-blue-600/80 backdrop-blur-sm text-white text-xs font-semibold px-2.5 py-1 rounded-full">
+                                注目
+                              </div>
+                            )}
+                          </div>
+
+                          {/* 下半分：テキストエリア */}
+                          <div className="absolute bottom-0 left-0 right-0 h-1/2 p-4 bg-gradient-to-br from-gray-900/90 to-gray-800/90 text-white flex flex-col">
+                            <h3 className={`font-semibold mb-2 line-clamp-2 transition-all duration-300 ${
+                              isActive ? 'text-base' : 'text-sm'
+                            }`}>
+                              {slide.title}
+                            </h3>
+                            <p className={`text-gray-300 mb-3 line-clamp-2 flex-grow transition-all duration-300 ${
+                              isActive ? 'text-sm' : 'text-xs'
+                            }`}>
+                              {slide.description}
+                            </p>
+                            <div className="flex justify-between items-center">
+                              <span className="inline-block bg-blue-900/50 border border-blue-500/30 text-blue-200 px-3 py-1 rounded-full text-xs font-medium">
+                                {slide.linkText}
+                              </span>
+                              {isActive && <span className="text-xs text-gray-400">詳細を見る</span>}
+                            </div>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  </Link>
-                </div>
-              ))}
+                    </Link>
+                  </div>
+                );
+              })}
             </div>
           </div>
         </div>
