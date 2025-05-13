@@ -5,8 +5,9 @@ import { CategorySection } from "@/components/category-section";
 import { getImageProps } from "@/lib/utils";
 import { CONTENT_TYPES } from "@/lib/types";
 
-// トップページは静的生成
-export const revalidate = 3600; // 1時間ごとに再検証
+// トップページは動的生成に変更（ISRからSSRに変更）
+export const dynamic = 'force-dynamic';
+export const fetchCache = 'force-no-store';
 
 // 環境変数の確認（デバッグ用）
 console.log('=== 環境変数の確認（トップページ） ===');
