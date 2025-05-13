@@ -1,0 +1,199 @@
+import { getArticles, getVideos, getAudios, getCategories } from "@/lib/api";
+import { HeroCarousel } from "@/components/hero-carousel";
+import { ContentSection } from "@/components/content-section";
+import { CategorySection } from "@/components/category-section";
+import { getImageProps } from "@/lib/utils";
+import { CONTENT_TYPES } from "@/lib/types";
+
+// トップページは静的生成
+export const revalidate = 3600; // 1時間ごとに再検証
+
+// 環境変数の確認（デバッグ用）
+console.log('=== 環境変数の確認（トップページ） ===');
+console.log('CONTENTFUL_SPACE_ID:', process.env.CONTENTFUL_SPACE_ID);
+console.log('CONTENTFUL_ACCESS_TOKEN:', process.env.CONTENTFUL_ACCESS_TOKEN ? '設定済み' : '未設定');
+console.log('NEXT_PUBLIC_USE_MOCK_DATA:', process.env.NEXT_PUBLIC_USE_MOCK_DATA);
+console.log('NODE_ENV:', process.env.NODE_ENV);
+console.log('==============================');
+
+export default async function Home() {
+  try {
+    console.log('データ取得開始...');
+
+    // 最新の記事、動画、音声を取得
+    const articlesPromise = getArticles(10).catch(error => {
+      console.error('記事の取得に失敗:', error);
+      return { items: [], total: 0, skip: 0, limit: 10, includes: {} };
+    });
+
+    const videosPromise = getVideos(5).catch(error => {
+      console.error('動画の取得に失敗:', error);
+      return { items: [], total: 0, skip: 0, limit: 5, includes: {} };
+    });
+
+    const audiosPromise = getAudios(5).catch(error => {
+      console.error('音声の取得に失敗:', error);
+      return { items: [], total: 0, skip: 0, limit: 5, includes: {} };
+    });
+
+    const categoriesPromise = getCategories().catch(error => {
+      console.error('カテゴリの取得に失敗:', error);
+      return { items: [], total: 0, skip: 0, limit: 100, includes: {} };
+    });
+
+    const [articlesData, videosData, audiosData, categoriesData] = await Promise.all([
+      articlesPromise,
+      videosPromise,
+      audiosPromise,
+      categoriesPromise
+    ]);
+
+    console.log(`取得結果: 記事=${articlesData.items.length}, 動画=${videosData.items.length}, 音声=${audiosData.items.length}, カテゴリ=${categoriesData.items.length}`);
+
+    // カルーセルに表示する記事数（最大5件、ただし記事が5件未満の場合は全件）
+    const carouselItemCount = Math.min(articlesData.items.length, 5);
+
+    // ヒーローカルーセル用のスライドを作成
+    const heroSlides = articlesData.items.slice(0, carouselItemCount).map(article => {
+      // 記事のカテゴリを取得
+      const category = article.fields.category && article.fields.category.length > 0
+        ? article.fields.category[0]?.fields?.name
+        : "ビジネススキル";
+
+      // 記事の画像URLを取得
+      let imageUrl = "/placeholder.svg";
+      if (article.fields.featuredImage && article.fields.featuredImage.fields && article.fields.featuredImage.fields.file) {
+        const fileUrl = article.fields.featuredImage.fields.file.url;
+        imageUrl = fileUrl.startsWith('//') ? `https:${fileUrl}` : fileUrl;
+      }
+
+      console.log(`Hero slide for article "${article.fields.title}":`, {
+        id: article.sys.id,
+        imageUrl: imageUrl,
+        category: category,
+      });
+
+      return {
+        id: article.sys.id,
+        title: article.fields.title,
+        description: article.fields.description || `${category}に関する記事です。`,
+        imageUrl: imageUrl,
+        linkUrl: `/articles/${article.fields.slug}`,
+        linkText: "記事を読む",
+      };
+    });
+
+    // 記事セクション用のアイテムは、カルーセルで使用した記事を除いた残りを使用
+    // 記事が少ない場合は、カルーセルと同じ記事を表示する
+    const articleItems = articlesData.items.length > carouselItemCount
+      ? articlesData.items.slice(carouselItemCount)
+      : articlesData.items;
+
+    return (
+      <div className="container mx-auto px-4 py-8">
+        {/* ヒーローカルーセル */}
+        {heroSlides.length > 0 ? (
+          <HeroCarousel slides={heroSlides} />
+        ) : (
+          <section className="bg-gradient-to-r from-blue-600 to-blue-800 text-white rounded-xl p-8 md:p-12 mb-12">
+            <div className="max-w-3xl">
+              <h1 className="text-3xl md:text-4xl font-bold mb-4">
+                ビジネススキルを効率的に学び、キャリアを加速させよう
+              </h1>
+              <p className="text-lg md:text-xl mb-6">
+                若手ビジネスパーソンのためのスキルアップ情報サイト。
+                記事、動画、音声で、いつでもどこでもビジネススキルを学べます。
+              </p>
+              <div className="flex flex-wrap gap-4">
+                <a
+                  href="/articles"
+                  className="bg-white text-blue-700 hover:bg-gray-100 px-6 py-3 rounded-full font-medium transition-colors"
+                >
+                  記事を読む
+                </a>
+                <a
+                  href="/videos"
+                  className="bg-transparent border-2 border-white text-white hover:bg-white/10 px-6 py-3 rounded-full font-medium transition-colors"
+                >
+                  動画を見る
+                </a>
+              </div>
+            </div>
+          </section>
+        )}
+
+        {/* 最新記事セクション */}
+        <ContentSection
+          title="最新の記事"
+          viewAllLink="/articles"
+          items={articleItems}
+          contentType="article"
+        />
+
+        {/* 最新動画セクション */}
+        <ContentSection
+          title="最新の動画"
+          viewAllLink="/videos"
+          items={videosData.items}
+          contentType="video"
+        />
+
+        {/* 最新音声セクション */}
+        <ContentSection
+          title="最新の音声"
+          viewAllLink="/audios"
+          items={audiosData.items}
+          contentType="audio"
+        />
+
+        {/* カテゴリセクション */}
+        <section className="mb-16">
+          <h2 className="text-2xl font-bold mb-6">カテゴリから探す</h2>
+          <CategorySection categories={categoriesData.items} />
+        </section>
+      </div>
+    );
+  } catch (error) {
+    console.error("Error fetching data:", error);
+
+    // エラーが発生した場合でも最低限のUIを表示
+    return (
+      <div className="container mx-auto px-4 py-8">
+        {/* デフォルトのヒーローセクション */}
+        <section className="bg-gradient-to-r from-blue-600 to-blue-800 text-white rounded-xl p-8 md:p-12 mb-12">
+          <div className="max-w-3xl">
+            <h1 className="text-3xl md:text-4xl font-bold mb-4">
+              ビジネススキルを効率的に学び、キャリアを加速させよう
+            </h1>
+            <p className="text-lg md:text-xl mb-6">
+              若手ビジネスパーソンのためのスキルアップ情報サイト。
+              記事、動画、音声で、いつでもどこでもビジネススキルを学べます。
+            </p>
+            <div className="flex flex-wrap gap-4">
+              <a
+                href="/articles"
+                className="bg-white text-blue-700 hover:bg-gray-100 px-6 py-3 rounded-full font-medium transition-colors"
+              >
+                記事を読む
+              </a>
+              <a
+                href="/videos"
+                className="bg-transparent border-2 border-white text-white hover:bg-white/10 px-6 py-3 rounded-full font-medium transition-colors"
+              >
+                動画を見る
+              </a>
+            </div>
+          </div>
+        </section>
+
+        {/* エラーメッセージ */}
+        <div className="bg-red-50 border border-red-200 p-8 rounded-lg text-center mb-8">
+          <h2 className="text-xl font-bold text-red-700 mb-2">データの取得中にエラーが発生しました</h2>
+          <p className="text-red-600">
+            コンテンツの準備中です。しばらくしてからもう一度お試しください。
+          </p>
+        </div>
+      </div>
+    );
+  }
+}
