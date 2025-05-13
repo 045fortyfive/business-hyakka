@@ -114,7 +114,7 @@ export function HeroCarousel({
       </div>
 
       <div
-        className="relative rounded-2xl bg-gray-900 h-[500px]"
+        className="relative overflow-hidden rounded-2xl bg-gray-900"
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
       >
@@ -132,31 +132,29 @@ export function HeroCarousel({
           <div className="absolute inset-0 bg-gradient-to-r from-black/50 via-black/30 to-black/50 backdrop-blur-lg" />
         </div>
 
-        {/* 現在のスライドのみ表示 */}
-        <div className="relative z-10 h-full flex items-center justify-center px-4">
-          {slides.map((slide, index) => (
-            <div
-              key={slide.id}
-              className={`transition-opacity duration-500 absolute ${
-                index === currentSlide ? 'opacity-100 z-20' : 'opacity-0 z-10'
-              }`}
-            >
-              <div className="w-[320px] mx-auto">
-                <Link href={slide.linkUrl} className="block">
-                  <div className="bg-white/10 backdrop-blur-lg rounded-xl overflow-hidden shadow-lg border border-white/20 transition-all duration-300 hover:shadow-xl hover:translate-y-[-5px]">
-                    {/* 正方形カード */}
-                    <div className="aspect-square relative">
-                      {/* 上半分：画像 */}
-                      <div className="absolute inset-0 h-1/2 overflow-hidden">
-                        <div className="relative w-full h-full">
-                          <Image
-                            src={slide.imageUrl}
-                            alt={slide.title}
-                            fill
-                            className="object-cover"
-                            priority={index === currentSlide}
-                          />
-                        </div>
+        {/* カードカルーセル - 完全に再設計 */}
+        <div className="relative z-10 py-16 px-4">
+          <div className="flex justify-center items-center">
+            {/* 固定幅のコンテナ */}
+            <div className="w-[320px] h-[320px] relative">
+              {slides.map((slide, index) => (
+                <div
+                  key={slide.id}
+                  className={`absolute inset-0 transition-opacity duration-500 ${
+                    index === currentSlide ? 'opacity-100 z-10' : 'opacity-0 z-0'
+                  }`}
+                >
+                  <Link href={slide.linkUrl} className="block w-full h-full">
+                    <div className="w-full h-full bg-white/10 backdrop-blur-lg rounded-xl overflow-hidden shadow-lg border border-white/20 transition-all duration-300 hover:shadow-xl hover:translate-y-[-5px]">
+                      {/* 上半分：画像エリア */}
+                      <div className="w-full h-1/2 relative">
+                        <Image
+                          src={slide.imageUrl}
+                          alt={slide.title}
+                          fill
+                          className="object-cover"
+                          priority={index === currentSlide}
+                        />
                         {slide.category && (
                           <div className="absolute top-3 left-3 bg-black/60 backdrop-blur-sm text-white text-xs font-medium px-2.5 py-1 rounded-full">
                             {slide.category}
@@ -167,15 +165,15 @@ export function HeroCarousel({
                         </div>
                       </div>
 
-                      {/* 下半分：コンテンツ */}
-                      <div className="absolute bottom-0 left-0 right-0 h-1/2 p-4 bg-gradient-to-br from-gray-900/90 to-gray-800/90 text-white">
-                        <h3 className="font-semibold mb-2 line-clamp-2 text-base sm:text-lg">
+                      {/* 下半分：テキストエリア */}
+                      <div className="w-full h-1/2 p-4 bg-gradient-to-br from-gray-900/90 to-gray-800/90 text-white flex flex-col">
+                        <h3 className="font-semibold mb-2 line-clamp-2 text-base">
                           {slide.title}
                         </h3>
-                        <p className="text-sm text-gray-300 mb-3 line-clamp-2">
+                        <p className="text-sm text-gray-300 mb-3 line-clamp-2 flex-grow">
                           {slide.description}
                         </p>
-                        <div className="absolute bottom-4 left-4 right-4 flex justify-between items-center">
+                        <div className="flex justify-between items-center">
                           <span className="inline-block bg-blue-900/50 border border-blue-500/30 text-blue-200 px-3 py-1 rounded-full text-xs font-medium">
                             {slide.linkText}
                           </span>
@@ -183,11 +181,11 @@ export function HeroCarousel({
                         </div>
                       </div>
                     </div>
-                  </div>
-                </Link>
-              </div>
+                  </Link>
+                </div>
+              ))}
             </div>
-          ))}
+          </div>
         </div>
 
         {/* 自動再生インジケーター */}
@@ -214,7 +212,7 @@ export function HeroCarousel({
 
         {/* インジケーターとナビゲーションの統合コントロール */}
         {slides.length > 1 && (
-          <div className="absolute bottom-6 left-0 right-0 z-30 flex justify-between items-center px-6">
+          <div className="absolute bottom-6 left-0 right-0 z-30 flex justify-center items-center gap-8">
             {/* 左矢印 */}
             <button
               onClick={prevSlide}
