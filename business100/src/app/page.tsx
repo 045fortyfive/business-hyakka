@@ -1,5 +1,4 @@
 import { getArticles, getVideos, getAudios, getCategories } from "@/lib/api";
-import { HeroCarousel } from "@/components/hero-carousel";
 import { SimpleCardCarousel } from "@/components/SimpleCardCarousel";
 import { ContentSection } from "@/components/content-section";
 import { CategorySection } from "@/components/category-section";
@@ -163,26 +162,20 @@ export default async function Home() {
 
     return (
       <div className="container mx-auto px-4 py-8">
-        {/* ヒーローカルーセル */}
+        {/* 注目のコンテンツカルーセル */}
         {heroSlides.length > 0 ? (
-          <>
-            {/* 従来のヒーローカルーセル */}
-            <HeroCarousel slides={heroSlides} />
-
-            {/* 新しいSimpleCardCarousel */}
-            <div className="mt-16 mb-8">
-              <h2 className="text-2xl font-bold mb-6">注目のコンテンツ</h2>
-              <SimpleCardCarousel slides={heroSlides.map(slide => ({
-                id: slide.id,
-                title: slide.title,
-                description: slide.description,
-                imageUrl: slide.imageUrl,
-                linkUrl: slide.linkUrl,
-                linkText: slide.linkText,
-                category: slide.category
-              }))} />
-            </div>
-          </>
+          <div className="mb-12">
+            <h2 className="text-2xl font-bold mb-6">注目のコンテンツ</h2>
+            <SimpleCardCarousel slides={heroSlides.map(slide => ({
+              id: slide.id,
+              title: slide.title,
+              description: slide.description,
+              imageUrl: slide.imageUrl,
+              linkUrl: slide.linkUrl,
+              linkText: slide.linkText,
+              category: slide.category
+            }))} />
+          </div>
         ) : (
           <section className="bg-gradient-to-r from-blue-600 to-blue-800 text-white rounded-xl p-8 md:p-12 mb-12">
             <div className="max-w-3xl">
