@@ -151,11 +151,11 @@ export function HeroCarousel({
         </div>
 
         {/* 画像カルーセル */}
-        <div className="relative z-10 py-16 px-4 pb-32">
+        <div className="relative z-10 py-12 px-4 pb-28">
           {/* 画像コンテナ - 中央揃えのためのフレックスコンテナ */}
           <div className="flex justify-center items-center">
             {/* 画像ラッパー - 実際のカルーセル部分 */}
-            <div className="relative w-full max-w-6xl h-[450px]">
+            <div className="relative w-full max-w-6xl h-[340px]">
               {/* 画像トラック - スライド移動用 */}
               <div className="flex h-full">
                 {slides.map((slide, index) => {
@@ -289,7 +289,7 @@ export function HeroCarousel({
 
         {/* インジケーター */}
         {slides.length > 1 && (
-          <div className="absolute bottom-32 left-1/2 -translate-x-1/2 z-30 flex justify-center space-x-3">
+          <div className="absolute bottom-28 left-1/2 -translate-x-1/2 z-30 flex justify-center space-x-3">
             {slides.map((_, index) => (
               <button
                 key={index}
