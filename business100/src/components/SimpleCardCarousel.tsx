@@ -119,12 +119,12 @@ export function SimpleCardCarousel({
       {/* タイトルは親コンポーネントで設定するため削除 */}
 
       <div
-        className="relative overflow-hidden rounded-xl bg-gradient-to-br from-gray-900 to-gray-800 py-12"
+        className="relative overflow-hidden rounded-xl bg-gradient-to-br from-gray-100 to-gray-200 py-12"
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
       >
         {/* カードカルーセル */}
-        <div className="relative h-[400px] mx-auto">
+        <div className="relative h-[480px] mx-auto">
           <div className="absolute inset-0 flex items-center justify-center">
             {visibleSlides.map(({ slide, position, isActive, isAdjacent, isEdge }) => {
               // 位置に基づいてスタイルを計算
@@ -147,12 +147,12 @@ export function SimpleCardCarousel({
                     href={slide.linkUrl}
                     className={`block ${isActive || isAdjacent ? 'cursor-pointer' : 'pointer-events-none'}`}
                   >
-                    {/* 完全な正方形のカード */}
-                    <div className={`w-[320px] h-[320px] bg-white rounded-xl overflow-hidden shadow-lg transition-all duration-300 ${
+                    {/* カード全体のコンテナ */}
+                    <div className={`w-[320px] bg-white rounded-xl overflow-hidden shadow-lg transition-all duration-300 ${
                       isActive ? 'ring-2 ring-blue-500 shadow-xl' : ''
                     }`}>
-                      {/* カード全体を覆う画像 */}
-                      <div className="relative w-full h-full">
+                      {/* 画像部分 - 正方形 */}
+                      <div className="relative w-full aspect-square">
                         <Image
                           src={slide.imageUrl}
                           alt={slide.title}
@@ -168,18 +168,19 @@ export function SimpleCardCarousel({
                             {slide.category}
                           </div>
                         )}
+                      </div>
 
-                        {/* グラデーションオーバーレイ */}
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent">
-                          {/* カードコンテンツ - 下部に配置 */}
-                          <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
-                            <h3 className="font-semibold text-base md:text-lg line-clamp-2">
-                              {slide.title}
-                            </h3>
-                            <p className="text-sm text-gray-300 mt-2 line-clamp-2 opacity-80">
-                              {slide.description}
-                            </p>
-                          </div>
+                      {/* 詳細部分 - 下部に配置 */}
+                      <div className="p-4 bg-white">
+                        <h3 className="font-semibold text-base md:text-lg line-clamp-2 text-gray-900">
+                          {slide.title}
+                        </h3>
+                        <p className="text-sm text-gray-600 mt-2 line-clamp-2">
+                          {slide.description}
+                        </p>
+                        <div className="mt-3 flex justify-between items-center">
+                          <span className="text-xs text-gray-500">{slide.category}</span>
+                          <span className="text-xs text-blue-600 font-medium">{slide.linkText}</span>
                         </div>
                       </div>
                     </div>
@@ -195,14 +196,14 @@ export function SimpleCardCarousel({
           <>
             <button
               onClick={prevSlide}
-              className="absolute left-6 top-1/2 -translate-y-1/2 z-20 bg-white/80 hover:bg-white text-gray-800 rounded-full p-3 shadow-lg transition-all duration-200 hover:scale-110"
+              className="absolute left-6 top-1/3 -translate-y-1/2 z-20 bg-white hover:bg-gray-100 text-gray-800 rounded-full p-3 shadow-lg transition-all duration-200 hover:scale-110"
               aria-label="前のスライド"
             >
               <ChevronLeft className="h-6 w-6" />
             </button>
             <button
               onClick={nextSlide}
-              className="absolute right-6 top-1/2 -translate-y-1/2 z-20 bg-white/80 hover:bg-white text-gray-800 rounded-full p-3 shadow-lg transition-all duration-200 hover:scale-110"
+              className="absolute right-6 top-1/3 -translate-y-1/2 z-20 bg-white hover:bg-gray-100 text-gray-800 rounded-full p-3 shadow-lg transition-all duration-200 hover:scale-110"
               aria-label="次のスライド"
             >
               <ChevronRight className="h-6 w-6" />
@@ -212,7 +213,7 @@ export function SimpleCardCarousel({
 
         {/* インジケーター - 中央に配置 */}
         {slides.length > 1 && (
-          <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 flex justify-center space-x-3">
+          <div className="absolute bottom-10 left-1/2 -translate-x-1/2 z-20 flex justify-center space-x-3">
             {slides.map((_, index) => (
               <button
                 key={index}
