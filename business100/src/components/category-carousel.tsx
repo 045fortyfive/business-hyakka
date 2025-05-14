@@ -65,7 +65,16 @@ export function CategoryCarousel({
 
     const { clientWidth } = carouselRef.current;
     // カードサイズ + 余白分スクロール (160px + 15px)
-    const cardWidth = window.innerWidth <= 640 ? 175 : window.innerWidth <= 768 ? 195 : 215;
+    let cardWidth = 215; // デフォルトはデスクトップサイズ
+
+    if (typeof window !== 'undefined') {
+      if (window.innerWidth <= 640) {
+        cardWidth = 175; // モバイル
+      } else if (window.innerWidth <= 768) {
+        cardWidth = 195; // タブレット
+      }
+    }
+
     const scrollAmount = direction === 'left' ? -cardWidth : cardWidth;
 
     carouselRef.current.scrollBy({
