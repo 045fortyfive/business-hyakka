@@ -156,9 +156,10 @@ export function CategoryCarousel({
             return (
               <div
                 key={item.sys.id}
-                className="min-w-[160px] w-[160px] h-[160px] sm:min-w-[180px] sm:w-[180px] sm:h-[180px] md:min-w-[200px] md:w-[200px] md:h-[200px] snap-start mr-[15px] flex-shrink-0"
+                className="min-w-[160px] w-[160px] sm:min-w-[180px] sm:w-[180px] md:min-w-[200px] md:w-[200px] snap-start mr-[15px] flex-shrink-0 flex flex-col"
               >
-                <div className={`p-[2px] rounded-xl bg-gradient-to-br ${getBorderGradientClass()} h-full`}>
+                {/* カード本体 */}
+                <div className={`p-[2px] rounded-xl bg-gradient-to-br ${getBorderGradientClass()} h-[160px] sm:h-[180px] md:h-[200px]`}>
                   <div className="bg-white rounded-lg overflow-hidden h-full flex flex-col">
                     <Link href={`${contentPath}${item.fields.slug}`} className="flex flex-col h-full">
                       {/* 画像部分 - 正方形の上半分 */}
@@ -173,15 +174,16 @@ export function CategoryCarousel({
                       </div>
                       {/* 詳細部分 - 正方形の下半分 */}
                       <div className="p-2 flex flex-col flex-grow" style={{ height: 'calc(50% - 1px)' }}>
-                        <h3 className="font-medium text-gray-900 text-xs sm:text-sm md:text-base leading-snug line-clamp-3 mb-auto">{item.fields.title}</h3>
-                        <div className="flex items-center justify-end mt-1">
-                          <span className="text-[10px] sm:text-xs font-normal px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-600">
-                            {new Date(item.sys.createdAt).toLocaleDateString('ja-JP', {year: 'numeric', month: 'short', day: 'numeric'})}
-                          </span>
-                        </div>
+                        <h3 className="font-medium text-gray-900 text-xs sm:text-sm md:text-base leading-snug line-clamp-3">{item.fields.title}</h3>
                       </div>
                     </Link>
                   </div>
+                </div>
+                {/* 日付表示 - カードの外側 */}
+                <div className="mt-2 flex justify-end">
+                  <span className="text-[10px] sm:text-xs font-normal text-gray-600">
+                    {new Date(item.sys.createdAt).toLocaleDateString('ja-JP', {year: 'numeric', month: 'short', day: 'numeric'})}
+                  </span>
                 </div>
               </div>
             );
