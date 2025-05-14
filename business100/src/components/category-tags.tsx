@@ -17,7 +17,7 @@ interface CategoryTagsProps {
   }[];
 }
 
-export default function CategoryTags({ categories }: CategoryTagsProps) {
+export function CategoryTags({ categories }: CategoryTagsProps) {
   // カテゴリーがない場合は表示しない
   if (categories.length === 0) {
     return null;
@@ -42,9 +42,9 @@ export default function CategoryTags({ categories }: CategoryTagsProps) {
   };
 
   return (
-    <section className="mb-16">
-      <h2 className="text-2xl font-bold mb-6">カテゴリーから探す</h2>
-      <div className="flex flex-wrap gap-4">
+    <section className="mb-12 sm:mb-16">
+      <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6">カテゴリーから探す</h2>
+      <div className="flex flex-wrap gap-2 sm:gap-3 md:gap-4">
         {categories.map((category) => (
           <Link
             key={category.sys.id}
@@ -52,19 +52,19 @@ export default function CategoryTags({ categories }: CategoryTagsProps) {
             className="group"
           >
             <div className={`p-[2px] rounded-full bg-gradient-to-br ${getGradientClass(category.fields.name)}`}>
-              <div className="flex items-center bg-white rounded-full px-4 py-2 transition-colors group-hover:bg-gray-50">
-                <div className="mr-2">
-                  <CategoryIcon category={category.fields.name} className="h-5 w-5" />
+              <div className="flex items-center bg-white rounded-full px-2 sm:px-3 md:px-4 py-1 sm:py-1.5 md:py-2 transition-colors group-hover:bg-gray-50">
+                <div className="mr-1 sm:mr-2">
+                  <CategoryIcon category={category.fields.name} className="h-3 w-3 sm:h-4 sm:w-4 md:h-5 md:w-5" />
                 </div>
-                <span className="font-medium text-gray-800">{category.fields.name}</span>
+                <span className="text-sm sm:text-base font-medium text-gray-800">{category.fields.name}</span>
               </div>
             </div>
           </Link>
         ))}
         <Link href="/categories" className="group">
           <div className="p-[2px] rounded-full bg-gradient-to-br from-gray-400 via-gray-500 to-gray-600">
-            <div className="flex items-center bg-white rounded-full px-4 py-2 transition-colors group-hover:bg-gray-50">
-              <span className="font-medium text-gray-800">すべて見る</span>
+            <div className="flex items-center bg-white rounded-full px-2 sm:px-3 md:px-4 py-1 sm:py-1.5 md:py-2 transition-colors group-hover:bg-gray-50">
+              <span className="text-sm sm:text-base font-medium text-gray-800">すべて見る</span>
             </div>
           </div>
         </Link>

@@ -93,50 +93,50 @@ export default function ContentCard({
   return (
     <div className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300">
       <Link href={contentPath}>
-        <div className="relative h-48 w-full">
+        <div className="relative h-36 sm:h-40 md:h-48 w-full">
           {thumbnail ? (
             <Image
               src={thumbnail.url}
               alt={thumbnail.alt || title}
               fill
-              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+              sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, 33vw"
               className="object-cover"
               priority={false}
             />
           ) : (
             <div className="bg-gray-200 h-full w-full flex items-center justify-center">
-              <span className="text-gray-400 text-4xl">{contentTypeIcon()}</span>
+              <span className="text-gray-400 text-3xl sm:text-4xl">{contentTypeIcon()}</span>
             </div>
           )}
-          <div className="absolute top-0 right-0 bg-blue-600 text-white px-2 py-1 text-xs font-semibold rounded-bl-lg flex items-center space-x-1">
+          <div className="absolute top-0 right-0 bg-blue-600 text-white px-1.5 py-0.5 sm:px-2 sm:py-1 text-xs font-semibold rounded-bl-lg flex items-center space-x-1">
             <span>{contentTypeIcon()}</span>
             <span>{contentType === 'article' ? '記事' : contentType === 'video' ? '動画' : '音声'}</span>
           </div>
         </div>
       </Link>
 
-      <div className="p-4">
-        <div className="flex items-center text-sm text-gray-500 mb-2">
+      <div className="p-2 sm:p-3 md:p-4">
+        <div className="flex items-center text-xs sm:text-sm text-gray-500 mb-1 sm:mb-2">
           <time dateTime={publishDate}>{formatDate(publishDate)}</time>
-          <span className="mx-2">•</span>
+          <span className="mx-1 sm:mx-2">•</span>
           <Link href={categoryPath} className="hover:text-blue-600">
             {category.name}
           </Link>
         </div>
 
         <Link href={contentPath}>
-          <h3 className="text-xl font-semibold mb-2 hover:text-blue-600 transition-colors duration-200">
+          <h3 className="text-base sm:text-lg md:text-xl font-semibold mb-1 sm:mb-2 hover:text-blue-600 transition-colors duration-200 line-clamp-2">
             {title}
           </h3>
         </Link>
 
         {description && (
-          <p className="text-gray-600 text-sm line-clamp-2">{description}</p>
+          <p className="text-gray-600 text-xs sm:text-sm line-clamp-2">{description}</p>
         )}
 
         <Link
           href={contentPath}
-          className="inline-block mt-3 text-blue-600 hover:text-blue-800 font-medium"
+          className="inline-block mt-2 sm:mt-3 text-sm sm:text-base text-blue-600 hover:text-blue-800 font-medium"
         >
           続きを読む &rarr;
         </Link>

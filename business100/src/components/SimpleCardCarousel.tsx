@@ -143,7 +143,7 @@ export function SimpleCardCarousel({
         </div>
 
         {/* カードカルーセル */}
-        <div className="relative h-[400px] mx-auto z-10">
+        <div className="relative h-[300px] sm:h-[350px] md:h-[400px] mx-auto z-10">
           <div className="absolute inset-0 flex items-center justify-center">
             {visibleSlides.map(({ slide, position, isActive, isAdjacent }) => {
               // 位置に基づいてスタイルを計算
@@ -155,7 +155,7 @@ export function SimpleCardCarousel({
               return (
                 <div
                   key={slide.id}
-                  className="absolute w-[320px] transition-all duration-300 ease-in-out"
+                  className="absolute w-[240px] sm:w-[280px] md:w-[320px] transition-all duration-300 ease-in-out"
                   style={{
                     transform: `translateX(${translateX}%) scale(${scale})`,
                     opacity,
@@ -167,26 +167,26 @@ export function SimpleCardCarousel({
                     className={`block ${isActive || isAdjacent ? 'cursor-pointer' : 'pointer-events-none'}`}
                   >
                     {/* カード全体のコンテナ */}
-                    <div className={`w-[320px] p-[2px] bg-gradient-to-br from-blue-400 via-sky-500 to-indigo-600 rounded-xl overflow-hidden shadow-lg transition-all duration-300 ${
+                    <div className={`w-full p-[2px] bg-gradient-to-br from-blue-400 via-sky-500 to-indigo-600 rounded-xl overflow-hidden shadow-lg transition-all duration-300 ${
                       isActive ? 'scale-105' : ''
                     }`}>
-                      <div className="bg-white rounded-lg flex flex-col h-[320px]">
+                      <div className="bg-white rounded-lg flex flex-col h-[240px] sm:h-[280px] md:h-[320px]">
                         {/* 画像部分 */}
-                        <div className="relative w-full h-[180px]">
+                        <div className="relative w-full h-[120px] sm:h-[150px] md:h-[180px]">
                           <Image
                             src={slide.imageUrl || '/placeholder.svg'}
                             alt={slide.title}
                             fill
                             className="object-cover"
-                            sizes="320px"
+                            sizes="(max-width: 640px) 240px, (max-width: 768px) 280px, 320px"
                             priority={isActive}
                             unoptimized={true}
                           />
 
                           {/* カテゴリーバッジ */}
                           {slide.category && (
-                            <div className="absolute top-0 right-0 m-3">
-                              <span className="inline-block text-xs font-medium px-3 py-1 rounded-full bg-blue-100 text-blue-700">
+                            <div className="absolute top-0 right-0 m-2 sm:m-3">
+                              <span className="inline-block text-[10px] sm:text-xs font-medium px-2 sm:px-3 py-0.5 sm:py-1 rounded-full bg-blue-100 text-blue-700">
                                 {slide.category}
                               </span>
                             </div>
@@ -194,16 +194,16 @@ export function SimpleCardCarousel({
                         </div>
 
                         {/* 詳細部分 */}
-                        <div className="flex-1 p-4 bg-gradient-to-br from-blue-800/95 via-sky-800/95 to-indigo-700/95">
-                          <h3 className="text-lg font-bold mb-2 line-clamp-2 text-white">
+                        <div className="flex-1 p-2 sm:p-3 md:p-4 bg-gradient-to-br from-blue-800/95 via-sky-800/95 to-indigo-700/95">
+                          <h3 className="text-sm sm:text-base md:text-lg font-bold mb-1 sm:mb-2 line-clamp-2 text-white">
                             {slide.title}
                           </h3>
-                          <p className="text-sm text-gray-100 mb-3 line-clamp-2">
+                          <p className="text-xs sm:text-sm text-gray-100 mb-1 sm:mb-2 md:mb-3 line-clamp-2">
                             {slide.description}
                           </p>
                           <div className="mt-auto flex justify-between items-center">
-                            <span className="text-xs text-gray-200">{slide.category}</span>
-                            <span className="inline-block px-3 py-1 text-sm bg-white text-gray-800 rounded-lg">
+                            <span className="text-[10px] sm:text-xs text-gray-200">{slide.category}</span>
+                            <span className="inline-block px-2 sm:px-3 py-0.5 sm:py-1 text-xs sm:text-sm bg-white text-gray-800 rounded-lg">
                               {slide.linkText}
                             </span>
                           </div>

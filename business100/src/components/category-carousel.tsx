@@ -140,27 +140,27 @@ export function CategoryCarousel({
             return (
               <div
                 key={item.sys.id}
-                className="min-w-[280px] w-[280px] snap-start mr-4 flex-shrink-0"
+                className="min-w-[200px] w-[200px] sm:min-w-[240px] sm:w-[240px] md:min-w-[280px] md:w-[280px] snap-start mr-3 sm:mr-4 flex-shrink-0"
               >
                 <div className={`p-[2px] rounded-xl bg-gradient-to-br ${getBorderGradientClass()} h-full`}>
                   <div className="bg-white rounded-lg overflow-hidden h-full flex flex-col">
                     <Link href={`${contentPath}${item.fields.slug}`} className="flex flex-col h-full">
-                      <div className="relative h-40 w-full">
+                      <div className="relative h-28 sm:h-32 md:h-40 w-full">
                         <Image
                           src={imageUrl}
                           alt={item.fields.title}
                           fill
-                          sizes="280px"
+                          sizes="(max-width: 640px) 200px, (max-width: 768px) 240px, 280px"
                           className="object-cover"
                         />
                       </div>
-                      <div className="p-4 flex flex-col flex-grow">
-                        <h3 className="font-medium text-gray-900 mb-2 line-clamp-2">{item.fields.title}</h3>
-                        <p className="text-sm text-gray-600 line-clamp-2 mb-auto">
+                      <div className="p-2 sm:p-3 md:p-4 flex flex-col flex-grow">
+                        <h3 className="font-medium text-gray-900 text-sm sm:text-base mb-1 sm:mb-2 line-clamp-2">{item.fields.title}</h3>
+                        <p className="text-xs sm:text-sm text-gray-600 line-clamp-2 mb-auto">
                           {item.fields.description || `${categoryName}に関するコンテンツです。`}
                         </p>
-                        <div className="flex items-center justify-between mt-3">
-                          <span className="text-xs font-medium px-2 py-1 rounded-full bg-gray-100 text-gray-700">
+                        <div className="flex items-center justify-between mt-2 sm:mt-3">
+                          <span className="text-[10px] sm:text-xs font-medium px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full bg-gray-100 text-gray-700">
                             {new Date(item.sys.createdAt).toLocaleDateString('ja-JP')}
                           </span>
                         </div>

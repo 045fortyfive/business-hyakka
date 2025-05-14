@@ -211,11 +211,11 @@ export default async function Home() {
     }).filter(item => item.content.length > 0);
 
     return (
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-6 sm:py-8">
         {/* 注目のコンテンツカルーセル */}
         {heroSlides.length > 0 ? (
-          <div className="mb-12">
-            <h2 className="text-2xl font-bold mb-6">注目のコンテンツ</h2>
+          <div className="mb-8 sm:mb-12">
+            <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6">注目のコンテンツ</h2>
             <SimpleCardCarousel
               slides={heroSlides.map(slide => ({
                 id: slide.id,
