@@ -183,11 +183,32 @@ export default async function Home() {
       });
     };
 
+    // カテゴリー情報を取得
+    const categories = categoriesData.items.map(category => {
+      if (category.fields) {
+        return {
+          id: category.sys.id,
+          name: category.fields.name as string,
+          slug: category.fields.slug as string,
+          description: category.fields.description as string | undefined
+        };
+      }
+      return null;
+    }).filter(Boolean) as Array<{
+      id: string;
+      name: string;
+      slug: string;
+      description?: string;
+    }>;
+
     // 各カテゴリーのコンテンツを取得
-    const basicSkillsContent = categorizeContent([...articlesData.items, ...videosData.items, ...audiosData.items], '基本ビジネススキル');
-    const thinkingContent = categorizeContent([...articlesData.items, ...videosData.items, ...audiosData.items], '思考法');
-    const managementContent = categorizeContent([...articlesData.items, ...videosData.items, ...audiosData.items], 'マネジメントスキル');
-    const improvementContent = categorizeContent([...articlesData.items, ...videosData.items, ...audiosData.items], '業務改善');
+    const categoryContents = categories.map(category => {
+      const content = categorizeContent([...articlesData.items, ...videosData.items, ...audiosData.items], category.name);
+      return {
+        ...category,
+        content
+      };
+    }).filter(item => item.content.length > 0);
 
     return (
       <div className="container mx-auto px-4 py-8">
@@ -239,42 +260,16 @@ export default async function Home() {
         {/* カテゴリータグ */}
         <CategoryTags categories={categoriesData.items} />
 
-        {/* カテゴリー別カルーセル */}
-        {basicSkillsContent.length > 0 && (
+        {/* カテゴリー別カルーセル - 動的に生成 */}
+        {categoryContents.map(category => (
           <CategoryCarousel
-            title="基本ビジネススキル"
-            categoryName="基本ビジネススキル"
-            viewAllLink="/categories/基本ビジネススキル"
-            items={basicSkillsContent}
+            key={category.id}
+            title={category.name}
+            categoryName={category.name}
+            categorySlug={category.slug}
+            items={category.content}
           />
-        )}
-
-        {thinkingContent.length > 0 && (
-          <CategoryCarousel
-            title="思考法"
-            categoryName="思考法"
-            viewAllLink="/categories/思考法"
-            items={thinkingContent}
-          />
-        )}
-
-        {managementContent.length > 0 && (
-          <CategoryCarousel
-            title="マネジメントスキル"
-            categoryName="マネジメントスキル"
-            viewAllLink="/categories/マネジメントスキル"
-            items={managementContent}
-          />
-        )}
-
-        {improvementContent.length > 0 && (
-          <CategoryCarousel
-            title="業務改善"
-            categoryName="業務改善"
-            viewAllLink="/categories/業務改善"
-            items={improvementContent}
-          />
-        )}
+        ))}
       </div>
     );
   } catch (error) {
