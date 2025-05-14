@@ -64,7 +64,9 @@ export function CategoryCarousel({
     if (!carouselRef.current) return;
 
     const { clientWidth } = carouselRef.current;
-    const scrollAmount = direction === 'left' ? -clientWidth / 2 : clientWidth / 2;
+    // モバイルでは1枚分（カード幅40% + 余白3.75%）スクロール
+    const cardWidth = window.innerWidth <= 640 ? clientWidth * 0.4375 : clientWidth / 2;
+    const scrollAmount = direction === 'left' ? -cardWidth : cardWidth;
 
     carouselRef.current.scrollBy({
       left: scrollAmount,
@@ -94,10 +96,10 @@ export function CategoryCarousel({
   };
 
   return (
-    <section className="mb-16">
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold">{title}</h2>
-        <Link href={categoryLink} className="text-blue-600 hover:underline">
+    <section className="mb-8 sm:mb-12 md:mb-16">
+      <div className="flex justify-between items-center mb-3 sm:mb-4 md:mb-6">
+        <h2 className="text-lg sm:text-xl md:text-2xl font-bold">{title}</h2>
+        <Link href={categoryLink} className="text-sm sm:text-base text-blue-600 hover:underline">
           すべて見る &rarr;
         </Link>
       </div>
@@ -107,10 +109,10 @@ export function CategoryCarousel({
         {showLeftButton && (
           <button
             onClick={() => scroll('left')}
-            className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-white/80 rounded-full p-2 shadow-md hover:bg-white"
+            className="absolute left-[1%] top-1/2 -translate-y-1/2 z-10 bg-white/80 rounded-full p-1.5 sm:p-2 shadow-md hover:bg-white"
             aria-label="前へ"
           >
-            <ChevronLeft className="h-6 w-6" />
+            <ChevronLeft className="h-4 w-4 sm:h-6 sm:w-6" />
           </button>
         )}
 
@@ -118,7 +120,12 @@ export function CategoryCarousel({
         <div
           ref={carouselRef}
           className="flex overflow-x-auto pb-4 scrollbar-hide snap-x snap-mandatory"
-          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+          style={{
+            scrollbarWidth: 'none',
+            msOverflowStyle: 'none',
+            paddingLeft: '3.75%',
+            paddingRight: '12.5%' // 3つ目のカードが12.5%見切れるようにパディングを設定
+          }}
         >
           {items.map((item) => {
             // 画像URLの取得
@@ -140,7 +147,7 @@ export function CategoryCarousel({
             return (
               <div
                 key={item.sys.id}
-                className="min-w-[200px] w-[200px] sm:min-w-[240px] sm:w-[240px] md:min-w-[280px] md:w-[280px] snap-start mr-3 sm:mr-4 flex-shrink-0"
+                className="min-w-[40%] w-[40%] sm:min-w-[240px] sm:w-[240px] md:min-w-[280px] md:w-[280px] snap-start mr-[3.75%] sm:mr-4 flex-shrink-0"
               >
                 <div className={`p-[2px] rounded-xl bg-gradient-to-br ${getBorderGradientClass()} h-full`}>
                   <div className="bg-white rounded-lg overflow-hidden h-full flex flex-col">
@@ -177,10 +184,10 @@ export function CategoryCarousel({
         {showRightButton && (
           <button
             onClick={() => scroll('right')}
-            className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-white/80 rounded-full p-2 shadow-md hover:bg-white"
+            className="absolute right-[1%] top-1/2 -translate-y-1/2 z-10 bg-white/80 rounded-full p-1.5 sm:p-2 shadow-md hover:bg-white"
             aria-label="次へ"
           >
-            <ChevronRight className="h-6 w-6" />
+            <ChevronRight className="h-4 w-4 sm:h-6 sm:w-6" />
           </button>
         )}
       </div>
