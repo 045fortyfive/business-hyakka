@@ -154,7 +154,12 @@ export function SimpleCardCarousel({
                       {/* 画像部分 - 正方形 */}
                       <div className="relative w-full aspect-square">
                         <Image
-                          src={slide.imageUrl}
+                          src={
+                            !slide.imageUrl ? '/placeholder.svg' :
+                            slide.imageUrl.startsWith('/') ? slide.imageUrl :
+                            slide.imageUrl.startsWith('http') ? slide.imageUrl :
+                            `https:${slide.imageUrl}`
+                          }
                           alt={slide.title}
                           fill
                           className="object-cover"
