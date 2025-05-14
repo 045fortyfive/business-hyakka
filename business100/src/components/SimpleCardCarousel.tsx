@@ -34,19 +34,27 @@ export function SimpleCardCarousel({
   useEffect(() => {
     if (slides.length <= 1 || isPaused) return
 
+    console.log('Starting autoplay timer...')
+
     const startAutoplay = () => {
       if (autoplayTimerRef.current) {
         clearInterval(autoplayTimerRef.current)
       }
 
       autoplayTimerRef.current = setInterval(() => {
-        setCurrentSlide((prev) => (prev + 1) % slides.length)
+        console.log('Auto advancing slide...')
+        setCurrentSlide((prev) => {
+          const next = (prev + 1) % slides.length
+          console.log(`Changing slide from ${prev} to ${next}`)
+          return next
+        })
       }, autoplayInterval)
     }
 
     startAutoplay()
 
     return () => {
+      console.log('Cleaning up autoplay timer...')
       if (autoplayTimerRef.current) {
         clearInterval(autoplayTimerRef.current)
         autoplayTimerRef.current = null
@@ -69,13 +77,49 @@ export function SimpleCardCarousel({
 
   // 前のスライドに移動
   const prevSlide = useCallback(() => {
-    setCurrentSlide((prev) => (prev - 1 + slides.length) % slides.length)
-  }, [slides.length])
+    console.log('Manual prev slide...')
+    // 自動再生タイマーをリセット
+    if (autoplayTimerRef.current) {
+      clearInterval(autoplayTimerRef.current)
+      autoplayTimerRef.current = null
+    }
+
+    setCurrentSlide((prev) => {
+      const next = (prev - 1 + slides.length) % slides.length
+      console.log(`Changing slide from ${prev} to ${next} (prev)`)
+      return next
+    })
+
+    // 一時停止していない場合は自動再生を再開
+    if (!isPaused) {
+      autoplayTimerRef.current = setInterval(() => {
+        setCurrentSlide((prev) => (prev + 1) % slides.length)
+      }, autoplayInterval)
+    }
+  }, [slides.length, autoplayInterval, isPaused])
 
   // 次のスライドに移動
   const nextSlide = useCallback(() => {
-    setCurrentSlide((prev) => (prev + 1) % slides.length)
-  }, [slides.length])
+    console.log('Manual next slide...')
+    // 自動再生タイマーをリセット
+    if (autoplayTimerRef.current) {
+      clearInterval(autoplayTimerRef.current)
+      autoplayTimerRef.current = null
+    }
+
+    setCurrentSlide((prev) => {
+      const next = (prev + 1) % slides.length
+      console.log(`Changing slide from ${prev} to ${next} (next)`)
+      return next
+    })
+
+    // 一時停止していない場合は自動再生を再開
+    if (!isPaused) {
+      autoplayTimerRef.current = setInterval(() => {
+        setCurrentSlide((prev) => (prev + 1) % slides.length)
+      }, autoplayInterval)
+    }
+  }, [slides.length, autoplayInterval, isPaused])
 
   // スライドの相対位置を計算
   const getVisibleSlides = useCallback(() => {
@@ -238,7 +282,23 @@ export function SimpleCardCarousel({
             {slides.map((_, index) => (
               <button
                 key={index}
-                onClick={() => setCurrentSlide(index)}
+                onClick={() => {
+                  console.log(`Indicator click: changing to slide ${index}`)
+                  // 自動再生タイマーをリセット
+                  if (autoplayTimerRef.current) {
+                    clearInterval(autoplayTimerRef.current)
+                    autoplayTimerRef.current = null
+                  }
+
+                  setCurrentSlide(index)
+
+                  // 一時停止していない場合は自動再生を再開
+                  if (!isPaused) {
+                    autoplayTimerRef.current = setInterval(() => {
+                      setCurrentSlide((prev) => (prev + 1) % slides.length)
+                    }, autoplayInterval)
+                  }
+                }}
                 className={`w-3 h-3 rounded-full transition-all duration-300 ${
                   index === currentSlide
                     ? 'bg-white scale-125'

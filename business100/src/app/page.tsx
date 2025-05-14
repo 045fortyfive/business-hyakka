@@ -195,15 +195,18 @@ export default async function Home() {
         {heroSlides.length > 0 ? (
           <div className="mb-12">
             <h2 className="text-2xl font-bold mb-6">注目のコンテンツ</h2>
-            <SimpleCardCarousel slides={heroSlides.map(slide => ({
-              id: slide.id,
-              title: slide.title,
-              description: slide.description,
-              imageUrl: slide.imageUrl,
-              linkUrl: slide.linkUrl,
-              linkText: slide.linkText,
-              category: slide.category
-            }))} />
+            <SimpleCardCarousel
+              slides={heroSlides.map(slide => ({
+                id: slide.id,
+                title: slide.title,
+                description: slide.description,
+                imageUrl: slide.imageUrl,
+                linkUrl: slide.linkUrl,
+                linkText: slide.linkText,
+                category: slide.category
+              }))}
+              autoplayInterval={3000}
+            />
           </div>
         ) : (
           <section className="bg-gradient-to-r from-blue-600 to-blue-800 text-white rounded-xl p-8 md:p-12 mb-12">

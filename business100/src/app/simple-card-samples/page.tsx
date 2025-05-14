@@ -71,9 +71,9 @@ export default function SimpleCardSamplesPage() {
   return (
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-3xl font-bold mb-8">シンプルカードサンプル</h1>
-      
-      <SimpleCardCarousel slides={sampleSlides} />
-      
+
+      <SimpleCardCarousel slides={sampleSlides} autoplayInterval={3000} />
+
       <div className="mt-12 p-6 bg-gray-100 rounded-lg">
         <h2 className="text-xl font-bold mb-4">このページについて</h2>
         <p>
