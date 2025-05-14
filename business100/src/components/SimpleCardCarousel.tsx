@@ -119,12 +119,12 @@ export function SimpleCardCarousel({
       {/* タイトルは親コンポーネントで設定するため削除 */}
 
       <div
-        className="relative overflow-hidden rounded-xl bg-gradient-to-br from-gray-100 to-gray-200 py-12"
+        className="relative overflow-hidden rounded-xl bg-gradient-to-br from-gray-800 to-gray-900 py-12"
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
       >
         {/* カードカルーセル */}
-        <div className="relative h-[480px] mx-auto">
+        <div className="relative h-[400px] mx-auto">
           <div className="absolute inset-0 flex items-center justify-center">
             {visibleSlides.map(({ slide, position, isActive, isAdjacent, isEdge }) => {
               // 位置に基づいてスタイルを計算
@@ -147,41 +147,47 @@ export function SimpleCardCarousel({
                     href={slide.linkUrl}
                     className={`block ${isActive || isAdjacent ? 'cursor-pointer' : 'pointer-events-none'}`}
                   >
-                    {/* カード全体のコンテナ */}
-                    <div className={`w-[320px] bg-white rounded-xl overflow-hidden shadow-lg transition-all duration-300 ${
-                      isActive ? 'ring-2 ring-blue-500 shadow-xl' : ''
+                    {/* カード全体のコンテナ - SquareCardと同様のデザイン */}
+                    <div className={`w-[320px] p-[2px] bg-gradient-to-br from-blue-400 via-sky-500 to-indigo-600 rounded-xl overflow-hidden shadow-lg transition-all duration-300 ${
+                      isActive ? 'scale-105' : ''
                     }`}>
-                      {/* 画像部分 - 正方形 */}
-                      <div className="relative w-full aspect-square">
-                        <Image
-                          src={slide.imageUrl || '/placeholder.svg'}
-                          alt={slide.title}
-                          fill
-                          className="object-cover"
-                          sizes="320px"
-                          priority={isActive}
-                          unoptimized={true} // 画像最適化を無効化して直接URLを使用
-                        />
+                      <div className="bg-white rounded-lg flex flex-col h-[320px]">
+                        {/* 画像部分 - 16:9比率 */}
+                        <div className="relative w-full h-[180px]">
+                          <Image
+                            src={slide.imageUrl || '/placeholder.svg'}
+                            alt={slide.title}
+                            fill
+                            className="object-cover"
+                            sizes="320px"
+                            priority={isActive}
+                            unoptimized={true}
+                          />
 
-                        {/* カテゴリーバッジ */}
-                        {slide.category && (
-                          <div className="absolute top-4 left-4 bg-black/60 backdrop-blur-sm text-white text-sm px-3 py-1.5 rounded-full">
-                            {slide.category}
+                          {/* カテゴリーバッジ */}
+                          {slide.category && (
+                            <div className="absolute top-0 right-0 m-3">
+                              <span className="inline-block text-xs font-medium px-3 py-1 rounded-full bg-blue-100 text-blue-700">
+                                {slide.category}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* 詳細部分 - 下部に配置 */}
+                        <div className="flex-1 p-4 bg-gradient-to-br from-blue-800/95 via-sky-800/95 to-indigo-700/95">
+                          <h3 className="text-lg font-bold mb-2 line-clamp-2 text-white">
+                            {slide.title}
+                          </h3>
+                          <p className="text-sm text-gray-100 mb-3 line-clamp-2">
+                            {slide.description}
+                          </p>
+                          <div className="mt-auto flex justify-between items-center">
+                            <span className="text-xs text-gray-200">{slide.category}</span>
+                            <span className="inline-block px-3 py-1 text-sm bg-white text-gray-800 rounded-lg">
+                              {slide.linkText}
+                            </span>
                           </div>
-                        )}
-                      </div>
-
-                      {/* 詳細部分 - 下部に配置 */}
-                      <div className="p-4 bg-white">
-                        <h3 className="font-semibold text-base md:text-lg line-clamp-2 text-gray-900">
-                          {slide.title}
-                        </h3>
-                        <p className="text-sm text-gray-600 mt-2 line-clamp-2">
-                          {slide.description}
-                        </p>
-                        <div className="mt-3 flex justify-between items-center">
-                          <span className="text-xs text-gray-500">{slide.category}</span>
-                          <span className="text-xs text-blue-600 font-medium">{slide.linkText}</span>
                         </div>
                       </div>
                     </div>
@@ -197,14 +203,14 @@ export function SimpleCardCarousel({
           <>
             <button
               onClick={prevSlide}
-              className="absolute left-6 top-1/3 -translate-y-1/2 z-20 bg-white hover:bg-gray-100 text-gray-800 rounded-full p-3 shadow-lg transition-all duration-200 hover:scale-110"
+              className="absolute left-6 top-1/2 -translate-y-1/2 z-20 bg-white/90 hover:bg-white text-gray-800 rounded-full p-3 shadow-lg transition-all duration-200 hover:scale-110"
               aria-label="前のスライド"
             >
               <ChevronLeft className="h-6 w-6" />
             </button>
             <button
               onClick={nextSlide}
-              className="absolute right-6 top-1/3 -translate-y-1/2 z-20 bg-white hover:bg-gray-100 text-gray-800 rounded-full p-3 shadow-lg transition-all duration-200 hover:scale-110"
+              className="absolute right-6 top-1/2 -translate-y-1/2 z-20 bg-white/90 hover:bg-white text-gray-800 rounded-full p-3 shadow-lg transition-all duration-200 hover:scale-110"
               aria-label="次のスライド"
             >
               <ChevronRight className="h-6 w-6" />
@@ -221,8 +227,8 @@ export function SimpleCardCarousel({
                 onClick={() => setCurrentSlide(index)}
                 className={`w-3 h-3 rounded-full transition-all duration-300 ${
                   index === currentSlide
-                    ? 'bg-blue-500 scale-125'
-                    : 'bg-gray-300 hover:bg-gray-400'
+                    ? 'bg-white scale-125'
+                    : 'bg-gray-400/50 hover:bg-gray-300/70'
                 }`}
                 aria-label={`スライド ${index + 1} に移動`}
               />
