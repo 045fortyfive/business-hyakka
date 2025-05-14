@@ -107,8 +107,8 @@ export function CategoryCarousel({
   return (
     <section className="mb-8 sm:mb-12 md:mb-16">
       <div className="flex justify-between items-center mb-3 sm:mb-4 md:mb-6">
-        <h2 className="text-lg sm:text-xl md:text-2xl font-bold">{title}</h2>
-        <Link href={categoryLink} className="text-sm sm:text-base text-blue-600 hover:underline">
+        <h2 className="text-xl sm:text-2xl md:text-3xl font-bold">{title}</h2>
+        <Link href={categoryLink} className="text-sm sm:text-base md:text-lg text-blue-600 hover:underline">
           すべて見る &rarr;
         </Link>
       </div>
@@ -173,9 +173,9 @@ export function CategoryCarousel({
                       </div>
                       {/* 詳細部分 - 正方形の下半分 */}
                       <div className="p-2 flex flex-col flex-grow" style={{ height: 'calc(50% - 1px)' }}>
-                        <h3 className="font-kosugi font-medium text-gray-900 text-[10px] sm:text-xs md:text-sm leading-tight line-clamp-3 mb-auto">{item.fields.title}</h3>
+                        <h3 className="font-medium text-gray-900 text-xs sm:text-sm md:text-base leading-snug line-clamp-3 mb-auto">{item.fields.title}</h3>
                         <div className="flex items-center justify-end mt-1">
-                          <span className="font-kosugi text-[8px] sm:text-[9px] font-normal px-1 py-0.5 rounded-full bg-gray-100 text-gray-600">
+                          <span className="text-[10px] sm:text-xs font-normal px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-600">
                             {new Date(item.sys.createdAt).toLocaleDateString('ja-JP', {year: 'numeric', month: 'short', day: 'numeric'})}
                           </span>
                         </div>

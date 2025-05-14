@@ -215,7 +215,7 @@ export default async function Home() {
         {/* 注目のコンテンツカルーセル */}
         {heroSlides.length > 0 ? (
           <div className="mb-6 sm:mb-8 md:mb-12">
-            <h2 className="text-lg sm:text-xl md:text-2xl font-bold mb-2 sm:mb-4 md:mb-6">注目のコンテンツ</h2>
+            <h2 className="text-xl sm:text-2xl md:text-3xl font-bold mb-3 sm:mb-4 md:mb-6">注目のコンテンツ</h2>
             <SimpleCardCarousel
               slides={heroSlides.map(slide => ({
                 id: slide.id,

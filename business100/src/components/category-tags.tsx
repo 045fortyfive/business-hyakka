@@ -43,7 +43,7 @@ export function CategoryTags({ categories }: CategoryTagsProps) {
 
   return (
     <section className="mb-12 sm:mb-16">
-      <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6">カテゴリーから探す</h2>
+      <h2 className="text-xl sm:text-2xl md:text-3xl font-bold mb-3 sm:mb-4 md:mb-6">カテゴリーから探す</h2>
       <div className="flex flex-wrap gap-2 sm:gap-3 md:gap-4">
         {categories.map((category) => (
           <Link

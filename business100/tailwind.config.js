@@ -14,7 +14,6 @@ module.exports = {
     extend: {
       fontFamily: {
         sans: ['var(--font-noto-sans-jp)', 'Noto Sans JP', 'sans-serif'],
-        kosugi: ['var(--font-kosugi-maru)', 'Kosugi Maru', 'sans-serif'],
       },
       colors: {
         primary: {
