@@ -12,6 +12,10 @@ module.exports = {
   },
   theme: {
     extend: {
+      fontFamily: {
+        sans: ['var(--font-noto-sans-jp)', 'Noto Sans JP', 'sans-serif'],
+        kosugi: ['var(--font-kosugi-maru)', 'Kosugi Maru', 'sans-serif'],
+      },
       colors: {
         primary: {
           50: '#f0f9ff',

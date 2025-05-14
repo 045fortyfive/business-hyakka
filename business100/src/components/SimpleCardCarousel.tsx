@@ -147,7 +147,8 @@ export function SimpleCardCarousel({
           <div className="absolute inset-0 flex items-center justify-center">
             {visibleSlides.map(({ slide, position, isActive, isAdjacent }) => {
               // 位置に基づいてスタイルを計算
-              const translateX = position * 120
+              // スマホ表示時は両端が見切れるように調整
+              const translateX = position * (window.innerWidth <= 640 ? 100 : 120)
               const zIndex = 10 - Math.abs(position) * 2
               const scale = isActive ? 1 : isAdjacent ? 0.85 : 0.7
               const opacity = isActive ? 1 : isAdjacent ? 0.8 : 0.6

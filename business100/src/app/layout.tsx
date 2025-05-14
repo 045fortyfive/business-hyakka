@@ -1,13 +1,23 @@
 import type { Metadata } from "next";
-import { Noto_Sans_JP } from "next/font/google";
+import { Noto_Sans_JP, Kosugi_Maru } from "next/font/google";
 import "./globals.css";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import { BackgroundProvider } from "@/contexts/BackgroundContext";
+import BackgroundWrapper from "@/components/BackgroundWrapper";
+import BackgroundControl from "@/components/BackgroundControl";
 
 const notoSansJP = Noto_Sans_JP({
   subsets: ["latin"],
   weight: ["400", "500", "700"],
   variable: "--font-noto-sans-jp",
+  display: 'swap',
+});
+
+const kosugiMaru = Kosugi_Maru({
+  weight: ["400"],
+  subsets: ["latin"],
+  variable: "--font-kosugi-maru",
   display: 'swap',
 });
 
@@ -27,12 +37,17 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ja" className={notoSansJP.variable}>
-      <body className="font-sans antialiased min-h-screen flex flex-col bg-white text-gray-900">
-        <Header />
-        <main className="flex-grow">{children}</main>
-        <Footer />
-      </body>
+    <html lang="ja" className={`${notoSansJP.variable} ${kosugiMaru.variable}`}>
+      <BackgroundProvider>
+        <body className="font-sans antialiased min-h-screen flex flex-col" suppressHydrationWarning={true}>
+          <BackgroundWrapper>
+            <Header />
+            <main className="flex-grow">{children}</main>
+            <Footer />
+            <BackgroundControl />
+          </BackgroundWrapper>
+        </body>
+      </BackgroundProvider>
     </html>
   );
 }
