@@ -68,7 +68,16 @@ export default async function Home() {
         let imageUrl = "/placeholder.svg";
         if (article.fields.featuredImage && article.fields.featuredImage.fields && article.fields.featuredImage.fields.file) {
           const fileUrl = article.fields.featuredImage.fields.file.url;
-          imageUrl = fileUrl.startsWith('//') ? `https:${fileUrl}` : fileUrl;
+          // 画像URLの形式に応じて適切に処理
+          if (fileUrl.startsWith('//')) {
+            imageUrl = `https:${fileUrl}`;
+          } else if (fileUrl.startsWith('/')) {
+            imageUrl = fileUrl;
+          } else if (fileUrl.startsWith('http')) {
+            imageUrl = fileUrl;
+          } else {
+            imageUrl = `https://${fileUrl}`;
+          }
         }
 
         console.log(`Hero slide for article "${article.fields.title}":`, {
@@ -101,7 +110,17 @@ export default async function Home() {
         let imageUrl = "/placeholder.svg";
         if (video.fields.featuredImage && video.fields.featuredImage.fields && video.fields.featuredImage.fields.file) {
           const fileUrl = video.fields.featuredImage.fields.file.url;
-          imageUrl = fileUrl.startsWith('//') ? `https:${fileUrl}` : fileUrl;
+          // 画像URLの形式に応じて適切に処理
+          if (fileUrl.startsWith('//')) {
+            imageUrl = `https:${fileUrl}`;
+          } else if (fileUrl.startsWith('/')) {
+            imageUrl = fileUrl;
+          } else if (fileUrl.startsWith('http')) {
+            imageUrl = fileUrl;
+          } else {
+            imageUrl = `https://${fileUrl}`;
+          }
+          console.log(`Video image URL: ${imageUrl}`);
         }
 
         heroSlides.push({
@@ -128,7 +147,17 @@ export default async function Home() {
         let imageUrl = "/placeholder.svg";
         if (audio.fields.featuredImage && audio.fields.featuredImage.fields && audio.fields.featuredImage.fields.file) {
           const fileUrl = audio.fields.featuredImage.fields.file.url;
-          imageUrl = fileUrl.startsWith('//') ? `https:${fileUrl}` : fileUrl;
+          // 画像URLの形式に応じて適切に処理
+          if (fileUrl.startsWith('//')) {
+            imageUrl = `https:${fileUrl}`;
+          } else if (fileUrl.startsWith('/')) {
+            imageUrl = fileUrl;
+          } else if (fileUrl.startsWith('http')) {
+            imageUrl = fileUrl;
+          } else {
+            imageUrl = `https://${fileUrl}`;
+          }
+          console.log(`Audio image URL: ${imageUrl}`);
         }
 
         heroSlides.push({
