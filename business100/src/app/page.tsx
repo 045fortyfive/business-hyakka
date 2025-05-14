@@ -244,7 +244,7 @@ export default async function Home() {
           <CategoryCarousel
             title="基本ビジネススキル"
             categoryName="基本ビジネススキル"
-            viewAllLink="/categories/basic-business-skills"
+            viewAllLink="/categories/基本ビジネススキル"
             items={basicSkillsContent}
           />
         )}
@@ -253,7 +253,7 @@ export default async function Home() {
           <CategoryCarousel
             title="思考法"
             categoryName="思考法"
-            viewAllLink="/categories/thinking"
+            viewAllLink="/categories/思考法"
             items={thinkingContent}
           />
         )}
@@ -262,7 +262,7 @@ export default async function Home() {
           <CategoryCarousel
             title="マネジメントスキル"
             categoryName="マネジメントスキル"
-            viewAllLink="/categories/management"
+            viewAllLink="/categories/マネジメントスキル"
             items={managementContent}
           />
         )}
@@ -271,7 +271,7 @@ export default async function Home() {
           <CategoryCarousel
             title="業務改善"
             categoryName="業務改善"
-            viewAllLink="/categories/improvement"
+            viewAllLink="/categories/業務改善"
             items={improvementContent}
           />
         )}
