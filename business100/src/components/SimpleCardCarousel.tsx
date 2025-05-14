@@ -119,12 +119,26 @@ export function SimpleCardCarousel({
       {/* タイトルは親コンポーネントで設定するため削除 */}
 
       <div
-        className="relative overflow-hidden rounded-xl bg-gradient-to-br from-gray-800 to-gray-900 py-12"
+        className="relative overflow-hidden rounded-xl py-12"
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
       >
+        {/* 背景ぼかし効果 */}
+        <div className="absolute inset-0 z-0 overflow-hidden">
+          {slides.length > 0 && (
+            <Image
+              src={slides[currentSlide].imageUrl || '/placeholder.svg'}
+              alt="Background"
+              fill
+              className="object-cover scale-150 blur-3xl opacity-30"
+              priority
+              unoptimized={true}
+            />
+          )}
+          <div className="absolute inset-0 bg-gradient-to-br from-gray-900/90 via-gray-800/80 to-gray-900/90 backdrop-blur-md" />
+        </div>
         {/* カードカルーセル */}
-        <div className="relative h-[400px] mx-auto">
+        <div className="relative h-[400px] mx-auto z-10">
           <div className="absolute inset-0 flex items-center justify-center">
             {visibleSlides.map(({ slide, position, isActive, isAdjacent, isEdge }) => {
               // 位置に基づいてスタイルを計算
