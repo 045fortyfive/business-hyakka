@@ -164,13 +164,10 @@ export function CategoryCarousel({
                       </div>
                       {/* 詳細部分 - 正方形の下半分 */}
                       <div className="p-2 flex flex-col flex-grow" style={{ height: 'calc(50% - 1px)' }}>
-                        <h3 className="font-medium text-gray-900 text-xs sm:text-sm mb-1 line-clamp-2">{item.fields.title}</h3>
-                        <p className="text-[10px] sm:text-xs text-gray-600 line-clamp-2 mb-auto">
-                          {item.fields.description || `${categoryName}に関するコンテンツです。`}
-                        </p>
-                        <div className="flex items-center justify-between mt-1">
-                          <span className="text-[8px] sm:text-[10px] font-medium px-1 py-0.5 rounded-full bg-gray-100 text-gray-700">
-                            {new Date(item.sys.createdAt).toLocaleDateString('ja-JP')}
+                        <h3 className="font-semibold text-gray-900 text-xs sm:text-sm md:text-base line-clamp-3 mb-auto">{item.fields.title}</h3>
+                        <div className="flex items-center justify-end mt-1">
+                          <span className="text-[8px] sm:text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-600">
+                            {new Date(item.sys.createdAt).toLocaleDateString('ja-JP', {year: 'numeric', month: 'short', day: 'numeric'})}
                           </span>
                         </div>
                       </div>
