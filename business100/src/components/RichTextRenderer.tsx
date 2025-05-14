@@ -4,6 +4,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import VideoPlayer from './VideoPlayer';
 import AudioPlayer from './AudioPlayer';
+import { generateHeadingId } from '@/utils/toc-generator';
 
 interface RichTextRendererProps {
   content: any; // Contentfulのリッチテキストドキュメント
@@ -21,12 +22,15 @@ export default function RichTextRenderer({
     map[asset.sys.id] = asset;
     return map;
   }, {});
-  
+
   const entryMap = entries.reduce((map, entry) => {
     map[entry.sys.id] = entry;
     return map;
   }, {});
-  
+
+  // 見出しのカウンター
+  let headingCounter = 0;
+
   // リッチテキストのレンダリングオプション
   const options = {
     renderMark: {
@@ -43,18 +47,42 @@ export default function RichTextRenderer({
       [BLOCKS.PARAGRAPH]: (node: any, children: React.ReactNode) => (
         <p className="mb-4 leading-relaxed">{children}</p>
       ),
-      [BLOCKS.HEADING_1]: (node: any, children: React.ReactNode) => (
-        <h1 className="text-3xl font-bold mt-8 mb-4">{children}</h1>
-      ),
-      [BLOCKS.HEADING_2]: (node: any, children: React.ReactNode) => (
-        <h2 className="text-2xl font-bold mt-6 mb-3">{children}</h2>
-      ),
-      [BLOCKS.HEADING_3]: (node: any, children: React.ReactNode) => (
-        <h3 className="text-xl font-bold mt-5 mb-2">{children}</h3>
-      ),
-      [BLOCKS.HEADING_4]: (node: any, children: React.ReactNode) => (
-        <h4 className="text-lg font-bold mt-4 mb-2">{children}</h4>
-      ),
+      [BLOCKS.HEADING_1]: (node: any, children: React.ReactNode) => {
+        const text = node.content.map((content: any) => content.value || '').join('');
+        const id = generateHeadingId(text, headingCounter++);
+        return (
+          <h1 id={id} className="text-3xl font-bold mt-8 mb-4 scroll-mt-16">
+            {children}
+          </h1>
+        );
+      },
+      [BLOCKS.HEADING_2]: (node: any, children: React.ReactNode) => {
+        const text = node.content.map((content: any) => content.value || '').join('');
+        const id = generateHeadingId(text, headingCounter++);
+        return (
+          <h2 id={id} className="text-2xl font-bold mt-6 mb-3 scroll-mt-16">
+            {children}
+          </h2>
+        );
+      },
+      [BLOCKS.HEADING_3]: (node: any, children: React.ReactNode) => {
+        const text = node.content.map((content: any) => content.value || '').join('');
+        const id = generateHeadingId(text, headingCounter++);
+        return (
+          <h3 id={id} className="text-xl font-bold mt-5 mb-2 scroll-mt-16">
+            {children}
+          </h3>
+        );
+      },
+      [BLOCKS.HEADING_4]: (node: any, children: React.ReactNode) => {
+        const text = node.content.map((content: any) => content.value || '').join('');
+        const id = generateHeadingId(text, headingCounter++);
+        return (
+          <h4 id={id} className="text-lg font-bold mt-4 mb-2 scroll-mt-16">
+            {children}
+          </h4>
+        );
+      },
       [BLOCKS.HEADING_5]: (node: any, children: React.ReactNode) => (
         <h5 className="text-base font-bold mt-3 mb-1">{children}</h5>
       ),
@@ -79,15 +107,15 @@ export default function RichTextRenderer({
       [BLOCKS.EMBEDDED_ASSET]: (node: any) => {
         const assetId = node.data.target.sys.id;
         const asset = assetMap[assetId];
-        
+
         if (!asset) {
           return <p className="text-red-500">アセットが見つかりません</p>;
         }
-        
+
         const { title, description, file } = asset.fields;
         const url = `https:${file.url}`;
         const mimeType = file.contentType;
-        
+
         // 画像の場合
         if (mimeType.startsWith('image/')) {
           const { width, height } = file.details.image || { width: 800, height: 600 };
@@ -106,7 +134,7 @@ export default function RichTextRenderer({
             </div>
           );
         }
-        
+
         // 動画の場合
         if (mimeType.startsWith('video/')) {
           return (
@@ -118,7 +146,7 @@ export default function RichTextRenderer({
             </div>
           );
         }
-        
+
         // 音声の場合
         if (mimeType.startsWith('audio/')) {
           return (
@@ -127,7 +155,7 @@ export default function RichTextRenderer({
             </div>
           );
         }
-        
+
         // その他のファイルの場合
         return (
           <div className="my-4">
@@ -158,14 +186,14 @@ export default function RichTextRenderer({
       [BLOCKS.EMBEDDED_ENTRY]: (node: any) => {
         const entryId = node.data.target.sys.id;
         const entry = entryMap[entryId];
-        
+
         if (!entry) {
           return <p className="text-red-500">エントリーが見つかりません</p>;
         }
-        
+
         // エントリーのタイプに応じたレンダリング
         const contentType = entry.sys.contentType.sys.id;
-        
+
         switch (contentType) {
           // 記事の場合
           case 'article':
@@ -184,7 +212,7 @@ export default function RichTextRenderer({
                 )}
               </div>
             );
-          
+
           // 動画の場合
           case 'video':
             return (
@@ -203,7 +231,7 @@ export default function RichTextRenderer({
                 </h3>
               </div>
             );
-          
+
           // 音声の場合
           case 'audio':
             return (
@@ -222,7 +250,7 @@ export default function RichTextRenderer({
                 </h3>
               </div>
             );
-          
+
           // その他のエントリータイプの場合
           default:
             return (
@@ -237,7 +265,7 @@ export default function RichTextRenderer({
       [INLINES.HYPERLINK]: (node: any, children: React.ReactNode) => {
         const { uri } = node.data;
         const isInternal = uri.startsWith('/');
-        
+
         return (
           <Link
             href={uri}
@@ -251,14 +279,14 @@ export default function RichTextRenderer({
       [INLINES.ENTRY_HYPERLINK]: (node: any, children: React.ReactNode) => {
         const entryId = node.data.target.sys.id;
         const entry = entryMap[entryId];
-        
+
         if (!entry) {
           return <span className="text-red-500">{children}</span>;
         }
-        
+
         const contentType = entry.sys.contentType.sys.id;
         let href = '/';
-        
+
         switch (contentType) {
           case 'article':
             href = `/articles/${entry.fields.slug}`;
@@ -275,7 +303,7 @@ export default function RichTextRenderer({
           default:
             break;
         }
-        
+
         return (
           <Link href={href} className="text-blue-600 hover:underline">
             {children}
@@ -284,7 +312,7 @@ export default function RichTextRenderer({
       },
     },
   };
-  
+
   return (
     <div className="rich-text">
       {documentToReactComponents(content, options)}
