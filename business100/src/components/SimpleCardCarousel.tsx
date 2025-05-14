@@ -116,9 +116,7 @@ export function SimpleCardCarousel({
 
   return (
     <div className="mb-12">
-      <div className="mb-4">
-        <h2 className="text-2xl font-bold">カードサンプル</h2>
-      </div>
+      {/* タイトルは親コンポーネントで設定するため削除 */}
 
       <div
         className="relative overflow-hidden rounded-xl bg-gradient-to-br from-gray-900 to-gray-800 py-12"
