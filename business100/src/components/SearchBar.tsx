@@ -23,16 +23,16 @@ export default function SearchBar() {
         value={searchQuery}
         onChange={(e) => setSearchQuery(e.target.value)}
         placeholder="キーワードを入力"
-        className="w-full px-4 py-2 border border-gray-300 rounded-l-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+        className="w-full px-2 sm:px-3 md:px-4 py-1 sm:py-1.5 md:py-2 text-sm border border-gray-300 rounded-l-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
         aria-label="検索キーワード"
       />
       <button
         type="submit"
-        className="bg-blue-600 text-white px-4 py-2 rounded-r-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+        className="bg-blue-600 text-white px-2 sm:px-3 md:px-4 py-1 sm:py-1.5 md:py-2 rounded-r-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
         aria-label="検索"
       >
         <svg
-          className="h-5 w-5"
+          className="h-4 w-4 sm:h-4.5 sm:w-4.5 md:h-5 md:w-5"
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"

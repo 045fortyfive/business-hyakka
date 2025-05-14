@@ -14,7 +14,7 @@ export default function Header() {
 
   return (
     <header className="bg-white shadow-md">
-      <div className="container mx-auto px-4 py-6">
+      <div className="container mx-auto px-4 py-2 sm:py-4 md:py-6">
         <div className="flex items-center justify-between">
           {/* ロゴ */}
           <div className="flex-shrink-0">
@@ -24,7 +24,7 @@ export default function Header() {
                 alt="Skillpedia - 20代のビジネススキル百科"
                 width={400}
                 height={134}
-                className="h-24 w-auto"
+                className="h-12 sm:h-16 md:h-24 w-auto"
                 priority
                 unoptimized
               />
@@ -45,6 +45,18 @@ export default function Header() {
             <Link href="/categories" className="text-gray-600 hover:text-gray-900">
               カテゴリ
             </Link>
+            <Link href="/card-samples" className="text-blue-600 hover:text-blue-800 font-medium">
+              カードサンプル
+            </Link>
+            <Link href="/card-samples/compact" className="text-blue-600 hover:text-blue-800 font-medium">
+              コンパクトカード
+            </Link>
+            <Link href="/card-samples/contentful" className="text-blue-600 hover:text-blue-800 font-medium">
+              Contentfulカード
+            </Link>
+            <Link href="/card-samples/aurora" className="text-blue-600 hover:text-blue-800 font-medium">
+              オーロラカード
+            </Link>
           </nav>
 
           {/* 検索バー */}
@@ -61,7 +73,7 @@ export default function Header() {
               aria-label={isMenuOpen ? 'メニューを閉じる' : 'メニューを開く'}
             >
               <svg
-                className="h-6 w-6"
+                className="h-5 w-5 sm:h-6 sm:w-6"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -88,38 +100,38 @@ export default function Header() {
 
         {/* モバイルメニュー */}
         {isMenuOpen && (
-          <div className="md:hidden mt-4 pb-4">
-            <nav className="flex flex-col space-y-4">
+          <div className="md:hidden mt-2 pb-2">
+            <nav className="flex flex-col space-y-2">
               <Link
                 href="/articles"
-                className="text-gray-600 hover:text-gray-900"
+                className="text-gray-600 hover:text-gray-900 text-sm"
                 onClick={() => setIsMenuOpen(false)}
               >
                 記事
               </Link>
               <Link
                 href="/videos"
-                className="text-gray-600 hover:text-gray-900"
+                className="text-gray-600 hover:text-gray-900 text-sm"
                 onClick={() => setIsMenuOpen(false)}
               >
                 動画
               </Link>
               <Link
                 href="/audios"
-                className="text-gray-600 hover:text-gray-900"
+                className="text-gray-600 hover:text-gray-900 text-sm"
                 onClick={() => setIsMenuOpen(false)}
               >
                 音声
               </Link>
               <Link
                 href="/categories"
-                className="text-gray-600 hover:text-gray-900"
+                className="text-gray-600 hover:text-gray-900 text-sm"
                 onClick={() => setIsMenuOpen(false)}
               >
                 カテゴリ
               </Link>
             </nav>
-            <div className="mt-4">
+            <div className="mt-2">
               <SearchBar />
             </div>
           </div>

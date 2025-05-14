@@ -143,7 +143,7 @@ export function SimpleCardCarousel({
         </div>
 
         {/* カードカルーセル */}
-        <div className="relative h-[300px] sm:h-[350px] md:h-[400px] mx-auto z-10">
+        <div className="relative h-[220px] sm:h-[300px] md:h-[400px] mx-auto z-10">
           <div className="absolute inset-0 flex items-center justify-center">
             {visibleSlides.map(({ slide, position, isActive, isAdjacent }) => {
               // 位置に基づいてスタイルを計算
@@ -172,9 +172,9 @@ export function SimpleCardCarousel({
                     <div className={`w-full p-[2px] bg-gradient-to-br from-blue-400 via-sky-500 to-indigo-600 rounded-xl overflow-hidden shadow-lg transition-all duration-300 ${
                       isActive ? 'scale-105' : ''
                     }`}>
-                      <div className="bg-white rounded-lg flex flex-col h-[240px] sm:h-[280px] md:h-[320px]">
+                      <div className="bg-white rounded-lg flex flex-col h-[180px] sm:h-[240px] md:h-[320px]">
                         {/* 画像部分 */}
-                        <div className="relative w-full h-[120px] sm:h-[150px] md:h-[180px]">
+                        <div className="relative w-full h-[90px] sm:h-[130px] md:h-[180px]">
                           <Image
                             src={slide.imageUrl || '/placeholder.svg'}
                             alt={slide.title}
@@ -187,8 +187,8 @@ export function SimpleCardCarousel({
 
                           {/* カテゴリーバッジ */}
                           {slide.category && (
-                            <div className="absolute top-0 right-0 m-2 sm:m-3">
-                              <span className="inline-block text-[10px] sm:text-xs font-medium px-2 sm:px-3 py-0.5 sm:py-1 rounded-full bg-blue-100 text-blue-700">
+                            <div className="absolute top-0 right-0 m-1 sm:m-2 md:m-3">
+                              <span className="inline-block text-[8px] sm:text-[10px] md:text-xs font-medium px-1.5 sm:px-2 md:px-3 py-0.5 rounded-full bg-blue-100 text-blue-700">
                                 {slide.category}
                               </span>
                             </div>
@@ -196,16 +196,16 @@ export function SimpleCardCarousel({
                         </div>
 
                         {/* 詳細部分 */}
-                        <div className="flex-1 p-2 sm:p-3 md:p-4 bg-gradient-to-br from-blue-800/95 via-sky-800/95 to-indigo-700/95">
-                          <h3 className="text-sm sm:text-base md:text-lg font-bold mb-1 sm:mb-2 line-clamp-2 text-white">
+                        <div className="flex-1 p-1.5 sm:p-3 md:p-4 bg-gradient-to-br from-blue-800/95 via-sky-800/95 to-indigo-700/95">
+                          <h3 className="text-xs sm:text-sm md:text-lg font-bold mb-0.5 sm:mb-2 line-clamp-2 text-white">
                             {slide.title}
                           </h3>
-                          <p className="text-xs sm:text-sm text-gray-100 mb-1 sm:mb-2 md:mb-3 line-clamp-2">
+                          <p className="text-[10px] sm:text-xs md:text-sm text-gray-100 mb-0.5 sm:mb-2 md:mb-3 line-clamp-1 sm:line-clamp-2">
                             {slide.description}
                           </p>
                           <div className="mt-auto flex justify-between items-center">
-                            <span className="text-[10px] sm:text-xs text-gray-200">{slide.category}</span>
-                            <span className="inline-block px-2 sm:px-3 py-0.5 sm:py-1 text-xs sm:text-sm bg-white text-gray-800 rounded-lg">
+                            <span className="text-[8px] sm:text-xs text-gray-200">{slide.category}</span>
+                            <span className="inline-block px-1.5 sm:px-3 py-0.5 sm:py-1 text-[10px] sm:text-xs bg-white text-gray-800 rounded-lg">
                               {slide.linkText}
                             </span>
                           </div>
@@ -224,29 +224,29 @@ export function SimpleCardCarousel({
           <>
             <button
               onClick={prevSlide}
-              className="absolute left-6 top-1/2 -translate-y-1/2 z-20 bg-blue-500/90 hover:bg-blue-600 text-white rounded-full p-3 shadow-lg transition-all duration-200 hover:scale-110"
+              className="absolute left-2 sm:left-4 md:left-6 top-1/2 -translate-y-1/2 z-20 bg-blue-500/90 hover:bg-blue-600 text-white rounded-full p-2 sm:p-3 shadow-lg transition-all duration-200 hover:scale-110"
               aria-label="前のスライド"
             >
-              <ChevronLeft className="h-6 w-6" />
+              <ChevronLeft className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6" />
             </button>
             <button
               onClick={nextSlide}
-              className="absolute right-6 top-1/2 -translate-y-1/2 z-20 bg-blue-500/90 hover:bg-blue-600 text-white rounded-full p-3 shadow-lg transition-all duration-200 hover:scale-110"
+              className="absolute right-2 sm:right-4 md:right-6 top-1/2 -translate-y-1/2 z-20 bg-blue-500/90 hover:bg-blue-600 text-white rounded-full p-2 sm:p-3 shadow-lg transition-all duration-200 hover:scale-110"
               aria-label="次のスライド"
             >
-              <ChevronRight className="h-6 w-6" />
+              <ChevronRight className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6" />
             </button>
           </>
         )}
 
         {/* インジケーター */}
         {slides.length > 1 && (
-          <div className="absolute bottom-10 left-1/2 -translate-x-1/2 z-20 flex justify-center space-x-3">
+          <div className="absolute bottom-4 sm:bottom-6 md:bottom-10 left-1/2 -translate-x-1/2 z-20 flex justify-center space-x-2 sm:space-x-3">
             {slides.map((_, index) => (
               <button
                 key={index}
                 onClick={() => goToSlide(index)}
-                className={`w-3 h-3 rounded-full transition-all duration-300 ${
+                className={`w-2 h-2 sm:w-2.5 sm:h-2.5 md:w-3 md:h-3 rounded-full transition-all duration-300 ${
                   index === currentSlide
                     ? 'bg-blue-500 scale-125'
                     : 'bg-gray-300 hover:bg-gray-400'
