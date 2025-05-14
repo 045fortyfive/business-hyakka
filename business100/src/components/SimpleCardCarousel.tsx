@@ -127,19 +127,19 @@ export function SimpleCardCarousel({
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
       >
-        {/* 背景ぼかし効果 */}
+        {/* 背景ぼかし効果 - 白ベースでぼかしを強化 */}
         <div className="absolute inset-0 z-0 overflow-hidden">
-          <div className="absolute inset-0 w-full h-full">
+          <div className="absolute inset-0 w-full h-full bg-white">
             <Image
               src={slides[currentSlide]?.imageUrl || '/placeholder.svg'}
               alt="Background"
               fill
-              className="object-cover scale-150 blur-3xl opacity-30"
+              className="object-cover scale-125 blur-2xl opacity-50"
               priority
               unoptimized={true}
             />
           </div>
-          <div className="absolute inset-0 bg-gradient-to-br from-gray-900/90 via-gray-800/80 to-gray-900/90" />
+          <div className="absolute inset-0 bg-gradient-to-br from-white/80 via-gray-100/80 to-white/80 backdrop-blur-sm" />
         </div>
 
         {/* カードカルーセル */}
@@ -222,14 +222,14 @@ export function SimpleCardCarousel({
           <>
             <button
               onClick={prevSlide}
-              className="absolute left-6 top-1/2 -translate-y-1/2 z-20 bg-white/90 hover:bg-white text-gray-800 rounded-full p-3 shadow-lg transition-all duration-200 hover:scale-110"
+              className="absolute left-6 top-1/2 -translate-y-1/2 z-20 bg-blue-500/90 hover:bg-blue-600 text-white rounded-full p-3 shadow-lg transition-all duration-200 hover:scale-110"
               aria-label="前のスライド"
             >
               <ChevronLeft className="h-6 w-6" />
             </button>
             <button
               onClick={nextSlide}
-              className="absolute right-6 top-1/2 -translate-y-1/2 z-20 bg-white/90 hover:bg-white text-gray-800 rounded-full p-3 shadow-lg transition-all duration-200 hover:scale-110"
+              className="absolute right-6 top-1/2 -translate-y-1/2 z-20 bg-blue-500/90 hover:bg-blue-600 text-white rounded-full p-3 shadow-lg transition-all duration-200 hover:scale-110"
               aria-label="次のスライド"
             >
               <ChevronRight className="h-6 w-6" />
@@ -246,8 +246,8 @@ export function SimpleCardCarousel({
                 onClick={() => goToSlide(index)}
                 className={`w-3 h-3 rounded-full transition-all duration-300 ${
                   index === currentSlide
-                    ? 'bg-white scale-125'
-                    : 'bg-gray-400/50 hover:bg-gray-300/70'
+                    ? 'bg-blue-500 scale-125'
+                    : 'bg-gray-300 hover:bg-gray-400'
                 }`}
                 aria-label={`スライド ${index + 1} に移動`}
               />
