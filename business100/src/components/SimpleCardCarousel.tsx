@@ -143,7 +143,7 @@ export function SimpleCardCarousel({
         </div>
 
         {/* カードカルーセル */}
-        <div className="relative h-[220px] sm:h-[260px] md:h-[320px] mx-auto z-10">
+        <div className="relative h-[187px] sm:h-[221px] md:h-[272px] mx-auto z-10">
           <div className="absolute inset-0 flex items-center justify-center">
             {visibleSlides.map(({ slide, position, isActive, isAdjacent }) => {
               // 位置に基づいてスタイルを計算
@@ -157,7 +157,7 @@ export function SimpleCardCarousel({
               return (
                 <div
                   key={slide.id}
-                  className="absolute w-[200px] h-[200px] sm:w-[240px] sm:h-[240px] md:w-[280px] md:h-[280px] transition-all duration-300 ease-in-out"
+                  className="absolute w-[170px] h-[170px] sm:w-[204px] sm:h-[204px] md:w-[238px] md:h-[238px] transition-all duration-300 ease-in-out"
                   style={{
                     transform: `translateX(${translateX}%) scale(${scale})`,
                     opacity,
@@ -174,7 +174,7 @@ export function SimpleCardCarousel({
                     }`}>
                       <div className="bg-white rounded-lg flex flex-col h-full">
                         {/* 画像部分 */}
-                        <div className="relative w-full h-[100px] sm:h-[120px] md:h-[140px]">
+                        <div className="relative w-full h-[85px] sm:h-[102px] md:h-[119px]">
                           <Image
                             src={slide.imageUrl || '/placeholder.svg'}
                             alt={slide.title}
@@ -187,8 +187,8 @@ export function SimpleCardCarousel({
 
                           {/* カテゴリーバッジ */}
                           {slide.category && (
-                            <div className="absolute top-0 right-0 m-1.5 sm:m-2 md:m-3">
-                              <span className="inline-block text-xs sm:text-sm font-medium px-2 sm:px-2.5 md:px-3 py-0.5 rounded-full bg-blue-100 text-blue-700">
+                            <div className="absolute top-0 right-0 m-1 sm:m-1.5 md:m-2">
+                              <span className="inline-block text-[10px] sm:text-xs md:text-sm font-medium px-1.5 sm:px-2 md:px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-700">
                                 {slide.category}
                               </span>
                             </div>
@@ -196,16 +196,16 @@ export function SimpleCardCarousel({
                         </div>
 
                         {/* 詳細部分 */}
-                        <div className="flex-1 p-1.5 sm:p-2 md:p-3 bg-gradient-to-br from-blue-800/95 via-sky-800/95 to-indigo-700/95">
-                          <h3 className="text-sm sm:text-base md:text-lg font-bold mb-0.5 sm:mb-1 line-clamp-2 text-white">
+                        <div className="flex-1 p-1 sm:p-1.5 md:p-2 bg-gradient-to-br from-blue-800/95 via-sky-800/95 to-indigo-700/95">
+                          <h3 className="text-xs sm:text-sm md:text-base font-bold mb-0.5 line-clamp-2 text-white">
                             {slide.title}
                           </h3>
-                          <p className="text-xs sm:text-sm md:text-base text-gray-100 mb-0.5 sm:mb-1 md:mb-2 line-clamp-1 sm:line-clamp-2">
+                          <p className="text-[10px] sm:text-xs md:text-sm text-gray-100 mb-0.5 line-clamp-1 sm:line-clamp-2">
                             {slide.description}
                           </p>
                           <div className="mt-auto flex justify-between items-center">
-                            <span className="text-xs sm:text-sm text-gray-200">{slide.category}</span>
-                            <span className="inline-block px-2 sm:px-3 py-0.5 sm:py-1 text-xs sm:text-sm bg-white text-gray-800 rounded-lg">
+                            <span className="text-[10px] sm:text-xs md:text-sm text-gray-200">{slide.category}</span>
+                            <span className="inline-block px-1.5 sm:px-2 md:px-3 py-0.5 text-[10px] sm:text-xs md:text-sm bg-white text-gray-800 rounded-lg">
                               {slide.linkText}
                             </span>
                           </div>
@@ -224,14 +224,14 @@ export function SimpleCardCarousel({
           <>
             <button
               onClick={prevSlide}
-              className="absolute left-2 sm:left-4 md:left-6 top-1/2 -translate-y-1/2 z-20 bg-blue-500/90 hover:bg-blue-600 text-white rounded-full p-2 sm:p-3 shadow-lg transition-all duration-200 hover:scale-110"
+              className="absolute left-1 sm:left-2 md:left-4 top-1/2 -translate-y-1/2 z-20 bg-blue-500/90 hover:bg-blue-600 text-white rounded-full p-1.5 sm:p-2 md:p-2.5 shadow-lg transition-all duration-200 hover:scale-110"
               aria-label="前のスライド"
             >
               <ChevronLeft className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6" />
             </button>
             <button
               onClick={nextSlide}
-              className="absolute right-2 sm:right-4 md:right-6 top-1/2 -translate-y-1/2 z-20 bg-blue-500/90 hover:bg-blue-600 text-white rounded-full p-2 sm:p-3 shadow-lg transition-all duration-200 hover:scale-110"
+              className="absolute right-1 sm:right-2 md:right-4 top-1/2 -translate-y-1/2 z-20 bg-blue-500/90 hover:bg-blue-600 text-white rounded-full p-1.5 sm:p-2 md:p-2.5 shadow-lg transition-all duration-200 hover:scale-110"
               aria-label="次のスライド"
             >
               <ChevronRight className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6" />
@@ -241,12 +241,12 @@ export function SimpleCardCarousel({
 
         {/* インジケーター */}
         {slides.length > 1 && (
-          <div className="absolute bottom-2 sm:bottom-3 md:bottom-5 left-1/2 -translate-x-1/2 z-20 flex justify-center space-x-2 sm:space-x-3">
+          <div className="absolute bottom-1 sm:bottom-2 md:bottom-3 left-1/2 -translate-x-1/2 z-20 flex justify-center space-x-1.5 sm:space-x-2">
             {slides.map((_, index) => (
               <button
                 key={index}
                 onClick={() => goToSlide(index)}
-                className={`w-2 h-2 sm:w-2.5 sm:h-2.5 md:w-3 md:h-3 rounded-full transition-all duration-300 ${
+                className={`w-1.5 h-1.5 sm:w-2 sm:h-2 md:w-2.5 md:h-2.5 rounded-full transition-all duration-300 ${
                   index === currentSlide
                     ? 'bg-blue-500 scale-125'
                     : 'bg-gray-300 hover:bg-gray-400'
