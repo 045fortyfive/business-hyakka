@@ -143,7 +143,7 @@ export function SimpleCardCarousel({
         </div>
 
         {/* カードカルーセル */}
-        <div className="relative h-[280px] sm:h-[320px] md:h-[400px] mx-auto z-10">
+        <div className="relative h-[220px] sm:h-[260px] md:h-[320px] mx-auto z-10">
           <div className="absolute inset-0 flex items-center justify-center">
             {visibleSlides.map(({ slide, position, isActive, isAdjacent }) => {
               // 位置に基づいてスタイルを計算
@@ -157,7 +157,7 @@ export function SimpleCardCarousel({
               return (
                 <div
                   key={slide.id}
-                  className="absolute w-[240px] h-[240px] sm:w-[280px] sm:h-[280px] md:w-[320px] md:h-[320px] transition-all duration-300 ease-in-out"
+                  className="absolute w-[200px] h-[200px] sm:w-[240px] sm:h-[240px] md:w-[280px] md:h-[280px] transition-all duration-300 ease-in-out"
                   style={{
                     transform: `translateX(${translateX}%) scale(${scale})`,
                     opacity,
@@ -174,7 +174,7 @@ export function SimpleCardCarousel({
                     }`}>
                       <div className="bg-white rounded-lg flex flex-col h-full">
                         {/* 画像部分 */}
-                        <div className="relative w-full h-[120px] sm:h-[140px] md:h-[160px]">
+                        <div className="relative w-full h-[100px] sm:h-[120px] md:h-[140px]">
                           <Image
                             src={slide.imageUrl || '/placeholder.svg'}
                             alt={slide.title}
@@ -196,11 +196,11 @@ export function SimpleCardCarousel({
                         </div>
 
                         {/* 詳細部分 */}
-                        <div className="flex-1 p-2 sm:p-3 md:p-4 bg-gradient-to-br from-blue-800/95 via-sky-800/95 to-indigo-700/95">
-                          <h3 className="text-sm sm:text-base md:text-lg font-bold mb-1 sm:mb-2 line-clamp-2 text-white">
+                        <div className="flex-1 p-1.5 sm:p-2 md:p-3 bg-gradient-to-br from-blue-800/95 via-sky-800/95 to-indigo-700/95">
+                          <h3 className="text-sm sm:text-base md:text-lg font-bold mb-0.5 sm:mb-1 line-clamp-2 text-white">
                             {slide.title}
                           </h3>
-                          <p className="text-xs sm:text-sm md:text-base text-gray-100 mb-1 sm:mb-2 md:mb-3 line-clamp-1 sm:line-clamp-2">
+                          <p className="text-xs sm:text-sm md:text-base text-gray-100 mb-0.5 sm:mb-1 md:mb-2 line-clamp-1 sm:line-clamp-2">
                             {slide.description}
                           </p>
                           <div className="mt-auto flex justify-between items-center">
@@ -241,7 +241,7 @@ export function SimpleCardCarousel({
 
         {/* インジケーター */}
         {slides.length > 1 && (
-          <div className="absolute bottom-4 sm:bottom-6 md:bottom-10 left-1/2 -translate-x-1/2 z-20 flex justify-center space-x-2 sm:space-x-3">
+          <div className="absolute bottom-2 sm:bottom-3 md:bottom-5 left-1/2 -translate-x-1/2 z-20 flex justify-center space-x-2 sm:space-x-3">
             {slides.map((_, index) => (
               <button
                 key={index}
