@@ -121,16 +121,16 @@ export function SimpleCardCarousel({
       </div>
 
       <div
-        className="relative overflow-hidden rounded-xl bg-gradient-to-br from-gray-900 to-gray-800 py-10"
+        className="relative overflow-hidden rounded-xl bg-gradient-to-br from-gray-900 to-gray-800 py-12"
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
       >
         {/* カードカルーセル */}
-        <div className="relative h-[320px] mx-auto">
+        <div className="relative h-[400px] mx-auto">
           <div className="absolute inset-0 flex items-center justify-center">
             {visibleSlides.map(({ slide, position, isActive, isAdjacent, isEdge }) => {
               // 位置に基づいてスタイルを計算
-              const translateX = position * 110; // カードの間隔を広げて両端が見切れるように
+              const translateX = position * 120; // カードの間隔を広げて両端が見切れるように
               const zIndex = 10 - Math.abs(position) * 2;
               const scale = isActive ? 1 : isAdjacent ? 0.85 : 0.7;
               const opacity = isActive ? 1 : isAdjacent ? 0.8 : 0.6;
@@ -138,7 +138,7 @@ export function SimpleCardCarousel({
               return (
                 <div
                   key={slide.id}
-                  className="absolute w-[220px] transition-all duration-300 ease-in-out"
+                  className="absolute w-[320px] transition-all duration-300 ease-in-out"
                   style={{
                     transform: `translateX(${translateX}%) scale(${scale})`,
                     opacity,
@@ -150,7 +150,7 @@ export function SimpleCardCarousel({
                     className={`block ${isActive || isAdjacent ? 'cursor-pointer' : 'pointer-events-none'}`}
                   >
                     {/* 完全な正方形のカード */}
-                    <div className={`w-[220px] h-[220px] bg-white rounded-xl overflow-hidden shadow-lg transition-all duration-300 ${
+                    <div className={`w-[320px] h-[320px] bg-white rounded-xl overflow-hidden shadow-lg transition-all duration-300 ${
                       isActive ? 'ring-2 ring-blue-500 shadow-xl' : ''
                     }`}>
                       {/* カード全体を覆う画像 */}
@@ -160,12 +160,13 @@ export function SimpleCardCarousel({
                           alt={slide.title}
                           fill
                           className="object-cover"
-                          sizes="220px"
+                          sizes="320px"
+                          priority={isActive}
                         />
 
                         {/* カテゴリーバッジ */}
                         {slide.category && (
-                          <div className="absolute top-3 left-3 bg-black/60 backdrop-blur-sm text-white text-xs px-2.5 py-1 rounded-full">
+                          <div className="absolute top-4 left-4 bg-black/60 backdrop-blur-sm text-white text-sm px-3 py-1.5 rounded-full">
                             {slide.category}
                           </div>
                         )}
@@ -173,11 +174,11 @@ export function SimpleCardCarousel({
                         {/* グラデーションオーバーレイ */}
                         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent">
                           {/* カードコンテンツ - 下部に配置 */}
-                          <div className="absolute bottom-0 left-0 right-0 p-4 text-white">
-                            <h3 className="font-semibold text-sm line-clamp-2">
+                          <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
+                            <h3 className="font-semibold text-base md:text-lg line-clamp-2">
                               {slide.title}
                             </h3>
-                            <p className="text-xs text-gray-300 mt-1 line-clamp-1 opacity-80">
+                            <p className="text-sm text-gray-300 mt-2 line-clamp-2 opacity-80">
                               {slide.description}
                             </p>
                           </div>
@@ -196,29 +197,29 @@ export function SimpleCardCarousel({
           <>
             <button
               onClick={prevSlide}
-              className="absolute left-4 top-1/2 -translate-y-1/2 z-20 bg-white/80 hover:bg-white text-gray-800 rounded-full p-2.5 shadow-lg transition-all duration-200 hover:scale-110"
+              className="absolute left-6 top-1/2 -translate-y-1/2 z-20 bg-white/80 hover:bg-white text-gray-800 rounded-full p-3 shadow-lg transition-all duration-200 hover:scale-110"
               aria-label="前のスライド"
             >
-              <ChevronLeft className="h-5 w-5" />
+              <ChevronLeft className="h-6 w-6" />
             </button>
             <button
               onClick={nextSlide}
-              className="absolute right-4 top-1/2 -translate-y-1/2 z-20 bg-white/80 hover:bg-white text-gray-800 rounded-full p-2.5 shadow-lg transition-all duration-200 hover:scale-110"
+              className="absolute right-6 top-1/2 -translate-y-1/2 z-20 bg-white/80 hover:bg-white text-gray-800 rounded-full p-3 shadow-lg transition-all duration-200 hover:scale-110"
               aria-label="次のスライド"
             >
-              <ChevronRight className="h-5 w-5" />
+              <ChevronRight className="h-6 w-6" />
             </button>
           </>
         )}
 
         {/* インジケーター - 中央に配置 */}
         {slides.length > 1 && (
-          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 flex justify-center space-x-2">
+          <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 flex justify-center space-x-3">
             {slides.map((_, index) => (
               <button
                 key={index}
                 onClick={() => setCurrentSlide(index)}
-                className={`w-2.5 h-2.5 rounded-full transition-all duration-300 ${
+                className={`w-3 h-3 rounded-full transition-all duration-300 ${
                   index === currentSlide
                     ? 'bg-blue-500 scale-125'
                     : 'bg-gray-300 hover:bg-gray-400'
