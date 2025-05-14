@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
@@ -23,7 +23,7 @@ interface SimpleCardCarouselProps {
 
 export function SimpleCardCarousel({
   slides,
-  autoplayInterval = 5000,
+  autoplayInterval = 3000,
   pauseOnHover = true
 }: SimpleCardCarouselProps) {
   const [currentSlide, setCurrentSlide] = useState(0)
@@ -32,9 +32,7 @@ export function SimpleCardCarousel({
 
   // 自動スライド切り替え
   useEffect(() => {
-    if (slides.length <= 1 || isPaused) return
-
-    console.log('Starting autoplay timer...')
+    if (slides.length <= 1) return
 
     const startAutoplay = () => {
       if (autoplayTimerRef.current) {
@@ -42,19 +40,15 @@ export function SimpleCardCarousel({
       }
 
       autoplayTimerRef.current = setInterval(() => {
-        console.log('Auto advancing slide...')
-        setCurrentSlide((prev) => {
-          const next = (prev + 1) % slides.length
-          console.log(`Changing slide from ${prev} to ${next}`)
-          return next
-        })
+        setCurrentSlide(prev => (prev + 1) % slides.length)
       }, autoplayInterval)
     }
 
-    startAutoplay()
+    if (!isPaused) {
+      startAutoplay()
+    }
 
     return () => {
-      console.log('Cleaning up autoplay timer...')
       if (autoplayTimerRef.current) {
         clearInterval(autoplayTimerRef.current)
         autoplayTimerRef.current = null
@@ -63,73 +57,41 @@ export function SimpleCardCarousel({
   }, [slides.length, autoplayInterval, isPaused])
 
   // ホバー時の一時停止
-  const handleMouseEnter = useCallback(() => {
+  const handleMouseEnter = () => {
     if (pauseOnHover) {
       setIsPaused(true)
     }
-  }, [pauseOnHover])
+  }
 
-  const handleMouseLeave = useCallback(() => {
+  const handleMouseLeave = () => {
     if (pauseOnHover) {
       setIsPaused(false)
     }
-  }, [pauseOnHover])
+  }
 
   // 前のスライドに移動
-  const prevSlide = useCallback(() => {
-    console.log('Manual prev slide...')
-    // 自動再生タイマーをリセット
-    if (autoplayTimerRef.current) {
-      clearInterval(autoplayTimerRef.current)
-      autoplayTimerRef.current = null
-    }
-
-    setCurrentSlide((prev) => {
-      const next = (prev - 1 + slides.length) % slides.length
-      console.log(`Changing slide from ${prev} to ${next} (prev)`)
-      return next
-    })
-
-    // 一時停止していない場合は自動再生を再開
-    if (!isPaused) {
-      autoplayTimerRef.current = setInterval(() => {
-        setCurrentSlide((prev) => (prev + 1) % slides.length)
-      }, autoplayInterval)
-    }
-  }, [slides.length, autoplayInterval, isPaused])
+  const prevSlide = () => {
+    setCurrentSlide(prev => (prev - 1 + slides.length) % slides.length)
+  }
 
   // 次のスライドに移動
-  const nextSlide = useCallback(() => {
-    console.log('Manual next slide...')
-    // 自動再生タイマーをリセット
-    if (autoplayTimerRef.current) {
-      clearInterval(autoplayTimerRef.current)
-      autoplayTimerRef.current = null
-    }
+  const nextSlide = () => {
+    setCurrentSlide(prev => (prev + 1) % slides.length)
+  }
 
-    setCurrentSlide((prev) => {
-      const next = (prev + 1) % slides.length
-      console.log(`Changing slide from ${prev} to ${next} (next)`)
-      return next
-    })
+  // 特定のスライドに移動
+  const goToSlide = (index: number) => {
+    setCurrentSlide(index)
+  }
 
-    // 一時停止していない場合は自動再生を再開
-    if (!isPaused) {
-      autoplayTimerRef.current = setInterval(() => {
-        setCurrentSlide((prev) => (prev + 1) % slides.length)
-      }, autoplayInterval)
-    }
-  }, [slides.length, autoplayInterval, isPaused])
-
-  // スライドの相対位置を計算
-  const getVisibleSlides = useCallback(() => {
-    const visibleSlides = []
+  // 表示するスライドを計算
+  const getVisibleSlides = () => {
+    const result = []
     const totalSlides = slides.length
 
-    // 表示するスライドのインデックスを計算
     for (let i = -2; i <= 2; i++) {
-      let index = (currentSlide + i + totalSlides) % totalSlides
-      visibleSlides.push({
+      const index = (currentSlide + i + totalSlides) % totalSlides
+      result.push({
         slide: slides[index],
         position: i,
         isActive: i === 0,
@@ -138,8 +100,8 @@ export function SimpleCardCarousel({
       })
     }
 
-    return visibleSlides
-  }, [currentSlide, slides])
+    return result
+  }
 
   if (slides.length === 0) {
     return (
@@ -160,8 +122,6 @@ export function SimpleCardCarousel({
 
   return (
     <div className="mb-12">
-      {/* タイトルは親コンポーネントで設定するため削除 */}
-
       <div
         className="relative overflow-hidden rounded-xl py-12"
         onMouseEnter={handleMouseEnter}
@@ -169,27 +129,28 @@ export function SimpleCardCarousel({
       >
         {/* 背景ぼかし効果 */}
         <div className="absolute inset-0 z-0 overflow-hidden">
-          {slides.length > 0 && (
+          <div className="absolute inset-0 w-full h-full">
             <Image
-              src={slides[currentSlide].imageUrl || '/placeholder.svg'}
+              src={slides[currentSlide]?.imageUrl || '/placeholder.svg'}
               alt="Background"
               fill
               className="object-cover scale-150 blur-3xl opacity-30"
               priority
               unoptimized={true}
             />
-          )}
-          <div className="absolute inset-0 bg-gradient-to-br from-gray-900/90 via-gray-800/80 to-gray-900/90 backdrop-blur-md" />
+          </div>
+          <div className="absolute inset-0 bg-gradient-to-br from-gray-900/90 via-gray-800/80 to-gray-900/90" />
         </div>
+
         {/* カードカルーセル */}
         <div className="relative h-[400px] mx-auto z-10">
           <div className="absolute inset-0 flex items-center justify-center">
-            {visibleSlides.map(({ slide, position, isActive, isAdjacent, isEdge }) => {
+            {visibleSlides.map(({ slide, position, isActive, isAdjacent }) => {
               // 位置に基づいてスタイルを計算
-              const translateX = position * 120; // カードの間隔を広げて両端が見切れるように
-              const zIndex = 10 - Math.abs(position) * 2;
-              const scale = isActive ? 1 : isAdjacent ? 0.85 : 0.7;
-              const opacity = isActive ? 1 : isAdjacent ? 0.8 : 0.6;
+              const translateX = position * 120
+              const zIndex = 10 - Math.abs(position) * 2
+              const scale = isActive ? 1 : isAdjacent ? 0.85 : 0.7
+              const opacity = isActive ? 1 : isAdjacent ? 0.8 : 0.6
 
               return (
                 <div
@@ -205,12 +166,12 @@ export function SimpleCardCarousel({
                     href={slide.linkUrl}
                     className={`block ${isActive || isAdjacent ? 'cursor-pointer' : 'pointer-events-none'}`}
                   >
-                    {/* カード全体のコンテナ - SquareCardと同様のデザイン */}
+                    {/* カード全体のコンテナ */}
                     <div className={`w-[320px] p-[2px] bg-gradient-to-br from-blue-400 via-sky-500 to-indigo-600 rounded-xl overflow-hidden shadow-lg transition-all duration-300 ${
                       isActive ? 'scale-105' : ''
                     }`}>
                       <div className="bg-white rounded-lg flex flex-col h-[320px]">
-                        {/* 画像部分 - 16:9比率 */}
+                        {/* 画像部分 */}
                         <div className="relative w-full h-[180px]">
                           <Image
                             src={slide.imageUrl || '/placeholder.svg'}
@@ -232,7 +193,7 @@ export function SimpleCardCarousel({
                           )}
                         </div>
 
-                        {/* 詳細部分 - 下部に配置 */}
+                        {/* 詳細部分 */}
                         <div className="flex-1 p-4 bg-gradient-to-br from-blue-800/95 via-sky-800/95 to-indigo-700/95">
                           <h3 className="text-lg font-bold mb-2 line-clamp-2 text-white">
                             {slide.title}
@@ -276,29 +237,13 @@ export function SimpleCardCarousel({
           </>
         )}
 
-        {/* インジケーター - 中央に配置 */}
+        {/* インジケーター */}
         {slides.length > 1 && (
           <div className="absolute bottom-10 left-1/2 -translate-x-1/2 z-20 flex justify-center space-x-3">
             {slides.map((_, index) => (
               <button
                 key={index}
-                onClick={() => {
-                  console.log(`Indicator click: changing to slide ${index}`)
-                  // 自動再生タイマーをリセット
-                  if (autoplayTimerRef.current) {
-                    clearInterval(autoplayTimerRef.current)
-                    autoplayTimerRef.current = null
-                  }
-
-                  setCurrentSlide(index)
-
-                  // 一時停止していない場合は自動再生を再開
-                  if (!isPaused) {
-                    autoplayTimerRef.current = setInterval(() => {
-                      setCurrentSlide((prev) => (prev + 1) % slides.length)
-                    }, autoplayInterval)
-                  }
-                }}
+                onClick={() => goToSlide(index)}
                 className={`w-3 h-3 rounded-full transition-all duration-300 ${
                   index === currentSlide
                     ? 'bg-white scale-125'
