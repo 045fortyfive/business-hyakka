@@ -64,8 +64,8 @@ export function CategoryCarousel({
     if (!carouselRef.current) return;
 
     const { clientWidth } = carouselRef.current;
-    // モバイルでは1枚分（カード幅40% + 余白3.75%）スクロール
-    const cardWidth = window.innerWidth <= 640 ? clientWidth * 0.4375 : clientWidth / 2;
+    // カードサイズ + 余白分スクロール (160px + 15px)
+    const cardWidth = window.innerWidth <= 640 ? 175 : window.innerWidth <= 768 ? 195 : 215;
     const scrollAmount = direction === 'left' ? -cardWidth : cardWidth;
 
     carouselRef.current.scrollBy({
@@ -123,8 +123,8 @@ export function CategoryCarousel({
           style={{
             scrollbarWidth: 'none',
             msOverflowStyle: 'none',
-            paddingLeft: '3.75%',
-            paddingRight: '12.5%' // 3つ目のカードが12.5%見切れるようにパディングを設定
+            paddingLeft: '15px',
+            paddingRight: '80px' // 3つ目のカードが見切れるようにパディングを設定
           }}
         >
           {items.map((item) => {
@@ -147,27 +147,29 @@ export function CategoryCarousel({
             return (
               <div
                 key={item.sys.id}
-                className="min-w-[40%] w-[40%] sm:min-w-[240px] sm:w-[240px] md:min-w-[280px] md:w-[280px] snap-start mr-[3.75%] sm:mr-4 flex-shrink-0"
+                className="min-w-[160px] w-[160px] h-[160px] sm:min-w-[180px] sm:w-[180px] sm:h-[180px] md:min-w-[200px] md:w-[200px] md:h-[200px] snap-start mr-[15px] flex-shrink-0"
               >
                 <div className={`p-[2px] rounded-xl bg-gradient-to-br ${getBorderGradientClass()} h-full`}>
                   <div className="bg-white rounded-lg overflow-hidden h-full flex flex-col">
                     <Link href={`${contentPath}${item.fields.slug}`} className="flex flex-col h-full">
-                      <div className="relative h-28 sm:h-32 md:h-40 w-full">
+                      {/* 画像部分 - 正方形の上半分 */}
+                      <div className="relative w-full" style={{ height: 'calc(50% - 1px)' }}>
                         <Image
                           src={imageUrl}
                           alt={item.fields.title}
                           fill
-                          sizes="(max-width: 640px) 200px, (max-width: 768px) 240px, 280px"
+                          sizes="(max-width: 640px) 160px, (max-width: 768px) 180px, 200px"
                           className="object-cover"
                         />
                       </div>
-                      <div className="p-2 sm:p-3 md:p-4 flex flex-col flex-grow">
-                        <h3 className="font-medium text-gray-900 text-sm sm:text-base mb-1 sm:mb-2 line-clamp-2">{item.fields.title}</h3>
-                        <p className="text-xs sm:text-sm text-gray-600 line-clamp-2 mb-auto">
+                      {/* 詳細部分 - 正方形の下半分 */}
+                      <div className="p-2 flex flex-col flex-grow" style={{ height: 'calc(50% - 1px)' }}>
+                        <h3 className="font-medium text-gray-900 text-xs sm:text-sm mb-1 line-clamp-2">{item.fields.title}</h3>
+                        <p className="text-[10px] sm:text-xs text-gray-600 line-clamp-2 mb-auto">
                           {item.fields.description || `${categoryName}に関するコンテンツです。`}
                         </p>
-                        <div className="flex items-center justify-between mt-2 sm:mt-3">
-                          <span className="text-[10px] sm:text-xs font-medium px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full bg-gray-100 text-gray-700">
+                        <div className="flex items-center justify-between mt-1">
+                          <span className="text-[8px] sm:text-[10px] font-medium px-1 py-0.5 rounded-full bg-gray-100 text-gray-700">
                             {new Date(item.sys.createdAt).toLocaleDateString('ja-JP')}
                           </span>
                         </div>
