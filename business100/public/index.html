@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Skillpedia - 20代のビジネススキル百科</title>
+  <meta name="description" content="若手ビジネスパーソンのためのビジネススキル向上を支援するメディアサイト。記事、動画、音声でビジネススキルを学べます。">
+  <meta name="keywords" content="ビジネススキル, ビジネスマナー, コミュニケーション, マネジメント, 業務改善">
+  <link rel="icon" href="/favicon.ico">
+  <link rel="apple-touch-icon" href="/apple-icon.png">
+  <style>
+    :root {
+      --background: #ffffff;
+      --foreground: #171717;
+    }
+
+    body {
+      background: var(--background);
+      color: var(--foreground);
+      font-family: Arial, Helvetica, sans-serif;
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      background-color: #fff;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      padding: 1.5rem;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 1rem;
+    }
+
+    .header-content {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .logo {
+      height: 100px;
+    }
+
+    nav ul {
+      display: flex;
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
+
+    nav li {
+      margin-left: 2rem;
+    }
+
+    nav a {
+      color: #333;
+      text-decoration: none;
+      font-weight: 500;
+    }
+
+    main {
+      flex-grow: 1;
+      padding: 2rem 0;
+    }
+
+    .hero {
+      background: linear-gradient(to right, #3b82f6, #2563eb);
+      color: white;
+      border-radius: 0.75rem;
+      padding: 3rem 2rem;
+      margin-bottom: 3rem;
+    }
+
+    .hero h1 {
+      font-size: 2.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .hero p {
+      font-size: 1.25rem;
+      margin-bottom: 1.5rem;
+      max-width: 600px;
+    }
+
+    .btn {
+      display: inline-block;
+      padding: 0.75rem 1.5rem;
+      border-radius: 9999px;
+      font-weight: 500;
+      text-decoration: none;
+      transition: all 0.2s;
+    }
+
+    .btn-primary {
+      background-color: white;
+      color: #2563eb;
+    }
+
+    .btn-primary:hover {
+      background-color: #f9fafb;
+    }
+
+    .btn-secondary {
+      background-color: transparent;
+      border: 2px solid white;
+      color: white;
+    }
+
+    .btn-secondary:hover {
+      background-color: rgba(255, 255, 255, 0.1);
+    }
+
+    .section {
+      margin-bottom: 4rem;
+    }
+
+    .section-title {
+      font-size: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .card {
+      border-radius: 0.5rem;
+      overflow: hidden;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      transition: transform 0.3s, box-shadow 0.3s;
+    }
+
+    .card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .card-image {
+      height: 200px;
+      background-color: #f3f4f6;
+      position: relative;
+    }
+
+    .card-content {
+      padding: 1.5rem;
+    }
+
+    .card-title {
+      font-size: 1.25rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .card-description {
+      color: #4b5563;
+      margin-bottom: 1rem;
+    }
+
+    .card-meta {
+      display: flex;
+      justify-content: space-between;
+      color: #6b7280;
+      font-size: 0.875rem;
+    }
+
+    footer {
+      background-color: #f3f4f6;
+      padding: 2rem 0;
+      margin-top: auto;
+    }
+
+    .footer-content {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .footer-links {
+      display: flex;
+    }
+
+    .footer-links a {
+      margin-left: 1.5rem;
+      color: #4b5563;
+      text-decoration: none;
+    }
+
+    .copyright {
+      color: #6b7280;
+    }
+
+    @media (max-width: 768px) {
+      nav {
+        display: none;
+      }
+
+      .hero h1 {
+        font-size: 2rem;
+      }
+
+      .hero p {
+        font-size: 1rem;
+      }
+
+      .footer-content {
+        flex-direction: column;
+      }
+
+      .footer-links {
+        margin-top: 1rem;
+      }
+
+      .footer-links a {
+        margin: 0 0.75rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container">
+      <div class="header-content">
+        <a href="/">
+          <img src="https://njazjixymhdfjiag.public.blob.vercel-storage.com/Header%20main%20edited-FrhGP5sX6hYOJRQvZkASlfnkkjvQAP.png" alt="Skillpedia - 20代のビジネススキル百科" class="logo">
+        </a>
+        <nav>
+          <ul>
+            <li><a href="/articles">記事</a></li>
+            <li><a href="/videos">動画</a></li>
+            <li><a href="/audios">音声</a></li>
+            <li><a href="/categories">カテゴリ</a></li>
+          </ul>
+        </nav>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <div class="container">
+      <section class="hero">
+        <h1>ビジネススキルを効率的に学び、キャリアを加速させよう</h1>
+        <p>若手ビジネスパーソンのためのスキルアップ情報サイト。記事、動画、音声で、いつでもどこでもビジネススキルを学べます。</p>
+        <div>
+          <a href="/articles" class="btn btn-primary">記事を読む</a>
+          <a href="/videos" class="btn btn-secondary">動画を見る</a>
+        </div>
+      </section>
+
+      <section class="section">
+        <h2 class="section-title">最新の記事</h2>
+        <div class="card-grid">
+          <div class="card">
+            <div class="card-image"></div>
+            <div class="card-content">
+              <h3 class="card-title">効果的なコミュニケーション術</h3>
+              <p class="card-description">ビジネスシーンで役立つコミュニケーションのコツを解説します。</p>
+              <div class="card-meta">
+                <span>コミュニケーション</span>
+                <span>2023年5月1日</span>
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-image"></div>
+            <div class="card-content">
+              <h3 class="card-title">タイムマネジメントの基本</h3>
+              <p class="card-description">仕事の効率を上げるためのタイムマネジメント手法を紹介します。</p>
+              <div class="card-meta">
+                <span>基本ビジネススキル</span>
+                <span>2023年4月15日</span>
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-image"></div>
+            <div class="card-content">
+              <h3 class="card-title">プレゼンテーションの極意</h3>
+              <p class="card-description">説得力のあるプレゼンテーションを行うためのポイントを解説します。</p>
+              <div class="card-meta">
+                <span>プレゼンテーション</span>
+                <span>2023年4月1日</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <footer>
+    <div class="container">
+      <div class="footer-content">
+        <div class="copyright">© 2023 Skillpedia - 20代のビジネススキル百科</div>
+        <div class="footer-links">
+          <a href="/about">サイトについて</a>
+          <a href="/contact">お問い合わせ</a>
+          <a href="/privacy">プライバシーポリシー</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

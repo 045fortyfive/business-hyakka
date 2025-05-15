@@ -1,0 +1,13 @@
+{
+  "version": 2,
+  "name": "business-hyakka",
+  "buildCommand": "npm run build",
+  "devCommand": "npm run dev",
+  "installCommand": "npm install --legacy-peer-deps",
+  "framework": "nextjs",
+  "outputDirectory": ".next",
+  "regions": ["hnd1"],
+  "github": {
+    "silent": true
+  }
+}

@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useEffect, useState } from 'react';
 import { MDXRemote, MDXRemoteSerializeResult } from 'next-mdx-remote';
 import { serialize } from 'next-mdx-remote/serialize';
@@ -32,17 +34,17 @@ export default function MDXRenderer({ content }: MDXRendererProps) {
   useEffect(() => {
     const prepareMDX = async () => {
       if (!content) return;
-      
+
       const mdxSource = await serialize(content, {
         mdxOptions: {
           remarkPlugins: [remarkGfm],
           rehypePlugins: [rehypeSlug, rehypeHighlight],
         },
       });
-      
+
       setMdxSource(mdxSource);
     };
-    
+
     prepareMDX();
   }, [content]);
 
