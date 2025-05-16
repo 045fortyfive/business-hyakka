@@ -94,6 +94,12 @@ export async function renderContentfulMdx(slug: string, contentType: string = 'a
         publishDate: content.fields.publishDate,
         videoUrl: content.fields.videoUrl,
         audioUrl: content.fields.audioUrl,
+        featuredImage: content.fields.featuredImage ? {
+          url: `https:${content.fields.featuredImage.fields.file.url}`,
+          title: content.fields.featuredImage.fields.title || '',
+          width: content.fields.featuredImage.fields.file.details.image?.width || 800,
+          height: content.fields.featuredImage.fields.file.details.image?.height || 450,
+        } : undefined,
       },
       content: content.fields.body?.content || '',
       mdxContent: null,

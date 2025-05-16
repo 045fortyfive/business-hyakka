@@ -63,87 +63,84 @@ export default async function MdxArticlePage({ params }: Props) {
     const gradientClass = 'from-blue-400 via-sky-500 to-indigo-600';
 
     return (
-      <div className="container mx-auto px-4 py-6 md:py-8 max-w-7xl">
-        {/* パンくずリスト - モバイルとPC共通 */}
-        <div className="flex flex-wrap items-center text-sm text-gray-500 mb-4">
-          <Link href="/" className="hover:text-blue-600">
-            ホーム
-          </Link>
-          <span className="mx-2">&gt;</span>
-          <Link href="/mdx-articles" className="hover:text-blue-600">
-            記事一覧
-          </Link>
-          <span className="mx-2">&gt;</span>
-          <span className="text-gray-700">{frontMatter.title}</span>
-        </div>
-
-        {/* アイキャッチ画像 */}
-        {frontMatter.featuredImage && (
-          <div className="mb-6 relative w-full aspect-video rounded-lg overflow-hidden">
-            <Image
-              src={frontMatter.featuredImage.url}
-              alt={frontMatter.featuredImage.title || frontMatter.title}
-              fill
-              className="object-cover"
-              priority
-            />
+      <div className="container mx-auto px-4 py-6 md:py-8 max-w-7xl flex justify-center">
+        <div className="w-full max-w-[800px]">
+          {/* パンくずリスト - モバイルとPC共通 */}
+          <div className="flex flex-wrap items-center text-sm text-gray-500 mb-4">
+            <Link href="/" className="hover:text-blue-600">
+              ホーム
+            </Link>
+            <span className="mx-2">&gt;</span>
+            <Link href="/articles" className="hover:text-blue-600">
+              記事一覧
+            </Link>
+            <span className="mx-2">&gt;</span>
+            <span className="text-gray-700">{frontMatter.title}</span>
           </div>
-        )}
 
-        {/* 記事ヘッダー */}
-        <header className="mb-6">
-          <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold mb-3">{frontMatter.title}</h1>
-          {frontMatter.description && (
-            <p className="text-base md:text-lg text-gray-600 mb-3">{frontMatter.description}</p>
+          {/* アイキャッチ画像 */}
+          {frontMatter.featuredImage && (
+            <div className="mb-6 relative w-full aspect-video rounded-lg overflow-hidden">
+              <Image
+                src={frontMatter.featuredImage.url}
+                alt={frontMatter.featuredImage.title || frontMatter.title}
+                fill
+                className="object-cover"
+                priority
+              />
+            </div>
           )}
-          <div className="flex flex-wrap items-center text-sm text-gray-600">
-            {frontMatter.category && (
-              <span className={`px-3 py-1 rounded-full text-white bg-gradient-to-r ${gradientClass} mr-3 mb-2`}>
-                {frontMatter.category}
-              </span>
+
+          {/* 記事ヘッダー */}
+          <header className="mb-6">
+            <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold mb-3">{frontMatter.title}</h1>
+            {frontMatter.description && (
+              <p className="text-base md:text-lg text-gray-600 mb-3">{frontMatter.description}</p>
             )}
-            {frontMatter.publishDate && (
-              <span className="mr-4 mb-2">
-                公開日: {new Date(frontMatter.publishDate).toLocaleDateString('ja-JP')}
-              </span>
-            )}
-            {frontMatter.author && (
-              <span className="mb-2">
-                著者: {frontMatter.author}
-              </span>
-            )}
+            <div className="flex flex-wrap items-center text-sm text-gray-600">
+              {frontMatter.category && (
+                <span className={`px-3 py-1 rounded-full text-white bg-gradient-to-r ${gradientClass} mr-3 mb-2`}>
+                  {frontMatter.category}
+                </span>
+              )}
+              {frontMatter.publishDate && (
+                <span className="mr-4 mb-2">
+                  公開日: {new Date(frontMatter.publishDate).toLocaleDateString('ja-JP')}
+                </span>
+              )}
+              {frontMatter.author && (
+                <span className="mb-2">
+                  著者: {frontMatter.author}
+                </span>
+              )}
+            </div>
+          </header>
+
+          {/* 目次 */}
+          <div className="mb-6">
+            <EnhancedTableOfContents toc={generateTableOfContents(toc)} type="main" />
           </div>
-        </header>
 
-        {/* 目次 */}
-        <div className="mb-6">
-          <EnhancedTableOfContents toc={generateTableOfContents(toc)} type="main" />
-        </div>
+          {/* 記事本文 */}
+          <article className="bg-white rounded-lg shadow-sm p-4 md:p-6">
+            <div className="prose prose-base md:prose-lg max-w-none">
+              {mdxContent ? (
+                // Contentfulから取得したMDXコンテンツを表示
+                <>{mdxContent}</>
+              ) : (
+                // ファイルシステムから取得したMDXコンテンツを表示
+                <MDXRenderer content={content} />
+              )}
+            </div>
+          </article>
 
-        {/* 1カラムレイアウト */}
-        <div className="w-full flex justify-center">
-          <div className="w-full max-w-[600px]">
-            <article className="bg-white rounded-lg shadow-sm p-4 md:p-6">
-              {/* 記事本文 */}
-              <div className="prose prose-base md:prose-lg max-w-none">
-                {mdxContent ? (
-                  // Contentfulから取得したMDXコンテンツを表示
-                  <>{mdxContent}</>
-                ) : (
-                  // ファイルシステムから取得したMDXコンテンツを表示
-                  <MDXRenderer content={content} />
-                )}
-              </div>
-            </article>
-
-            {/* 関連コンテンツ */}
-            {relatedContents && relatedContents.length > 0 && (
-              <div className="mt-8">
-                <h2 className="text-xl font-bold mb-4">関連コンテンツ</h2>
-                <RelatedContents contents={relatedContents} />
-              </div>
-            )}
-          </div>
+          {/* 関連コンテンツ */}
+          {relatedContents && relatedContents.length > 0 && (
+            <div className="mt-8">
+              <h2 className="text-xl font-bold mb-4">関連コンテンツ</h2>
+              <RelatedContents contents={relatedContents} />
+            </div>
+          )}
         </div>
       </div>
     );
@@ -155,33 +152,30 @@ export default async function MdxArticlePage({ params }: Props) {
     const toc = extractTocFromMdx(content);
 
     return (
-      <div className="container mx-auto px-4 py-6 md:py-8 max-w-7xl">
-        {/* パンくずリスト - モバイルとPC共通 */}
-        <div className="flex flex-wrap items-center text-sm text-gray-500 mb-4">
-          <Link href="/" className="hover:text-blue-600">
-            ホーム
-          </Link>
-          <span className="mx-2">&gt;</span>
-          <Link href="/mdx-articles" className="hover:text-blue-600">
-            記事一覧
-          </Link>
-        </div>
-
-        {/* 目次 */}
-        <div className="mb-6">
-          <EnhancedTableOfContents toc={generateTableOfContents(toc)} type="main" />
-        </div>
-
-        {/* 1カラムレイアウト */}
-        <div className="w-full flex justify-center">
-          <div className="w-full max-w-[600px]">
-            <article className="bg-white rounded-lg shadow-sm p-4 md:p-6">
-              {/* 記事本文 */}
-              <div className="prose prose-base md:prose-lg max-w-none">
-                <MDXRenderer content={content} />
-              </div>
-            </article>
+      <div className="container mx-auto px-4 py-6 md:py-8 max-w-7xl flex justify-center">
+        <div className="w-full max-w-[800px]">
+          {/* パンくずリスト - モバイルとPC共通 */}
+          <div className="flex flex-wrap items-center text-sm text-gray-500 mb-4">
+            <Link href="/" className="hover:text-blue-600">
+              ホーム
+            </Link>
+            <span className="mx-2">&gt;</span>
+            <Link href="/articles" className="hover:text-blue-600">
+              記事一覧
+            </Link>
           </div>
+
+          {/* 目次 */}
+          <div className="mb-6">
+            <EnhancedTableOfContents toc={generateTableOfContents(toc)} type="main" />
+          </div>
+
+          {/* 記事本文 */}
+          <article className="bg-white rounded-lg shadow-sm p-4 md:p-6">
+            <div className="prose prose-base md:prose-lg max-w-none">
+              <MDXRenderer content={content} />
+            </div>
+          </article>
         </div>
       </div>
     );
