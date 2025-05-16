@@ -19,8 +19,8 @@ export const metadata: Metadata = {
   description: "若手ビジネスパーソンのためのビジネススキル向上を支援するメディアサイト。記事、動画、音声でビジネススキルを学べます。",
   keywords: "ビジネススキル, ビジネスマナー, コミュニケーション, マネジメント, 業務改善",
   icons: {
-    icon: '/favicon.ico',
-    apple: '/favicon.ico',
+    icon: '/favicon-32x32.png',
+    apple: '/apple-touch-icon.png',
   },
 };
 

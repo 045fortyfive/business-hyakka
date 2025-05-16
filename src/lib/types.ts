@@ -44,6 +44,8 @@ export interface ContentFields {
   audioUrl?: string;
   featuredImage?: Asset;
   thumbnail?: Asset;
+  publishDate?: string;
+  relatedContents?: Entry<ContentFields>[]; // 関連コンテンツへの参照
 }
 
 export type Content = Entry<ContentFields>;

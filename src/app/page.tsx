@@ -220,7 +220,6 @@ export default async function Home() {
               slides={heroSlides.map(slide => ({
                 id: slide.id,
                 title: slide.title,
-                description: slide.description,
                 imageUrl: slide.imageUrl,
                 linkUrl: slide.linkUrl,
                 linkText: slide.linkText,

@@ -1,9 +1,12 @@
 import { Metadata } from 'next';
-import { getMdxBySlug } from '@/utils/mdx-utils';
+import { getMdxBySlug, renderContentfulMdx } from '@/utils/mdx-utils';
 import MDXRenderer from '@/components/MDXRenderer';
 import Link from 'next/link';
 import TableOfContents from '@/components/TableOfContents';
-import { extractTocFromMdx } from '@/utils/toc-generator';
+import EnhancedTableOfContents from '@/components/EnhancedTableOfContents';
+import { extractTocFromMdx, generateTableOfContents } from '@/utils/toc-generator';
+import RelatedContents from '@/components/RelatedContents';
+import Image from 'next/image';
 
 interface Props {
   params: {
@@ -12,78 +15,193 @@ interface Props {
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { slug } = params;
-  const { frontMatter, content } = getMdxBySlug(slug);
-  
-  // タイトルを抽出（最初の見出しを使用）
-  const titleMatch = content.match(/^# (.+)$/m);
-  const title = titleMatch ? titleMatch[1] : slug;
-  
-  return {
-    title: `${title} | ビジネススキル百科`,
-    description: frontMatter.description || `${title}に関する記事`,
-  };
+  // paramsを非同期で解決
+  const resolvedParams = await Promise.resolve(params);
+  const { slug } = resolvedParams;
+
+  try {
+    // まずContentfulからコンテンツを取得
+    const contentfulData = await renderContentfulMdx(slug);
+
+    // タイトルを抽出（最初の見出しを使用）
+    const titleMatch = contentfulData.content.match(/^# (.+)$/m);
+    const title = titleMatch
+      ? titleMatch[1]
+      : contentfulData.frontMatter.title || slug;
+
+    return {
+      title: `${title} | ビジネススキル百科`,
+      description: contentfulData.frontMatter.description || `${title}に関する記事`,
+    };
+  } catch (error) {
+    // Contentfulからの取得に失敗した場合はファイルシステムから取得
+    const { frontMatter, content } = getMdxBySlug(slug);
+
+    // タイトルを抽出（最初の見出しを使用）
+    const titleMatch = content.match(/^# (.+)$/m);
+    const title = titleMatch ? titleMatch[1] : slug;
+
+    return {
+      title: `${title} | ビジネススキル百科`,
+      description: frontMatter.description || `${title}に関する記事`,
+    };
+  }
 }
 
-export default function MdxArticlePage({ params }: Props) {
-  const { slug } = params;
-  const { content } = getMdxBySlug(slug);
-  
-  // 記事の内容からTOCを生成
-  const toc = extractTocFromMdx(content);
-  
-  // カテゴリーに応じたグラデーションクラスを設定
-  const gradientClass = 'from-blue-400 via-sky-500 to-indigo-600';
-  
-  return (
-    <div className="container mx-auto px-4 py-6 md:py-8 max-w-7xl">
-      {/* パンくずリスト - モバイルとPC共通 */}
-      <div className="flex flex-wrap items-center text-sm text-gray-500 mb-4">
-        <Link href="/" className="hover:text-blue-600">
-          ホーム
-        </Link>
-        <span className="mx-2">&gt;</span>
-        <Link href="/articles" className="hover:text-blue-600">
-          記事一覧
-        </Link>
-      </div>
+export default async function MdxArticlePage({ params }: Props) {
+  // paramsを非同期で解決
+  const resolvedParams = await Promise.resolve(params);
+  const { slug } = resolvedParams;
 
-      {/* モバイル用目次（折りたたみ可能） */}
-      <div className="md:hidden mb-6">
-        <details className="bg-white rounded-lg shadow-sm p-4">
-          <summary className="text-lg font-bold cursor-pointer">目次</summary>
-          <div className="mt-3">
-            <TableOfContents content={toc} />
+  try {
+    // まずContentfulからコンテンツを取得
+    const { content, mdxContent, frontMatter, relatedContents } = await renderContentfulMdx(slug);
+
+    // bodyから目次を生成（mdxContentではなく）
+    const toc = extractTocFromMdx(content);
+
+    // カテゴリーに応じたグラデーションクラスを設定
+    const gradientClass = 'from-blue-400 via-sky-500 to-indigo-600';
+
+    return (
+      <div className="container mx-auto px-4 py-6 md:py-8 max-w-7xl">
+        {/* パンくずリスト - モバイルとPC共通 */}
+        <div className="flex flex-wrap items-center text-sm text-gray-500 mb-4">
+          <Link href="/" className="hover:text-blue-600">
+            ホーム
+          </Link>
+          <span className="mx-2">&gt;</span>
+          <Link href="/mdx-articles" className="hover:text-blue-600">
+            記事一覧
+          </Link>
+          <span className="mx-2">&gt;</span>
+          <span className="text-gray-700">{frontMatter.title}</span>
+        </div>
+
+        {/* アイキャッチ画像 */}
+        {frontMatter.featuredImage && (
+          <div className="mb-6 relative w-full aspect-video rounded-lg overflow-hidden">
+            <Image
+              src={frontMatter.featuredImage.url}
+              alt={frontMatter.featuredImage.title || frontMatter.title}
+              fill
+              className="object-cover"
+              priority
+            />
           </div>
-        </details>
-      </div>
+        )}
 
-      {/* 2カラムレイアウト */}
-      <div className="flex flex-col md:flex-row gap-6 md:gap-8">
-        {/* メインコンテンツ - 左カラム */}
-        <div className="md:w-3/4">
-          <article className="bg-white rounded-lg shadow-sm p-4 md:p-6">
-            {/* 記事本文 */}
-            <div className="prose prose-base md:prose-lg max-w-none">
-              <MDXRenderer content={content} />
-            </div>
-          </article>
+        {/* 記事ヘッダー */}
+        <header className="mb-6">
+          <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold mb-3">{frontMatter.title}</h1>
+          {frontMatter.description && (
+            <p className="text-base md:text-lg text-gray-600 mb-3">{frontMatter.description}</p>
+          )}
+          <div className="flex flex-wrap items-center text-sm text-gray-600">
+            {frontMatter.category && (
+              <span className={`px-3 py-1 rounded-full text-white bg-gradient-to-r ${gradientClass} mr-3 mb-2`}>
+                {frontMatter.category}
+              </span>
+            )}
+            {frontMatter.publishDate && (
+              <span className="mr-4 mb-2">
+                公開日: {new Date(frontMatter.publishDate).toLocaleDateString('ja-JP')}
+              </span>
+            )}
+            {frontMatter.author && (
+              <span className="mb-2">
+                著者: {frontMatter.author}
+              </span>
+            )}
+          </div>
+        </header>
+
+        {/* 目次 */}
+        <div className="mb-6">
+          <EnhancedTableOfContents toc={generateTableOfContents(toc)} type="main" />
         </div>
 
-        {/* サイドバー - 右カラム（PCのみ表示） */}
-        <div className="hidden md:block md:w-1/4">
-          <TableOfContents content={toc} />
+        {/* 1カラムレイアウト */}
+        <div className="w-full flex justify-center">
+          <div className="w-full max-w-[600px]">
+            <article className="bg-white rounded-lg shadow-sm p-4 md:p-6">
+              {/* 記事本文 */}
+              <div className="prose prose-base md:prose-lg max-w-none">
+                {mdxContent ? (
+                  // Contentfulから取得したMDXコンテンツを表示
+                  <>{mdxContent}</>
+                ) : (
+                  // ファイルシステムから取得したMDXコンテンツを表示
+                  <MDXRenderer content={content} />
+                )}
+              </div>
+            </article>
+
+            {/* 関連コンテンツ */}
+            {relatedContents && relatedContents.length > 0 && (
+              <div className="mt-8">
+                <h2 className="text-xl font-bold mb-4">関連コンテンツ</h2>
+                <RelatedContents contents={relatedContents} />
+              </div>
+            )}
+          </div>
         </div>
       </div>
-    </div>
-  );
+    );
+  } catch (error) {
+    // Contentfulからの取得に失敗した場合はファイルシステムから取得
+    const { content } = getMdxBySlug(slug);
+
+    // 記事の内容からTOCを生成
+    const toc = extractTocFromMdx(content);
+
+    // カテゴリーに応じたグラデーションクラスを設定
+    const gradientClass = 'from-blue-400 via-sky-500 to-indigo-600';
+
+    return (
+      <div className="container mx-auto px-4 py-6 md:py-8 max-w-7xl">
+        {/* パンくずリスト - モバイルとPC共通 */}
+        <div className="flex flex-wrap items-center text-sm text-gray-500 mb-4">
+          <Link href="/" className="hover:text-blue-600">
+            ホーム
+          </Link>
+          <span className="mx-2">&gt;</span>
+          <Link href="/mdx-articles" className="hover:text-blue-600">
+            記事一覧
+          </Link>
+        </div>
+
+        {/* 目次 */}
+        <div className="mb-6">
+          <EnhancedTableOfContents toc={generateTableOfContents(toc)} type="main" />
+        </div>
+
+        {/* 1カラムレイアウト */}
+        <div className="w-full flex justify-center">
+          <div className="w-full max-w-[600px]">
+            <article className="bg-white rounded-lg shadow-sm p-4 md:p-6">
+              {/* 記事本文 */}
+              <div className="prose prose-base md:prose-lg max-w-none">
+                <MDXRenderer content={content} />
+              </div>
+            </article>
+          </div>
+        </div>
+      </div>
+    );
+  }
 }
 
 // 静的ページ生成のためのパスを取得
 export async function generateStaticParams() {
-  // 実際の実装では、getAllMdxSlugs()を使用してすべてのスラッグを取得
-  // ここでは簡略化のため、手動で設定
-  return [
-    { slug: 'ai-skills' },
-  ];
+  try {
+    // 実際の実装では、getAllMdxSlugs()を使用してすべてのスラッグを取得
+    // ここでは簡略化のため、手動で設定
+    return [
+      { slug: 'ai-skills' },
+    ];
+  } catch (error) {
+    console.error('Error generating static params for MDX articles:', error);
+    return [];
+  }
 }

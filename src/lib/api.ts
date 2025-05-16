@@ -11,9 +11,15 @@ import {
 } from './types';
 
 // プレビューモードに応じたクライアントを取得する関数
-export function getClient() {
-  const { isEnabled } = draftMode();
-  return isEnabled ? previewContentfulClient : contentfulClient;
+export async function getClient() {
+  try {
+    const { isEnabled } = await draftMode();
+    return isEnabled ? previewContentfulClient : contentfulClient;
+  } catch (error) {
+    // draftModeがリクエストスコープ外で呼び出された場合は公開モードのクライアントを返す
+    console.warn('draftMode was called outside a request scope, using public client');
+    return contentfulClient;
+  }
 }
 
 // 記事一覧を取得
@@ -30,7 +36,7 @@ export async function getArticles(limit = 10, skip = 0): Promise<ContentCollecti
 
   try {
     // プレビューモードに応じたクライアントを取得
-    const client = getClient();
+    const client = await getClient();
 
     // Contentfulのクエリパラメータを表示
     console.log('Query parameters:', {
@@ -81,7 +87,7 @@ export async function getArticleBySlug(slug: string): Promise<Content | null> {
   console.log(`Fetching article by slug: ${slug}`);
   try {
     // プレビューモードに応じたクライアントを取得
-    const client = getClient();
+    const client = await getClient();
 
     const entries = await client.getEntries<Content['fields']>({
       content_type: CONTENT_TYPE.CONTENT,
@@ -104,7 +110,7 @@ export async function getVideos(limit = 10, skip = 0): Promise<ContentCollection
   console.log(`Fetching videos: limit=${limit}, skip=${skip}`);
   try {
     // プレビューモードに応じたクライアントを取得
-    const client = getClient();
+    const client = await getClient();
 
     const response = await client.getEntries<Content['fields']>({
       content_type: CONTENT_TYPE.CONTENT,
@@ -133,7 +139,7 @@ export async function getVideoBySlug(slug: string): Promise<Content | null> {
   console.log(`Fetching video by slug: ${slug}`);
   try {
     // プレビューモードに応じたクライアントを取得
-    const client = getClient();
+    const client = await getClient();
 
     const entries = await client.getEntries<Content['fields']>({
       content_type: CONTENT_TYPE.CONTENT,
@@ -156,7 +162,7 @@ export async function getAudios(limit = 10, skip = 0): Promise<ContentCollection
   console.log(`Fetching audios: limit=${limit}, skip=${skip}`);
   try {
     // プレビューモードに応じたクライアントを取得
-    const client = getClient();
+    const client = await getClient();
 
     const response = await client.getEntries<Content['fields']>({
       content_type: CONTENT_TYPE.CONTENT,
@@ -185,7 +191,7 @@ export async function getAudioBySlug(slug: string): Promise<Content | null> {
   console.log(`Fetching audio by slug: ${slug}`);
   try {
     // プレビューモードに応じたクライアントを取得
-    const client = getClient();
+    const client = await getClient();
 
     const entries = await client.getEntries<Content['fields']>({
       content_type: CONTENT_TYPE.CONTENT,
@@ -208,7 +214,7 @@ export async function getCategories(): Promise<CategoryCollection> {
   console.log('Fetching categories');
   try {
     // プレビューモードに応じたクライアントを取得
-    const client = getClient();
+    const client = await getClient();
 
     const response = await client.getEntries<Category['fields']>({
       content_type: CONTENT_TYPE.CATEGORY,
@@ -232,7 +238,7 @@ export async function getCategories(): Promise<CategoryCollection> {
 // 特定のカテゴリを取得
 export async function getCategoryBySlug(slug: string): Promise<Category | null> {
   // プレビューモードに応じたクライアントを取得
-  const client = getClient();
+  const client = await getClient();
 
   const entries = await client.getEntries<Category['fields']>({
     content_type: CONTENT_TYPE.CATEGORY,
@@ -263,7 +269,7 @@ export async function getContentByCategory(categorySlug: string, limit = 10, ski
 
   try {
     // プレビューモードに応じたクライアントを取得
-    const client = getClient();
+    const client = await getClient();
 
     // カテゴリに属する記事を取得
     const articles = await client.getEntries<Content['fields']>({
@@ -313,13 +319,72 @@ export async function getContentByCategory(categorySlug: string, limit = 10, ski
   }
 }
 
+// 特定のスラッグのコンテンツを取得（コンテンツタイプを指定可能）
+export async function getContentBySlug(slug: string, contentType: string = 'article'): Promise<Content | null> {
+  console.log(`Fetching content by slug: ${slug}, type: ${contentType}`);
+  try {
+    // プレビューモードに応じたクライアントを取得
+    const client = await getClient();
+
+    // contentTypeに応じたフィルタリング
+    let contentTypeFilter;
+    switch (contentType) {
+      case 'article':
+        contentTypeFilter = CONTENT_TYPES.ARTICLE;
+        break;
+      case 'video':
+        contentTypeFilter = CONTENT_TYPES.VIDEO;
+        break;
+      case 'audio':
+        contentTypeFilter = CONTENT_TYPES.AUDIO;
+        break;
+      default:
+        contentTypeFilter = CONTENT_TYPES.ARTICLE;
+    }
+
+    const entries = await client.getEntries<Content['fields']>({
+      content_type: CONTENT_TYPE.CONTENT,
+      'fields.contentType': contentTypeFilter,
+      'fields.slug': slug,
+      include: 3, // 関連コンテンツも含めて取得
+      limit: 1,
+    });
+
+    console.log(`Found ${entries.items.length} contents with slug: ${slug}`);
+    return entries.items.length > 0 ? entries.items[0] : null;
+  } catch (error) {
+    console.error(`Error fetching content by slug ${slug}:`, error);
+    return null;
+  }
+}
+
+// 関連コンテンツを取得
+export async function getRelatedContents(contentId: string): Promise<Content[]> {
+  try {
+    // プレビューモードに応じたクライアントを取得
+    const client = await getClient();
+
+    // 指定されたコンテンツIDを参照しているコンテンツを取得
+    const entries = await client.getEntries<Content['fields']>({
+      content_type: CONTENT_TYPE.CONTENT,
+      'fields.relatedContents.sys.id': contentId,
+      include: 2,
+    });
+
+    return entries.items as Content[];
+  } catch (error) {
+    console.error(`Error fetching related contents for ${contentId}:`, error);
+    return [];
+  }
+}
+
 // キーワード検索
 export async function searchContent(query: string, limit = 10, skip = 0) {
   console.log(`Searching content with query: "${query}", limit: ${limit}, skip: ${skip}`);
 
   try {
     // プレビューモードに応じたクライアントを取得
-    const client = getClient();
+    const client = await getClient();
 
     // 記事を検索
     const articles = await client.getEntries<Content['fields']>({
