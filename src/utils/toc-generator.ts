@@ -111,32 +111,120 @@ export function generateHeadingId(text: string, index: number): string {
 }
 
 /**
- * MDXコンテンツから目次を抽出する
- * @param content MDXコンテンツ
- * @returns 目次アイテムの配列
+ * Contentfulのリッチテキストから見出しを抽出する
+ * @param richTextDocument Contentfulのリッチテキストドキュメント
+ * @returns 見出しの配列
  */
-export function extractTocFromMdx(content: string): any {
-  // 見出しを抽出する正規表現
-  const headingRegex = /^(#{1,6})\s+(.+)$/gm;
+function extractHeadingsFromRichText(richTextDocument: any): { level: number; text: string; id: string }[] {
   const headings: { level: number; text: string; id: string }[] = [];
-
-  let match;
   let index = 0;
-  while ((match = headingRegex.exec(content)) !== null) {
-    const level = match[1].length;
-    const text = match[2].trim();
-    const id = generateHeadingId(text, index++);
 
-    headings.push({ level, text, id });
+  function traverseContent(content: any[]) {
+    content.forEach((node: any) => {
+      if (node.nodeType && node.nodeType.startsWith('heading-')) {
+        const level = parseInt(node.nodeType.split('-')[1]);
+        const text = node.content
+          ?.map((textNode: any) => textNode.value || '')
+          .join('')
+          .trim();
+
+        if (text) {
+          const id = generateHeadingId(text, index++);
+          headings.push({ level, text, id });
+        }
+      }
+
+      // 再帰的に子要素を探索
+      if (node.content && Array.isArray(node.content)) {
+        traverseContent(node.content);
+      }
+    });
   }
 
-  // Contentfulの形式に合わせたドキュメントを作成
-  const document = {
-    content: headings.map(heading => ({
-      nodeType: `heading-${heading.level}`,
-      content: [{ value: heading.text }],
-    })),
-  };
+  if (richTextDocument && richTextDocument.content && Array.isArray(richTextDocument.content)) {
+    traverseContent(richTextDocument.content);
+  }
 
-  return document;
+  return headings;
+}
+
+/**
+ * MDXコンテンツから目次を抽出する
+ * @param content MDXコンテンツまたはレンダリング済みのMDXコンテンツ
+ * @returns 目次アイテムの配列
+ */
+export function extractTocFromMdx(content: any): any {
+  console.log('Extract TOC called with content type:', typeof content);
+
+  // コンテンツがContentfulのリッチテキストオブジェクトの場合
+  if (typeof content === 'object' && content !== null && content.content) {
+    console.log('Content is a rich text object with content property');
+
+    // Contentfulのリッチテキストから見出しを抽出
+    const headings = extractHeadingsFromRichText(content);
+    console.log(`Extracted ${headings.length} headings from rich text`);
+
+    return {
+      content: headings.map(heading => ({
+        nodeType: `heading-${heading.level}`,
+        content: [{ value: heading.text }],
+      })),
+    };
+  }
+
+  // コンテンツが文字列の場合（JSON文字列の可能性もある）
+  if (typeof content === 'string') {
+    console.log('Content is a string, checking if it\'s JSON');
+
+    // JSON文字列の場合はパースしてリッチテキストとして処理
+    try {
+      const parsedContent = JSON.parse(content);
+      if (parsedContent && parsedContent.content) {
+        console.log('Parsed JSON content, extracting headings from rich text');
+        const headings = extractHeadingsFromRichText(parsedContent);
+        console.log(`Extracted ${headings.length} headings from parsed JSON`);
+
+        return {
+          content: headings.map(heading => ({
+            nodeType: `heading-${heading.level}`,
+            content: [{ value: heading.text }],
+          })),
+        };
+      }
+    } catch (e) {
+      console.log('Content is not valid JSON, treating as markdown');
+    }
+
+    // 通常のMarkdownとして処理
+    console.log('Extracting TOC from MDX content string');
+
+    // 見出しを抽出する正規表現
+    const headingRegex = /^(#{1,6})\s+(.+)$/gm;
+    const headings: { level: number; text: string; id: string }[] = [];
+
+    let match;
+    let index = 0;
+    while ((match = headingRegex.exec(content)) !== null) {
+      const level = match[1].length;
+      const text = match[2].trim();
+      const id = generateHeadingId(text, index++);
+
+      headings.push({ level, text, id });
+    }
+
+    // Contentfulの形式に合わせたドキュメントを作成
+    const document = {
+      content: headings.map(heading => ({
+        nodeType: `heading-${heading.level}`,
+        content: [{ value: heading.text }],
+      })),
+    };
+
+    console.log(`Generated TOC with ${headings.length} headings`);
+    return document;
+  }
+
+  // その他の場合は空の目次を返す
+  console.log('Content is not a recognized format:', content);
+  return { content: [] };
 }

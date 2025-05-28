@@ -24,9 +24,138 @@ const components = {
 // MDXファイルのディレクトリパス
 const contentDirectory = path.join(process.cwd(), 'src/content');
 
+// Helper function to safely extract category name
+function getCategoryName(category: any): string | undefined {
+  try {
+    if (!category || !Array.isArray(category) || category.length === 0) {
+      return undefined;
+    }
+    return category[0]?.fields?.name;
+  } catch (error) {
+    console.warn('Error extracting category name:', error);
+    return undefined;
+  }
+}
+
+// Helper function to safely extract author name
+function getAuthorName(author: any): string | undefined {
+  try {
+    if (!author || !Array.isArray(author) || author.length === 0) {
+      return undefined;
+    }
+    return author[0]?.fields?.name;
+  } catch (error) {
+    console.warn('Error extracting author name:', error);
+    return undefined;
+  }
+}
+
+// Helper function to safely extract tag names
+function getTagNames(tags: any): string[] {
+  try {
+    if (!tags || !Array.isArray(tags)) {
+      return [];
+    }
+    return tags.map(tag => tag?.fields?.name).filter(Boolean);
+  } catch (error) {
+    console.warn('Error extracting tag names:', error);
+    return [];
+  }
+}
+
+// Helper function to safely extract featured image
+function getFeaturedImage(featuredImage: any) {
+  try {
+    if (!featuredImage?.fields?.file?.url) {
+      return undefined;
+    }
+    return {
+      url: `https:${featuredImage.fields.file.url}`,
+      title: featuredImage.fields.title || '',
+      width: featuredImage.fields.file.details?.image?.width || 800,
+      height: featuredImage.fields.file.details?.image?.height || 450,
+    };
+  } catch (error) {
+    console.warn('Error extracting featured image:', error);
+    return undefined;
+  }
+}
+
+// Helper function to safely extract body content
+function getBodyContent(body: any): string {
+  try {
+    if (!body) return '';
+
+    // If body is a rich text document, extract the content
+    if (body.content && Array.isArray(body.content)) {
+      return JSON.stringify(body);
+    }
+
+    // If body is already a string
+    if (typeof body === 'string') {
+      return body;
+    }
+
+    return '';
+  } catch (error) {
+    console.warn('Error extracting body content:', error);
+    return '';
+  }
+}
+
+// Helper function to safely extract downloadable files
+function getDownloadableFiles(content: any): Array<{url: string, title: string, filename: string}> {
+  try {
+    const files: Array<{url: string, title: string, filename: string}> = [];
+
+    // Check for downloadableFiles field
+    if (content.fields.downloadableFiles && Array.isArray(content.fields.downloadableFiles)) {
+      content.fields.downloadableFiles.forEach((file: any) => {
+        if (file?.fields?.file?.url) {
+          files.push({
+            url: `https:${file.fields.file.url}`,
+            title: file.fields.title || file.fields.file.fileName || 'ダウンロード',
+            filename: file.fields.file.fileName || 'file'
+          });
+        }
+      });
+    }
+
+    // Check for assets in body content
+    if (content.fields.body?.content) {
+      const extractAssetsFromContent = (contentArray: any[]) => {
+        contentArray.forEach((item: any) => {
+          if (item.nodeType === 'embedded-asset-block' && item.data?.target?.fields?.file?.url) {
+            const asset = item.data.target;
+            files.push({
+              url: `https:${asset.fields.file.url}`,
+              title: asset.fields.title || asset.fields.file.fileName || 'ダウンロード',
+              filename: asset.fields.file.fileName || 'file'
+            });
+          }
+          if (item.content && Array.isArray(item.content)) {
+            extractAssetsFromContent(item.content);
+          }
+        });
+      };
+
+      if (Array.isArray(content.fields.body.content)) {
+        extractAssetsFromContent(content.fields.body.content);
+      }
+    }
+
+    return files;
+  } catch (error) {
+    console.warn('Error extracting downloadable files:', error);
+    return [];
+  }
+}
+
 // Contentfulからのコンテンツを使用してMDXをレンダリング
 export async function renderContentfulMdx(slug: string, contentType: string = 'article') {
   try {
+    console.log(`Rendering Contentful MDX for slug: ${slug}, contentType: ${contentType}`);
+
     // Contentfulからコンテンツを取得
     const content = await getContentBySlug(slug, contentType) as Content;
 
@@ -47,11 +176,33 @@ export async function renderContentfulMdx(slug: string, contentType: string = 'a
         content: '# ページが見つかりません\n\n指定されたページは存在しません。[ホームに戻る](/)',
         mdxContent: null,
         relatedContents: [],
+        downloadableFiles: [],
       };
     }
 
+    console.log(`Found content: ${content.fields.title}`);
+    console.log(`Content fields:`, {
+      title: content.fields.title,
+      hasCategory: !!content.fields.category,
+      categoryLength: content.fields.category?.length,
+      hasAuthor: !!content.fields.author,
+      authorLength: content.fields.author?.length,
+      hasFeaturedImage: !!content.fields.featuredImage,
+      hasBody: !!content.fields.body,
+      hasMdxContent: !!content.fields.mdxContent
+    });
+
+    // Extract safe values
+    const categoryName = getCategoryName(content.fields.category);
+    const authorName = getAuthorName(content.fields.author);
+    const tagNames = getTagNames(content.fields.tags);
+    const featuredImage = getFeaturedImage(content.fields.featuredImage);
+    const bodyContent = getBodyContent(content.fields.body);
+    const downloadableFiles = getDownloadableFiles(content);
+
     // MDXコンテンツがある場合はそれを使用
     if (content.fields.mdxContent) {
+      console.log('Compiling MDX content...');
       const { content: mdxContent } = await compileMDX({
         source: content.fields.mdxContent,
         components,
@@ -61,52 +212,46 @@ export async function renderContentfulMdx(slug: string, contentType: string = 'a
       return {
         slug,
         frontMatter: {
-          title: content.fields.title,
-          description: content.fields.description,
-          category: content.fields.category?.[0]?.fields.name,
-          tags: content.fields.tags?.map(tag => tag.fields.name),
-          author: content.fields.author?.[0]?.fields.name,
+          title: content.fields.title || 'タイトルなし',
+          description: content.fields.description || '',
+          category: categoryName,
+          tags: tagNames,
+          author: authorName,
           publishDate: content.fields.publishDate,
           videoUrl: content.fields.videoUrl,
           audioUrl: content.fields.audioUrl,
-          featuredImage: content.fields.featuredImage ? {
-            url: `https:${content.fields.featuredImage.fields.file.url}`,
-            title: content.fields.featuredImage.fields.title || '',
-            width: content.fields.featuredImage.fields.file.details.image?.width || 800,
-            height: content.fields.featuredImage.fields.file.details.image?.height || 450,
-          } : undefined,
+          featuredImage,
         },
-        content: content.fields.body?.content || '',
+        content: bodyContent,
         mdxContent,
         relatedContents: content.fields.relatedContents || [],
+        downloadableFiles,
       };
     }
 
     // MDXコンテンツがない場合は通常のコンテンツを返す
+    console.log('No MDX content, returning regular content');
     return {
       slug,
       frontMatter: {
-        title: content.fields.title,
-        description: content.fields.description,
-        category: content.fields.category?.[0]?.fields.name,
-        tags: content.fields.tags?.map(tag => tag.fields.name),
-        author: content.fields.author?.[0]?.fields.name,
+        title: content.fields.title || 'タイトルなし',
+        description: content.fields.description || '',
+        category: categoryName,
+        tags: tagNames,
+        author: authorName,
         publishDate: content.fields.publishDate,
         videoUrl: content.fields.videoUrl,
         audioUrl: content.fields.audioUrl,
-        featuredImage: content.fields.featuredImage ? {
-          url: `https:${content.fields.featuredImage.fields.file.url}`,
-          title: content.fields.featuredImage.fields.title || '',
-          width: content.fields.featuredImage.fields.file.details.image?.width || 800,
-          height: content.fields.featuredImage.fields.file.details.image?.height || 450,
-        } : undefined,
+        featuredImage,
       },
-      content: content.fields.body?.content || '',
+      content: bodyContent,
       mdxContent: null,
       relatedContents: content.fields.relatedContents || [],
+      downloadableFiles,
     };
   } catch (error) {
     console.error(`MDXコンテンツのレンダリング中にエラーが発生しました: ${error}`);
+    console.error('Error stack:', error instanceof Error ? error.stack : 'No stack trace');
     return {
       slug,
       frontMatter: {
@@ -122,6 +267,7 @@ export async function renderContentfulMdx(slug: string, contentType: string = 'a
       content: '# エラーが発生しました\n\nコンテンツの読み込み中にエラーが発生しました。[ホームに戻る](/)',
       mdxContent: null,
       relatedContents: [],
+      downloadableFiles: [],
     };
   }
 }

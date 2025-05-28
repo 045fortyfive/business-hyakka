@@ -5,6 +5,8 @@ import Link from 'next/link';
 import EnhancedTableOfContents from '@/components/EnhancedTableOfContents';
 import { extractTocFromMdx, generateTableOfContents } from '@/utils/toc-generator';
 import RelatedContents from '@/components/RelatedContents';
+import DownloadSection from '@/components/DownloadSection';
+import ContentfulRichText from '@/components/ContentfulRichText';
 import Image from 'next/image';
 
 interface Props {
@@ -22,28 +24,49 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     // まずContentfulからコンテンツを取得
     const contentfulData = await renderContentfulMdx(slug);
 
-    // タイトルを抽出（最初の見出しを使用）
-    const titleMatch = contentfulData.content.match(/^# (.+)$/m);
-    const title = titleMatch
-      ? titleMatch[1]
-      : contentfulData.frontMatter.title || slug;
+    // タイトルを取得（frontMatterから直接取得）
+    const title = contentfulData.frontMatter.title || 'タイトルなし';
+    const description = contentfulData.frontMatter.description || `${title}に関する記事`;
 
     return {
       title: `${title} | ビジネススキル百科`,
-      description: contentfulData.frontMatter.description || `${title}に関する記事`,
+      description,
+      openGraph: {
+        title: `${title} | ビジネススキル百科`,
+        description,
+        images: contentfulData.frontMatter.featuredImage ? [
+          {
+            url: contentfulData.frontMatter.featuredImage.url,
+            width: contentfulData.frontMatter.featuredImage.width,
+            height: contentfulData.frontMatter.featuredImage.height,
+            alt: contentfulData.frontMatter.featuredImage.title || title,
+          }
+        ] : [],
+      },
     };
   } catch (error) {
+    console.error(`Error generating metadata for ${slug}:`, error);
+
     // Contentfulからの取得に失敗した場合はファイルシステムから取得
-    const { frontMatter, content } = getMdxBySlug(slug);
+    try {
+      const { frontMatter, content } = getMdxBySlug(slug);
 
-    // タイトルを抽出（最初の見出しを使用）
-    const titleMatch = content.match(/^# (.+)$/m);
-    const title = titleMatch ? titleMatch[1] : slug;
+      // タイトルを抽出（最初の見出しを使用）
+      const titleMatch = content.match(/^# (.+)$/m);
+      const title = titleMatch ? titleMatch[1] : frontMatter.title || slug;
 
-    return {
-      title: `${title} | ビジネススキル百科`,
-      description: frontMatter.description || `${title}に関する記事`,
-    };
+      return {
+        title: `${title} | ビジネススキル百科`,
+        description: frontMatter.description || `${title}に関する記事`,
+      };
+    } catch (fallbackError) {
+      console.error(`Fallback metadata generation failed for ${slug}:`, fallbackError);
+
+      return {
+        title: `${slug} | ビジネススキル百科`,
+        description: `${slug}に関する記事`,
+      };
+    }
   }
 }
 
@@ -54,7 +77,7 @@ export default async function MdxArticlePage({ params }: Props) {
 
   try {
     // まずContentfulからコンテンツを取得
-    const { content, mdxContent, frontMatter, relatedContents } = await renderContentfulMdx(slug);
+    const { content, mdxContent, frontMatter, relatedContents, downloadableFiles } = await renderContentfulMdx(slug);
 
     // bodyから目次を生成（mdxContentではなく）
     const toc = extractTocFromMdx(content);
@@ -123,16 +146,26 @@ export default async function MdxArticlePage({ params }: Props) {
 
           {/* 記事本文 */}
           <article className="bg-white rounded-lg shadow-sm p-4 md:p-6">
-            <div className="prose prose-base md:prose-lg max-w-none">
-              {mdxContent ? (
-                // Contentfulから取得したMDXコンテンツを表示
-                <>{mdxContent}</>
-              ) : (
-                // ファイルシステムから取得したMDXコンテンツを表示
+            {mdxContent ? (
+              // Contentfulから取得したMDXコンテンツを表示
+              <div className="prose prose-base md:prose-lg max-w-none">
+                {mdxContent}
+              </div>
+            ) : content ? (
+              // Contentfulのリッチテキストコンテンツを表示
+              <ContentfulRichText content={content} />
+            ) : (
+              // ファイルシステムから取得したMDXコンテンツを表示
+              <div className="prose prose-base md:prose-lg max-w-none">
                 <MDXRenderer content={content} />
-              )}
-            </div>
+              </div>
+            )}
           </article>
+
+          {/* ダウンロードファイル */}
+          {downloadableFiles && downloadableFiles.length > 0 && (
+            <DownloadSection files={downloadableFiles} />
+          )}
 
           {/* 関連コンテンツ */}
           {relatedContents && relatedContents.length > 0 && (
