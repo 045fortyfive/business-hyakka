@@ -286,3 +286,37 @@ export default async function VideoPage({
     );
   }
 }
+
+// 静的ページ生成のためのパスを取得
+export async function generateStaticParams() {
+  try {
+    // Contentfulから動画を取得
+    const { getClient } = await import('@/lib/api');
+    const client = await getClient();
+
+    const { CONTENT_TYPE } = await import('@/lib/contentful');
+    const { CONTENT_TYPES } = await import('@/lib/types');
+
+    const entries = await client.getEntries({
+      content_type: CONTENT_TYPE.CONTENT,
+      'fields.contentType': CONTENT_TYPES.VIDEO,
+      select: ['fields.slug'],
+      limit: 1000, // 十分な数を取得
+    });
+
+    // slugが有効な動画のみを返す
+    const validVideos = entries.items.filter(
+      (video: any) => video?.fields?.slug && typeof video.fields.slug === 'string'
+    );
+
+    console.log(`Generating static params for ${validVideos.length} videos`);
+
+    return validVideos.map((video: any) => ({
+      slug: video.fields.slug,
+    }));
+  } catch (error) {
+    console.error('Error generating static params for videos:', error);
+    // エラーが発生した場合は空の配列を返す
+    return [];
+  }
+}

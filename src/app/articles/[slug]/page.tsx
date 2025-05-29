@@ -4,7 +4,6 @@ import MDXRenderer from '@/components/MDXRenderer';
 import Link from 'next/link';
 import EnhancedTableOfContents from '@/components/EnhancedTableOfContents';
 import { extractTocFromMdx, generateTableOfContents } from '@/utils/toc-generator';
-import { extractTocFromContent } from '@/utils/heading-utils';
 import RelatedContents from '@/components/RelatedContents';
 import DownloadSection from '@/components/DownloadSection';
 import ContentfulRichText from '@/components/ContentfulRichText';
@@ -80,8 +79,8 @@ export default async function MdxArticlePage({ params }: Props) {
     // まずContentfulからコンテンツを取得
     const { content, mdxContent, frontMatter, relatedContents, downloadableFiles } = await renderContentfulMdx(slug);
 
-    // bodyから目次を生成（新しい統一されたロジックを使用）
-    const toc = extractTocFromContent(content);
+    // bodyから目次を生成
+    const toc = extractTocFromMdx(content);
 
     // カテゴリーに応じたグラデーションクラスを設定
     const gradientClass = 'from-blue-400 via-sky-500 to-indigo-600';
@@ -147,9 +146,9 @@ export default async function MdxArticlePage({ params }: Props) {
 
           {/* 目次 */}
           <div className="mb-6">
-            <EnhancedTableOfContents 
-              toc={toc} 
-              type="main" 
+            <EnhancedTableOfContents
+              toc={toc}
+              type="main"
               enableDynamicToc={true}
             />
           </div>
@@ -191,8 +190,8 @@ export default async function MdxArticlePage({ params }: Props) {
     // Contentfulからの取得に失敗した場合はファイルシステムから取得
     const { content } = getMdxBySlug(slug);
 
-    // 記事の内容からTOCを生成（新しい統一されたロジックを使用）
-    const toc = extractTocFromContent(content);
+    // 記事の内容からTOCを生成
+    const toc = extractTocFromMdx(content);
 
     return (
       <div className="container mx-auto px-4 py-6 md:py-8 max-w-7xl flex justify-center">
@@ -210,9 +209,9 @@ export default async function MdxArticlePage({ params }: Props) {
 
           {/* 目次 */}
           <div className="mb-6">
-            <EnhancedTableOfContents 
-              toc={toc} 
-              type="main" 
+            <EnhancedTableOfContents
+              toc={toc}
+              type="main"
               enableDynamicToc={true}
             />
           </div>
@@ -232,13 +231,33 @@ export default async function MdxArticlePage({ params }: Props) {
 // 静的ページ生成のためのパスを取得
 export async function generateStaticParams() {
   try {
-    // 実際の実装では、getAllMdxSlugs()を使用してすべてのスラッグを取得
-    // ここでは簡略化のため、手動で設定
-    return [
-      { slug: 'ai-skills' },
-    ];
+    // Contentfulから記事を取得
+    const { getClient } = await import('@/lib/api');
+    const client = await getClient();
+
+    const { CONTENT_TYPE } = await import('@/lib/contentful');
+    const { CONTENT_TYPES } = await import('@/lib/types');
+
+    const entries = await client.getEntries({
+      content_type: CONTENT_TYPE.CONTENT,
+      'fields.contentType': CONTENT_TYPES.ARTICLE,
+      select: ['fields.slug'],
+      limit: 1000, // 十分な数を取得
+    });
+
+    // slugが有効な記事のみを返す
+    const validArticles = entries.items.filter(
+      (article: any) => article?.fields?.slug && typeof article.fields.slug === 'string'
+    );
+
+    console.log(`Generating static params for ${validArticles.length} articles`);
+
+    return validArticles.map((article: any) => ({
+      slug: article.fields.slug,
+    }));
   } catch (error) {
-    console.error('Error generating static params for MDX articles:', error);
+    console.error('Error generating static params for articles:', error);
+    // エラーが発生した場合は空の配列を返す
     return [];
   }
 }

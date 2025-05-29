@@ -41,7 +41,14 @@ export async function generateStaticParams() {
   try {
     const audiosData = await getAudios(100); // 最新100件の音声のスラッグを生成
 
-    return audiosData.items.map((audio) => ({
+    // slugが有効な音声のみを返す
+    const validAudios = audiosData.items.filter(
+      (audio) => audio?.fields?.slug && typeof audio.fields.slug === 'string'
+    );
+
+    console.log(`Generating static params for ${validAudios.length} audios`);
+
+    return validAudios.map((audio) => ({
       slug: audio.fields.slug,
     }));
   } catch (error) {

@@ -15,27 +15,49 @@ export async function generateMetadata({
 }: {
   params: { slug: string };
 }): Promise<Metadata> {
-  const { category } = await getContentByCategory(params.slug);
+  try {
+    const { category } = await getContentByCategory(params.slug);
 
-  if (!category) {
+    if (!category || !category.fields) {
+      return {
+        title: "カテゴリが見つかりません | ビジネススキル百科",
+        description: "指定されたカテゴリは存在しません。",
+      };
+    }
+
     return {
-      title: "カテゴリが見つかりません | ビジネススキル百科",
+      title: `${category.fields.name || 'カテゴリ'} | ビジネススキル百科`,
+      description: category.fields.description || `${category.fields.name || 'カテゴリ'}に関するコンテンツ一覧です。`,
+    };
+  } catch (error) {
+    console.error('Error generating metadata for category:', error);
+    return {
+      title: "エラーが発生しました | ビジネススキル百科",
+      description: "カテゴリページの読み込み中にエラーが発生しました。",
     };
   }
-
-  return {
-    title: `${category.fields.name} | ビジネススキル百科`,
-    description: category.fields.description || `${category.fields.name}に関するコンテンツ一覧です。`,
-  };
 }
 
 // 静的パスの生成
 export async function generateStaticParams() {
-  const categoriesData = await getCategories();
+  try {
+    const categoriesData = await getCategories();
 
-  return categoriesData.items.map((category) => ({
-    slug: category.fields.slug,
-  }));
+    // カテゴリデータが存在し、slugが有効な場合のみ返す
+    const validCategories = categoriesData.items.filter(
+      (category) => category?.fields?.slug && typeof category.fields.slug === 'string'
+    );
+
+    console.log(`Generating static params for ${validCategories.length} categories`);
+
+    return validCategories.map((category) => ({
+      slug: category.fields.slug,
+    }));
+  } catch (error) {
+    console.error('Error in generateStaticParams for categories:', error);
+    // エラーが発生した場合は空の配列を返す
+    return [];
+  }
 }
 
 export default async function CategoryPage({
@@ -43,19 +65,20 @@ export default async function CategoryPage({
 }: {
   params: { slug: string };
 }) {
-  // カテゴリに属するコンテンツを取得
-  const { articles, videos, audios, category } = await getContentByCategory(params.slug);
+  try {
+    // カテゴリに属するコンテンツを取得
+    const { articles, videos, audios, category } = await getContentByCategory(params.slug);
 
-  // カテゴリが見つからない場合は404ページを表示
-  if (!category) {
-    notFound();
-  }
+    // カテゴリが見つからない場合は404ページを表示
+    if (!category || !category.fields) {
+      notFound();
+    }
 
-  // カテゴリ一覧を取得
-  const categoriesData = await getCategories();
+    // カテゴリ一覧を取得
+    const categoriesData = await getCategories();
 
-  // コンテンツの総数
-  const totalItems = articles.items.length + videos.items.length + audios.items.length;
+    // コンテンツの総数
+    const totalItems = (articles?.items?.length || 0) + (videos?.items?.length || 0) + (audios?.items?.length || 0);
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -92,7 +115,7 @@ export default async function CategoryPage({
           {totalItems > 0 ? (
             <>
               {/* 記事セクション */}
-              {articles.items.length > 0 && (
+              {articles?.items && articles.items.length > 0 && (
                 <section className="mb-12">
                   <h2 className="text-2xl font-bold mb-6">記事</h2>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -130,7 +153,7 @@ export default async function CategoryPage({
               )}
 
               {/* 動画セクション */}
-              {videos.items.length > 0 && (
+              {videos?.items && videos.items.length > 0 && (
                 <section className="mb-12">
                   <h2 className="text-2xl font-bold mb-6">動画</h2>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -164,7 +187,7 @@ export default async function CategoryPage({
               )}
 
               {/* 音声セクション */}
-              {audios.items.length > 0 && (
+              {audios?.items && audios.items.length > 0 && (
                 <section className="mb-12">
                   <h2 className="text-2xl font-bold mb-6">音声</h2>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -212,4 +235,9 @@ export default async function CategoryPage({
       </div>
     </div>
   );
+  } catch (error) {
+    console.error('Error in CategoryPage:', error);
+    // エラーが発生した場合は404ページを表示
+    notFound();
+  }
 }
