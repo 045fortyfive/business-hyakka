@@ -6,12 +6,53 @@ import { serialize } from 'next-mdx-remote/serialize';
 import rehypeHighlight from 'rehype-highlight';
 import rehypeSlug from 'rehype-slug';
 import remarkGfm from 'remark-gfm';
+import { generateHeadingId } from '@/utils/heading-utils';
 
 // MDXコンポーネント
 import CodeBlock from './mdx/CodeBlock';
 import Callout from './mdx/Callout';
 import Figure from './mdx/Figure';
 import Table from './mdx/Table';
+import CustomImage from './mdx/CustomImage';
+
+// カスタムrehype-slugプラグイン
+function customRehypeSlug() {
+  return (tree: any) => {
+    const existingIds: string[] = [];
+    let index = 0;
+    
+    function visit(node: any) {
+      if (node.type === 'element' && /^h[1-6]$/.test(node.tagName)) {
+        const headingText = extractTextFromNode(node);
+        if (headingText && !node.properties.id) {
+          const id = generateHeadingId(headingText, index++, existingIds);
+          existingIds.push(id);
+          node.properties = node.properties || {};
+          node.properties.id = id;
+        }
+      }
+      
+      if (node.children) {
+        node.children.forEach(visit);
+      }
+    }
+    
+    visit(tree);
+  };
+}
+
+// ノードからテキストを抽出するヘルパー関数
+function extractTextFromNode(node: any): string {
+  if (node.type === 'text') {
+    return node.value || '';
+  }
+  
+  if (node.children && Array.isArray(node.children)) {
+    return node.children.map(extractTextFromNode).join('');
+  }
+  
+  return '';
+}
 
 // MDXで使用するコンポーネント
 const components = {
@@ -19,8 +60,12 @@ const components = {
   Callout,
   Figure,
   Table,
+  CustomImage,
   // テーブル関連のコンポーネント
   table: Table,
+  // 画像コンポーネント
+  img: CustomImage,
+  Image: CustomImage,
   // その他のカスタムコンポーネント
 };
 
@@ -38,7 +83,7 @@ export default function MDXRenderer({ content }: MDXRendererProps) {
       const mdxSource = await serialize(content, {
         mdxOptions: {
           remarkPlugins: [remarkGfm],
-          rehypePlugins: [rehypeSlug, rehypeHighlight],
+          rehypePlugins: [customRehypeSlug, rehypeHighlight],
         },
       });
 

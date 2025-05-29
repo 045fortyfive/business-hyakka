@@ -4,10 +4,11 @@ import MDXRenderer from '@/components/MDXRenderer';
 import Link from 'next/link';
 import EnhancedTableOfContents from '@/components/EnhancedTableOfContents';
 import { extractTocFromMdx, generateTableOfContents } from '@/utils/toc-generator';
+import { extractTocFromContent } from '@/utils/heading-utils';
 import RelatedContents from '@/components/RelatedContents';
 import DownloadSection from '@/components/DownloadSection';
 import ContentfulRichText from '@/components/ContentfulRichText';
-import Image from 'next/image';
+import CustomImage from '@/components/mdx/CustomImage';
 
 interface Props {
   params: {
@@ -79,8 +80,8 @@ export default async function MdxArticlePage({ params }: Props) {
     // まずContentfulからコンテンツを取得
     const { content, mdxContent, frontMatter, relatedContents, downloadableFiles } = await renderContentfulMdx(slug);
 
-    // bodyから目次を生成（mdxContentではなく）
-    const toc = extractTocFromMdx(content);
+    // bodyから目次を生成（新しい統一されたロジックを使用）
+    const toc = extractTocFromContent(content);
 
     // カテゴリーに応じたグラデーションクラスを設定
     const gradientClass = 'from-blue-400 via-sky-500 to-indigo-600';
@@ -103,13 +104,18 @@ export default async function MdxArticlePage({ params }: Props) {
 
           {/* アイキャッチ画像 */}
           {frontMatter.featuredImage && (
-            <div className="mb-6 relative w-full aspect-video rounded-lg overflow-hidden">
-              <Image
+            <div className="mb-6">
+              <CustomImage
                 src={frontMatter.featuredImage.url}
                 alt={frontMatter.featuredImage.title || frontMatter.title}
-                fill
-                className="object-cover"
-                priority
+                title={frontMatter.featuredImage.title}
+                width={800}
+                height={450}
+                fill={false}
+                priority={true}
+                responsive={true}
+                className="w-full aspect-video object-cover"
+                quality={85}
               />
             </div>
           )}
@@ -141,7 +147,11 @@ export default async function MdxArticlePage({ params }: Props) {
 
           {/* 目次 */}
           <div className="mb-6">
-            <EnhancedTableOfContents toc={generateTableOfContents(toc)} type="main" />
+            <EnhancedTableOfContents 
+              toc={toc} 
+              type="main" 
+              enableDynamicToc={true}
+            />
           </div>
 
           {/* 記事本文 */}
@@ -181,8 +191,8 @@ export default async function MdxArticlePage({ params }: Props) {
     // Contentfulからの取得に失敗した場合はファイルシステムから取得
     const { content } = getMdxBySlug(slug);
 
-    // 記事の内容からTOCを生成
-    const toc = extractTocFromMdx(content);
+    // 記事の内容からTOCを生成（新しい統一されたロジックを使用）
+    const toc = extractTocFromContent(content);
 
     return (
       <div className="container mx-auto px-4 py-6 md:py-8 max-w-7xl flex justify-center">
@@ -200,7 +210,11 @@ export default async function MdxArticlePage({ params }: Props) {
 
           {/* 目次 */}
           <div className="mb-6">
-            <EnhancedTableOfContents toc={generateTableOfContents(toc)} type="main" />
+            <EnhancedTableOfContents 
+              toc={toc} 
+              type="main" 
+              enableDynamicToc={true}
+            />
           </div>
 
           {/* 記事本文 */}

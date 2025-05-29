@@ -10,6 +10,7 @@ import { getContentBySlug } from '@/lib/api';
 import Callout from '@/components/mdx/Callout';
 import CodeBlock from '@/components/mdx/CodeBlock';
 import AdPlacement from '@/components/mdx/AdPlacement';
+import CustomImage from '@/components/mdx/CustomImage';
 import Image from 'next/image';
 
 // MDXコンポーネントの設定
@@ -17,7 +18,8 @@ const components = {
   Callout,
   CodeBlock,
   AdPlacement,
-  Image,
+  Image: CustomImage,
+  img: CustomImage, // MDX内の<img>タグも処理
   // 他のMDXコンポーネントをここに追加
 };
 
@@ -100,6 +102,25 @@ function getBodyContent(body: any): string {
   } catch (error) {
     console.warn('Error extracting body content:', error);
     return '';
+  }
+}
+
+// Helper function to process image URLs in MDX content
+function processImageUrls(mdxContent: string): string {
+  try {
+    // ContentfulのアセットURL（//で始まる相対パス）をhttps:付きの絶対 URLに変換
+    const processedContent = mdxContent.replace(
+      /(!\[.*?\]\(|<img[^>]+src=[\"\']{1})(\/\/[^\)\s\"\'\']+)/g,
+      (match, prefix, url) => {
+        const httpsUrl = `https:${url}`;
+        return `${prefix}${httpsUrl}`;
+      }
+    );
+    
+    return processedContent;
+  } catch (error) {
+    console.warn('Error processing image URLs:', error);
+    return mdxContent;
   }
 }
 
@@ -203,8 +224,12 @@ export async function renderContentfulMdx(slug: string, contentType: string = 'a
     // MDXコンテンツがある場合はそれを使用
     if (content.fields.mdxContent) {
       console.log('Compiling MDX content...');
+      
+      // 画像URLを事前処理
+      const processedMdxContent = processImageUrls(content.fields.mdxContent);
+      
       const { content: mdxContent } = await compileMDX({
-        source: content.fields.mdxContent,
+        source: processedMdxContent,
         components,
         options: { parseFrontmatter: true },
       });
