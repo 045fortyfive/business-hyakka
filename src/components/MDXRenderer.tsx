@@ -6,7 +6,9 @@ import { serialize } from 'next-mdx-remote/serialize';
 import rehypeHighlight from 'rehype-highlight';
 import rehypeSlug from 'rehype-slug';
 import remarkGfm from 'remark-gfm';
+import remarkBreaks from 'remark-breaks'; // オプショナル：インストールしていない場合はコメントアウト
 import { generateHeadingId } from '@/utils/heading-utils';
+import { enhanceLineBreaks } from '@/utils/linebreak-utils';
 
 // MDXコンポーネント
 import CodeBlock from './mdx/CodeBlock';
@@ -14,6 +16,7 @@ import Callout from './mdx/Callout';
 import Figure from './mdx/Figure';
 import Table from './mdx/Table';
 import CustomImage from './mdx/CustomImage';
+import { Br, LineBreak, Spacer, ParagraphBreak } from './mdx/LineBreak';
 
 // カスタムrehype-slugプラグイン
 function customRehypeSlug() {
@@ -61,6 +64,11 @@ const components = {
   Figure,
   Table,
   CustomImage,
+  // 改行関連コンポーネント
+  Br,
+  LineBreak,
+  Spacer,
+  ParagraphBreak,
   // テーブル関連のコンポーネント
   table: Table,
   // 画像コンポーネント
@@ -80,9 +88,22 @@ export default function MDXRenderer({ content }: MDXRendererProps) {
     const prepareMDX = async () => {
       if (!content) return;
 
-      const mdxSource = await serialize(content, {
+      // 改行処理を適用
+      const processedContent = enhanceLineBreaks(content);
+
+      // remarkプラグインの設定（remarkBreaksはオプショナル）
+      const remarkPlugins = [remarkGfm];
+      // remarkBreaksが利用可能な場合は追加
+      // try {
+      //   const remarkBreaks = require('remark-breaks');
+      //   remarkPlugins.push(remarkBreaks);
+      // } catch (e) {
+      //   console.log('remark-breaks is not installed, using enhanced line break processing only');
+      // }
+
+      const mdxSource = await serialize(processedContent, {
         mdxOptions: {
-          remarkPlugins: [remarkGfm],
+          remarkPlugins,
           rehypePlugins: [customRehypeSlug, rehypeHighlight],
         },
       });

@@ -5,12 +5,14 @@ import { compileMDX } from 'next-mdx-remote/rsc';
 import { Content, ContentFields } from '@/lib/types';
 import { Asset } from 'contentful';
 import { getContentBySlug } from '@/lib/api';
+import { processContentfulLineBreaks } from '@/utils/linebreak-utils';
 
 // MDXコンポーネント
 import Callout from '@/components/mdx/Callout';
 import CodeBlock from '@/components/mdx/CodeBlock';
 import AdPlacement from '@/components/mdx/AdPlacement';
 import CustomImage from '@/components/mdx/CustomImage';
+import { Br, LineBreak, Spacer, ParagraphBreak } from '@/components/mdx/LineBreak';
 import Image from 'next/image';
 
 // MDXコンポーネントの設定
@@ -20,6 +22,11 @@ const components = {
   AdPlacement,
   Image: CustomImage,
   img: CustomImage, // MDX内の<img>タグも処理
+  // 改行関連コンポーネント
+  Br,
+  LineBreak,
+  Spacer,
+  ParagraphBreak,
   // 他のMDXコンポーネントをここに追加
 };
 
@@ -225,8 +232,9 @@ export async function renderContentfulMdx(slug: string, contentType: string = 'a
     if (content.fields.mdxContent) {
       console.log('Compiling MDX content...');
       
-      // 画像URLを事前処理
-      const processedMdxContent = processImageUrls(content.fields.mdxContent);
+      // 改行処理と画像URLを事前処理
+      let processedMdxContent = processContentfulLineBreaks(content.fields.mdxContent);
+      processedMdxContent = processImageUrls(processedMdxContent);
       
       const { content: mdxContent } = await compileMDX({
         source: processedMdxContent,
