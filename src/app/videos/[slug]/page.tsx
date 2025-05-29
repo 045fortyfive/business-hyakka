@@ -35,20 +35,6 @@ export async function generateMetadata({
   };
 }
 
-// 静的パスの生成
-export async function generateStaticParams() {
-  try {
-    const videosData = await getVideos(100); // 最新100件の動画のスラッグを生成
-
-    return videosData.items.map((video) => ({
-      slug: video.fields.slug,
-    }));
-  } catch (error) {
-    console.error('Error generating static params for videos:', error);
-    return [];
-  }
-}
-
 export default async function VideoPage({
   params,
 }: {
