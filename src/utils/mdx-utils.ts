@@ -262,23 +262,27 @@ export async function renderContentfulMdx(slug: string, contentType: string = 'a
       });
 
       return {
-        slug,
-        frontMatter: {
-          title: content.fields.title || 'タイトルなし',
-          description: content.fields.description || '',
-          category: categoryName,
-          tags: tagNames,
-          author: authorName,
-          publishDate: content.fields.publishDate,
-          videoUrl: content.fields.videoUrl,
-          audioUrl: content.fields.audioUrl,
-          featuredImage,
-        },
-        content: bodyContent,
-        mdxContent,
-        relatedContents: content.fields.relatedContents || [],
-        downloadableFiles,
-      };
+      slug,
+      frontMatter: {
+      title: content.fields.title || 'タイトルなし',
+      description: content.fields.description || '',
+      category: categoryName,
+      tags: tagNames,
+      author: authorName,
+      publishDate: content.fields.publishDate,
+      videoUrl: content.fields.videoUrl,
+      audioUrl: content.fields.audioUrl,
+      featuredImage,
+      },
+      content: bodyContent,
+      mdxContent,
+      relatedContents: content.fields.relatedContents || [],
+      downloadableFiles,
+        // Preview関連情報を追加
+      contentfulEntryId: content.sys.id,
+      lastModified: content.sys.updatedAt,
+      version: content.sys.version
+    };
     }
 
     // MDXコンテンツがない場合は通常のコンテンツを返す
@@ -300,6 +304,10 @@ export async function renderContentfulMdx(slug: string, contentType: string = 'a
       mdxContent: null,
       relatedContents: content.fields.relatedContents || [],
       downloadableFiles,
+      // Preview関連情報を追加
+      contentfulEntryId: content.sys.id,
+      lastModified: content.sys.updatedAt,
+      version: content.sys.version
     };
   } catch (error) {
     console.error(`MDXコンテンツのレンダリング中にエラーが発生しました: ${error}`);

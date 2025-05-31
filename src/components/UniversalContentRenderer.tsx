@@ -7,6 +7,7 @@ import ContentfulRichText from '@/components/ContentfulRichText';
 import CustomImage from '@/components/mdx/CustomImage';
 import VideoPlayer from '@/components/VideoPlayer';
 import AudioPlayer from '@/components/AudioPlayer';
+import { PreviewWrapper, PreviewMeta } from '@/components/preview';
 import { extractTocFromMdx } from '@/utils/toc-generator';
 
 interface UniversalContentRendererProps {
@@ -32,6 +33,10 @@ interface UniversalContentRendererProps {
   relatedContents?: any[];
   downloadableFiles?: Array<{url: string, title: string, filename: string}>;
   contentType?: string;
+  // Preview関連のプロパティを追加
+  contentfulEntryId?: string;
+  lastModified?: string;
+  version?: number;
 }
 
 // エラー境界コンポーネント
@@ -64,7 +69,10 @@ export default function UniversalContentRenderer({
   mdxContent,
   relatedContents = [],
   downloadableFiles = [],
-  contentType = 'article'
+  contentType = 'article',
+  contentfulEntryId,
+  lastModified,
+  version
 }: UniversalContentRendererProps) {
   // 目次の生成（MDXコンテンツがある場合）
   const toc = content ? extractTocFromMdx(content) : [];
@@ -72,7 +80,7 @@ export default function UniversalContentRenderer({
   // カテゴリーに応じたグラデーションクラス
   const gradientClass = 'from-blue-400 via-sky-500 to-indigo-600';
 
-  return (
+  const mainContent = (
     <div className="container mx-auto px-4 py-6 md:py-8 max-w-7xl flex justify-center">
       <div className="w-full max-w-[800px]">
         
@@ -256,5 +264,27 @@ export default function UniversalContentRenderer({
         )}
       </div>
     </div>
+  );
+
+  return (
+    <PreviewWrapper
+      contentType={contentType}
+      slug={slug}
+      title={frontMatter.title}
+      contentfulEntryId={contentfulEntryId}
+    >
+      {mainContent}
+      
+      {/* プレビューメタ情報（開発・編集者向け） */}
+      <PreviewMeta
+        data={{
+          entryId: contentfulEntryId,
+          contentType,
+          slug,
+          lastModified,
+          version
+        }}
+      />
+    </PreviewWrapper>
   );
 }
