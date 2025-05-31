@@ -6,7 +6,7 @@ import { serialize } from 'next-mdx-remote/serialize';
 import rehypeHighlight from 'rehype-highlight';
 import rehypeSlug from 'rehype-slug';
 import remarkGfm from 'remark-gfm';
-import remarkBreaks from 'remark-breaks'; // オプショナル：インストールしていない場合はコメントアウト
+import remarkBreaks from 'remark-breaks'; // remark-breaksプラグインを有効化
 import { generateHeadingId } from '@/utils/heading-utils';
 import { enhanceLineBreaks } from '@/utils/linebreak-utils';
 
@@ -90,38 +90,61 @@ export default function MDXRenderer({ content }: MDXRendererProps) {
     const prepareMDX = async () => {
       if (!content) return;
 
-      // 改行処理を適用
-      const processedContent = enhanceLineBreaks(content);
+      try {
+        // 改行処理を適用（remark-breaksと協調）
+        const processedContent = enhanceLineBreaks(content);
 
-      // remarkプラグインの設定（remarkBreaksはオプショナル）
-      const remarkPlugins = [remarkGfm];
-      // remarkBreaksが利用可能な場合は追加
-      // try {
-      //   const remarkBreaks = require('remark-breaks');
-      //   remarkPlugins.push(remarkBreaks);
-      // } catch (e) {
-      //   console.log('remark-breaks is not installed, using enhanced line break processing only');
-      // }
+        // remarkプラグインの設定（remark-breaksを有効化）
+        const remarkPlugins = [
+          remarkGfm,
+          remarkBreaks // remark-breaksプラグインを追加
+        ];
 
-      const mdxSource = await serialize(processedContent, {
-        mdxOptions: {
-          remarkPlugins,
-          rehypePlugins: [customRehypeSlug, rehypeHighlight],
-        },
-      });
+        const mdxSource = await serialize(processedContent, {
+          mdxOptions: {
+            remarkPlugins,
+            rehypePlugins: [customRehypeSlug, rehypeHighlight],
+          },
+        });
 
-      setMdxSource(mdxSource);
+        setMdxSource(mdxSource);
+      } catch (error) {
+        console.error('MDXコンパイルエラー:', error);
+        // エラーが発生した場合は、フォールバック処理
+        const fallbackMdxSource = await serialize(content, {
+          mdxOptions: {
+            remarkPlugins: [remarkGfm], // 最低限のプラグインで再試行
+            rehypePlugins: [customRehypeSlug, rehypeHighlight],
+          },
+        });
+        setMdxSource(fallbackMdxSource);
+      }
     };
 
     prepareMDX();
   }, [content]);
 
   if (!mdxSource) {
-    return <div>Loading...</div>;
+    return (
+      <div className="flex items-center justify-center p-8">
+        <div className="text-gray-500">Loading...</div>
+      </div>
+    );
   }
 
   return (
     <div className="prose prose-lg max-w-none">
+      <style jsx>{`
+        .prose br {
+          display: block;
+          margin-bottom: 0.5rem;
+        }
+        .prose p {
+          margin-top: 1rem;
+          margin-bottom: 1.5rem;
+          line-height: 1.8;
+        }
+      `}</style>
       <MDXRemote {...mdxSource} components={components} />
     </div>
   );
