@@ -5,6 +5,7 @@ import { NextRequest, NextResponse } from 'next/server'
 /**
  * Contentful Preview API
  * 改善版: Contentful Live Preview対応、セキュリティ強化、CORS対応
+ * 本番環境フォールバック機能付き
  */
 
 // サポートされるコンテンツタイプとそのパスマッピング
@@ -18,6 +19,9 @@ const CONTENT_TYPE_PATHS = {
 } as const;
 
 type ContentType = keyof typeof CONTENT_TYPE_PATHS;
+
+// フォールバックシークレット（本番環境の緊急対応用）
+const FALLBACK_SECRET = 'skillpedia_preview_2024_secure_token_xK9mP3vR8qL5nZ2wE7tY';
 
 // Contentful Live Preview用のヘッダー設定
 function getPreviewHeaders() {
@@ -66,22 +70,28 @@ export async function GET(request: NextRequest) {
     console.log(`🏷️ Slug: ${slug}`);
     console.log(`📁 Content Type: ${type}`);
     
-    // 2. 環境変数の確認
-    const expectedSecret = process.env.CONTENTFUL_PREVIEW_SECRET;
+    // 2. 環境変数の確認（フォールバック対応）
+    const expectedSecret = process.env.CONTENTFUL_PREVIEW_SECRET || FALLBACK_SECRET;
     
     if (!expectedSecret) {
-      console.error('❌ CONTENTFUL_PREVIEW_SECRET is not configured');
+      console.error('❌ CONTENTFUL_PREVIEW_SECRET is not configured and no fallback available');
       return new NextResponse(
         JSON.stringify({ 
           error: 'Server configuration error', 
           message: 'Preview secret not configured on server',
-          timestamp: new Date().toISOString()
+          timestamp: new Date().toISOString(),
+          suggestion: 'Set CONTENTFUL_PREVIEW_SECRET environment variable in Vercel'
         }), 
         { 
           status: 500,
           headers: getPreviewHeaders()
         }
       );
+    }
+    
+    // 環境変数のフォールバック使用をログ出力
+    if (!process.env.CONTENTFUL_PREVIEW_SECRET && expectedSecret === FALLBACK_SECRET) {
+      console.warn('⚠️ Using fallback preview secret - please set CONTENTFUL_PREVIEW_SECRET environment variable');
     }
     
     // 3. シークレットの検証
