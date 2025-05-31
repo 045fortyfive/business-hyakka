@@ -23,99 +23,56 @@ export async function getClient() {
   }
 }
 
-// Contentful APIの基本URL構築
-function getContentfulApiUrl() {
-  const spaceId = process.env.CONTENTFUL_SPACE_ID;
-  const environment = process.env.CONTENTFUL_ENVIRONMENT || 'master';
-  return `https://cdn.contentful.com/spaces/${spaceId}/environments/${environment}`;
-}
-
-// APIキーを取得（プレビューモード対応）
-async function getApiKey() {
-  try {
-    const { isEnabled } = await draftMode();
-    return isEnabled 
-      ? process.env.CONTENTFUL_PREVIEW_ACCESS_TOKEN 
-      : process.env.CONTENTFUL_ACCESS_TOKEN;
-  } catch (error) {
-    return process.env.CONTENTFUL_ACCESS_TOKEN;
-  }
-}
-
-// Fetch APIを使用したContentful API呼び出し（キャッシュタグ付き）
-async function fetchContentful(endpoint: string, params: Record<string, any> = {}, tags: string[] = []) {
-  const baseUrl = getContentfulApiUrl();
-  const apiKey = await getApiKey();
-  
-  // URLパラメータを構築
-  const searchParams = new URLSearchParams();
-  Object.entries(params).forEach(([key, value]) => {
-    if (value !== undefined && value !== null) {
-      searchParams.append(key, String(value));
-    }
-  });
-  
-  const url = `${baseUrl}${endpoint}?${searchParams.toString()}`;
-  
-  console.log(`🌐 Fetching from Contentful: ${endpoint}`);
-  console.log(`📋 Cache tags: [${tags.join(', ')}]`);
-  
-  try {
-    const response = await fetch(url, {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
-      },
-      next: {
-        tags: ['contentful', ...tags],
-        revalidate: 3600, // 1時間のフォールバック
-      },
-    });
-
-    if (!response.ok) {
-      throw new Error(`Contentful API error: ${response.status} ${response.statusText}`);
-    }
-
-    const data = await response.json();
-    console.log(`✅ Fetched ${data.items?.length || 0} items from ${endpoint}`);
-    return data;
-    
-  } catch (error) {
-    console.error(`❌ Error fetching from ${endpoint}:`, error);
-    // フォールバック: 従来のクライアント使用
-    console.log('🔄 Falling back to Contentful client...');
-    return null;
-  }
-}
-
-// 記事一覧を取得（キャッシュ対応）
+// 記事一覧を取得（修正版）
 export const getArticles = cache(async (limit = 10, skip = 0): Promise<ContentCollection> => {
   console.log(`📰 Fetching articles: limit=${limit}, skip=${skip}`);
 
+  // 環境変数の確認（デバッグ用）
+  console.log('=== 環境変数の確認（getArticles） ===');
+  console.log('CONTENTFUL_SPACE_ID:', process.env.CONTENTFUL_SPACE_ID);
+  console.log('CONTENTFUL_ACCESS_TOKEN:', process.env.CONTENTFUL_ACCESS_TOKEN ? '設定済み' : '未設定');
+  console.log('NEXT_PUBLIC_USE_MOCK_DATA:', process.env.NEXT_PUBLIC_USE_MOCK_DATA);
+  console.log('NODE_ENV:', process.env.NODE_ENV);
+  console.log('==============================');
+
   try {
-    const params = {
+    // プレビューモードに応じたクライアントを取得
+    const client = await getClient();
+
+    // Contentfulのクエリパラメータを表示
+    console.log('Query parameters:', {
       content_type: CONTENT_TYPE.CONTENT,
       'fields.contentType': CONTENT_TYPES.ARTICLE,
       order: '-sys.createdAt',
       limit,
       skip,
       include: 2,
-    };
+    });
 
-    const data = await fetchContentful('/entries', params, ['articles', 'content']);
-    
-    if (data) {
-      return data;
+    const response = await client.getEntries<Content['fields']>({
+      content_type: CONTENT_TYPE.CONTENT,
+      'fields.contentType': CONTENT_TYPES.ARTICLE, // contentTypeフィールドに'記事'が含まれているエントリを取得
+      order: '-sys.createdAt',
+      limit,
+      skip,
+      include: 2, // 関連エンティティ（カテゴリ、タグ、著者）も取得
+    });
+
+    console.log(`Fetched ${response.items.length} articles out of ${response.total}`);
+
+    // 最初の記事の内容をログに出力（デバッグ用）
+    if (response.items.length > 0) {
+      console.log('First article fields:', JSON.stringify({
+        title: response.items[0].fields.title,
+        slug: response.items[0].fields.slug,
+        contentType: response.items[0].fields.contentType,
+      }, null, 2));
     }
-    
-    // フォールバック: 従来のクライアント使用
-    const client = await getClient();
-    const response = await client.getEntries<Content['fields']>(params);
+
     return response;
-    
   } catch (error) {
     console.error('Error fetching articles:', error);
+    // エラーが発生した場合は空のレスポンスを返す
     return {
       items: [],
       total: 0,
@@ -126,61 +83,46 @@ export const getArticles = cache(async (limit = 10, skip = 0): Promise<ContentCo
   }
 });
 
-// 特定の記事を取得（キャッシュ対応）
+// 特定の記事を取得
 export const getArticleBySlug = cache(async (slug: string): Promise<Content | null> => {
-  console.log(`📄 Fetching article by slug: ${slug}`);
-  
+  console.log(`Fetching article by slug: ${slug}`);
   try {
-    const params = {
+    // プレビューモードに応じたクライアントを取得
+    const client = await getClient();
+
+    const entries = await client.getEntries<Content['fields']>({
       content_type: CONTENT_TYPE.CONTENT,
       'fields.contentType': CONTENT_TYPES.ARTICLE,
       'fields.slug': slug,
       include: 2,
       limit: 1,
-    };
+    });
 
-    const data = await fetchContentful('/entries', params, ['articles', 'content', `article:${slug}`]);
-    
-    if (data && data.items.length > 0) {
-      return data.items[0];
-    }
-    
-    // フォールバック: 従来のクライアント使用
-    const client = await getClient();
-    const entries = await client.getEntries<Content['fields']>(params);
+    console.log(`Found ${entries.items.length} articles with slug: ${slug}`);
     return entries.items.length > 0 ? entries.items[0] : null;
-    
   } catch (error) {
     console.error(`Error fetching article by slug ${slug}:`, error);
     return null;
   }
 });
 
-// 動画一覧を取得（キャッシュ対応）
+// 動画一覧を取得
 export const getVideos = cache(async (limit = 10, skip = 0): Promise<ContentCollection> => {
   console.log(`🎥 Fetching videos: limit=${limit}, skip=${skip}`);
-  
   try {
-    const params = {
+    // プレビューモードに応じたクライアントを取得
+    const client = await getClient();
+
+    const response = await client.getEntries<Content['fields']>({
       content_type: CONTENT_TYPE.CONTENT,
-      'fields.contentType': CONTENT_TYPES.VIDEO,
+      'fields.contentType': CONTENT_TYPES.VIDEO, // contentTypeフィールドに'動画'が含まれているエントリを取得
       order: '-sys.createdAt',
       limit,
       skip,
       include: 2,
-    };
-
-    const data = await fetchContentful('/entries', params, ['videos', 'content']);
-    
-    if (data) {
-      return data;
-    }
-    
-    // フォールバック: 従来のクライアント使用
-    const client = await getClient();
-    const response = await client.getEntries<Content['fields']>(params);
+    });
+    console.log(`Fetched ${response.items.length} videos out of ${response.total}`);
     return response;
-    
   } catch (error) {
     console.error('Error fetching videos:', error);
     return {
@@ -193,61 +135,46 @@ export const getVideos = cache(async (limit = 10, skip = 0): Promise<ContentColl
   }
 });
 
-// 特定の動画を取得（キャッシュ対応）
+// 特定の動画を取得
 export const getVideoBySlug = cache(async (slug: string): Promise<Content | null> => {
-  console.log(`🎬 Fetching video by slug: ${slug}`);
-  
+  console.log(`Fetching video by slug: ${slug}`);
   try {
-    const params = {
+    // プレビューモードに応じたクライアントを取得
+    const client = await getClient();
+
+    const entries = await client.getEntries<Content['fields']>({
       content_type: CONTENT_TYPE.CONTENT,
       'fields.contentType': CONTENT_TYPES.VIDEO,
       'fields.slug': slug,
       include: 2,
       limit: 1,
-    };
+    });
 
-    const data = await fetchContentful('/entries', params, ['videos', 'content', `video:${slug}`]);
-    
-    if (data && data.items.length > 0) {
-      return data.items[0];
-    }
-    
-    // フォールバック: 従来のクライアント使用
-    const client = await getClient();
-    const entries = await client.getEntries<Content['fields']>(params);
+    console.log(`Found ${entries.items.length} videos with slug: ${slug}`);
     return entries.items.length > 0 ? entries.items[0] : null;
-    
   } catch (error) {
     console.error(`Error fetching video by slug ${slug}:`, error);
     return null;
   }
 });
 
-// 音声一覧を取得（キャッシュ対応）
+// 音声一覧を取得
 export const getAudios = cache(async (limit = 10, skip = 0): Promise<ContentCollection> => {
   console.log(`🎧 Fetching audios: limit=${limit}, skip=${skip}`);
-  
   try {
-    const params = {
+    // プレビューモードに応じたクライアントを取得
+    const client = await getClient();
+
+    const response = await client.getEntries<Content['fields']>({
       content_type: CONTENT_TYPE.CONTENT,
-      'fields.contentType': CONTENT_TYPES.AUDIO,
+      'fields.contentType': CONTENT_TYPES.AUDIO, // contentTypeフィールドに'音声'が含まれているエントリを取得
       order: '-sys.createdAt',
       limit,
       skip,
       include: 2,
-    };
-
-    const data = await fetchContentful('/entries', params, ['audios', 'content']);
-    
-    if (data) {
-      return data;
-    }
-    
-    // フォールバック: 従来のクライアント使用
-    const client = await getClient();
-    const response = await client.getEntries<Content['fields']>(params);
+    });
+    console.log(`Fetched ${response.items.length} audios out of ${response.total}`);
     return response;
-    
   } catch (error) {
     console.error('Error fetching audios:', error);
     return {
@@ -260,59 +187,45 @@ export const getAudios = cache(async (limit = 10, skip = 0): Promise<ContentColl
   }
 });
 
-// 特定の音声を取得（キャッシュ対応）
+// 特定の音声を取得
 export const getAudioBySlug = cache(async (slug: string): Promise<Content | null> => {
-  console.log(`🔊 Fetching audio by slug: ${slug}`);
-  
+  console.log(`Fetching audio by slug: ${slug}`);
   try {
-    const params = {
+    // プレビューモードに応じたクライアントを取得
+    const client = await getClient();
+
+    const entries = await client.getEntries<Content['fields']>({
       content_type: CONTENT_TYPE.CONTENT,
       'fields.contentType': CONTENT_TYPES.AUDIO,
       'fields.slug': slug,
       include: 2,
       limit: 1,
-    };
+    });
 
-    const data = await fetchContentful('/entries', params, ['audios', 'content', `audio:${slug}`]);
-    
-    if (data && data.items.length > 0) {
-      return data.items[0];
-    }
-    
-    // フォールバック: 従来のクライアント使用
-    const client = await getClient();
-    const entries = await client.getEntries<Content['fields']>(params);
+    console.log(`Found ${entries.items.length} audios with slug: ${slug}`);
     return entries.items.length > 0 ? entries.items[0] : null;
-    
   } catch (error) {
     console.error(`Error fetching audio by slug ${slug}:`, error);
     return null;
   }
 });
 
-// カテゴリ一覧を取得（キャッシュ対応）
+// カテゴリ一覧を取得
 export const getCategories = cache(async (): Promise<CategoryCollection> => {
   console.log('🏷️ Fetching categories');
-  
   try {
-    const params = {
+    // プレビューモードに応じたクライアントを取得
+    const client = await getClient();
+
+    const response = await client.getEntries<Category['fields']>({
       content_type: CONTENT_TYPE.CATEGORY,
       order: 'fields.name',
-    };
-
-    const data = await fetchContentful('/entries', params, ['categories']);
-    
-    if (data) {
-      return data;
-    }
-    
-    // フォールバック: 従来のクライアント使用
-    const client = await getClient();
-    const response = await client.getEntries<Category['fields']>(params);
+    });
+    console.log(`Fetched ${response.items.length} categories out of ${response.total}`);
     return response;
-    
   } catch (error) {
     console.error('Error fetching categories:', error);
+    // エラーが発生した場合は空のレスポンスを返す
     return {
       items: [],
       total: 0,
@@ -323,37 +236,23 @@ export const getCategories = cache(async (): Promise<CategoryCollection> => {
   }
 });
 
-// 特定のカテゴリを取得（キャッシュ対応）
+// 特定のカテゴリを取得
 export const getCategoryBySlug = cache(async (slug: string): Promise<Category | null> => {
-  console.log(`🔖 Fetching category by slug: ${slug}`);
-  
-  try {
-    const params = {
-      content_type: CONTENT_TYPE.CATEGORY,
-      'fields.slug': slug,
-      limit: 1,
-    };
+  // プレビューモードに応じたクライアントを取得
+  const client = await getClient();
 
-    const data = await fetchContentful('/entries', params, ['categories', `category:${slug}`]);
-    
-    if (data && data.items.length > 0) {
-      return data.items[0];
-    }
-    
-    // フォールバック: 従来のクライアント使用
-    const client = await getClient();
-    const entries = await client.getEntries<Category['fields']>(params);
-    return entries.items.length > 0 ? entries.items[0] : null;
-    
-  } catch (error) {
-    console.error(`Error fetching category by slug ${slug}:`, error);
-    return null;
-  }
+  const entries = await client.getEntries<Category['fields']>({
+    content_type: CONTENT_TYPE.CATEGORY,
+    'fields.slug': slug,
+    limit: 1,
+  });
+
+  return entries.items.length > 0 ? entries.items[0] : null;
 });
 
-// カテゴリに属するコンテンツを取得（キャッシュ対応）
+// カテゴリに属するコンテンツを取得
 export const getContentByCategory = cache(async (categorySlug: string, limit = 10, skip = 0) => {
-  console.log(`📂 Fetching content by category slug: ${categorySlug}`);
+  console.log(`Fetching content by category slug: ${categorySlug}`);
 
   // カテゴリを取得
   const category = await getCategoryBySlug(categorySlug);
@@ -367,11 +266,14 @@ export const getContentByCategory = cache(async (categorySlug: string, limit = 1
     };
   }
 
+  console.log(`Found category: ${category.fields.name} (ID: ${category.sys.id})`);
+
   try {
-    const categoryTags = ['content', 'categories', `category:${categorySlug}`];
-    
+    // プレビューモードに応じたクライアントを取得
+    const client = await getClient();
+
     // カテゴリに属する記事を取得
-    const articlesParams = {
+    const articles = await client.getEntries<Content['fields']>({
       content_type: CONTENT_TYPE.CONTENT,
       'fields.contentType': CONTENT_TYPES.ARTICLE,
       'fields.category.sys.id': category.sys.id,
@@ -379,16 +281,11 @@ export const getContentByCategory = cache(async (categorySlug: string, limit = 1
       limit,
       skip,
       include: 2,
-    };
-    
-    const articles = await fetchContentful('/entries', articlesParams, [...categoryTags, 'articles']) || 
-                    await (async () => {
-                      const client = await getClient();
-                      return await client.getEntries<Content['fields']>(articlesParams);
-                    })();
+    });
+    console.log(`Found ${articles.items.length} articles in category "${category.fields.name}"`);
 
     // カテゴリに属する動画を取得
-    const videosParams = {
+    const videos = await client.getEntries<Content['fields']>({
       content_type: CONTENT_TYPE.CONTENT,
       'fields.contentType': CONTENT_TYPES.VIDEO,
       'fields.category.sys.id': category.sys.id,
@@ -396,16 +293,11 @@ export const getContentByCategory = cache(async (categorySlug: string, limit = 1
       limit,
       skip,
       include: 2,
-    };
-    
-    const videos = await fetchContentful('/entries', videosParams, [...categoryTags, 'videos']) || 
-                   await (async () => {
-                     const client = await getClient();
-                     return await client.getEntries<Content['fields']>(videosParams);
-                   })();
+    });
+    console.log(`Found ${videos.items.length} videos in category "${category.fields.name}"`);
 
     // カテゴリに属する音声を取得
-    const audiosParams = {
+    const audios = await client.getEntries<Content['fields']>({
       content_type: CONTENT_TYPE.CONTENT,
       'fields.contentType': CONTENT_TYPES.AUDIO,
       'fields.category.sys.id': category.sys.id,
@@ -413,16 +305,10 @@ export const getContentByCategory = cache(async (categorySlug: string, limit = 1
       limit,
       skip,
       include: 2,
-    };
-    
-    const audios = await fetchContentful('/entries', audiosParams, [...categoryTags, 'audios']) || 
-                   await (async () => {
-                     const client = await getClient();
-                     return await client.getEntries<Content['fields']>(audiosParams);
-                   })();
+    });
+    console.log(`Found ${audios.items.length} audios in category "${category.fields.name}"`);
 
     return { articles, videos, audios, category };
-    
   } catch (error) {
     console.error(`Error fetching content for category "${categorySlug}":`, error);
     return {
@@ -434,11 +320,13 @@ export const getContentByCategory = cache(async (categorySlug: string, limit = 1
   }
 });
 
-// 特定のスラッグのコンテンツを取得（キャッシュ対応）
+// 特定のスラッグのコンテンツを取得（コンテンツタイプを指定可能）
 export const getContentBySlug = cache(async (slug: string, contentType: string = 'article'): Promise<Content | null> => {
-  console.log(`🔍 Fetching content by slug: ${slug}, type: ${contentType}`);
-  
+  console.log(`Fetching content by slug: ${slug}, type: ${contentType}`);
   try {
+    // プレビューモードに応じたクライアントを取得
+    const client = await getClient();
+
     // contentTypeに応じたフィルタリング
     let contentTypeFilter;
     switch (contentType) {
@@ -455,68 +343,52 @@ export const getContentBySlug = cache(async (slug: string, contentType: string =
         contentTypeFilter = CONTENT_TYPES.ARTICLE;
     }
 
-    const params = {
+    const entries = await client.getEntries<Content['fields']>({
       content_type: CONTENT_TYPE.CONTENT,
       'fields.contentType': contentTypeFilter,
       'fields.slug': slug,
-      include: 3,
+      include: 3, // 関連コンテンツも含めて取得
       limit: 1,
-    };
+    });
 
-    const data = await fetchContentful('/entries', params, ['content', contentType, `${contentType}:${slug}`]);
-    
-    if (data && data.items.length > 0) {
-      return data.items[0];
-    }
-    
-    // フォールバック: 従来のクライアント使用
-    const client = await getClient();
-    const entries = await client.getEntries<Content['fields']>(params);
+    console.log(`Found ${entries.items.length} contents with slug: ${slug}`);
     return entries.items.length > 0 ? entries.items[0] : null;
-    
   } catch (error) {
     console.error(`Error fetching content by slug ${slug}:`, error);
     return null;
   }
 });
 
-// 関連コンテンツを取得（キャッシュ対応）
+// 関連コンテンツを取得
 export const getRelatedContents = cache(async (contentId: string): Promise<Content[]> => {
-  console.log(`🔗 Fetching related contents for: ${contentId}`);
-  
   try {
-    const params = {
+    // プレビューモードに応じたクライアントを取得
+    const client = await getClient();
+
+    // 指定されたコンテンツIDを参照しているコンテンツを取得
+    const entries = await client.getEntries<Content['fields']>({
       content_type: CONTENT_TYPE.CONTENT,
       'fields.relatedContents.sys.id': contentId,
       include: 2,
-    };
+    });
 
-    const data = await fetchContentful('/entries', params, ['content', 'related', `related:${contentId}`]);
-    
-    if (data) {
-      return data.items as Content[];
-    }
-    
-    // フォールバック: 従来のクライアント使用
-    const client = await getClient();
-    const entries = await client.getEntries<Content['fields']>(params);
     return entries.items as Content[];
-    
   } catch (error) {
     console.error(`Error fetching related contents for ${contentId}:`, error);
     return [];
   }
 });
 
-// キーワード検索（キャッシュ対応）
+// キーワード検索
 export const searchContent = cache(async (query: string, limit = 10, skip = 0) => {
-  console.log(`🔍 Searching content with query: "${query}", limit: ${limit}, skip: ${skip}`);
+  console.log(`Searching content with query: "${query}", limit: ${limit}, skip: ${skip}`);
 
   try {
-    const searchTags = ['content', 'search', `search:${query.toLowerCase().replace(/\s+/g, '-')}`];
-    
+    // プレビューモードに応じたクライアントを取得
+    const client = await getClient();
+
     // 記事を検索
-    const articlesParams = {
+    const articles = await client.getEntries<Content['fields']>({
       content_type: CONTENT_TYPE.CONTENT,
       'fields.contentType': CONTENT_TYPES.ARTICLE,
       query,
@@ -524,16 +396,11 @@ export const searchContent = cache(async (query: string, limit = 10, skip = 0) =
       limit,
       skip,
       include: 2,
-    };
-    
-    const articles = await fetchContentful('/entries', articlesParams, [...searchTags, 'articles']) || 
-                    await (async () => {
-                      const client = await getClient();
-                      return await client.getEntries<Content['fields']>(articlesParams);
-                    })();
+    });
+    console.log(`Found ${articles.items.length} articles matching "${query}"`);
 
     // 動画を検索
-    const videosParams = {
+    const videos = await client.getEntries<Content['fields']>({
       content_type: CONTENT_TYPE.CONTENT,
       'fields.contentType': CONTENT_TYPES.VIDEO,
       query,
@@ -541,16 +408,11 @@ export const searchContent = cache(async (query: string, limit = 10, skip = 0) =
       limit,
       skip,
       include: 2,
-    };
-    
-    const videos = await fetchContentful('/entries', videosParams, [...searchTags, 'videos']) || 
-                   await (async () => {
-                     const client = await getClient();
-                     return await client.getEntries<Content['fields']>(videosParams);
-                   })();
+    });
+    console.log(`Found ${videos.items.length} videos matching "${query}"`);
 
     // 音声を検索
-    const audiosParams = {
+    const audios = await client.getEntries<Content['fields']>({
       content_type: CONTENT_TYPE.CONTENT,
       'fields.contentType': CONTENT_TYPES.AUDIO,
       query,
@@ -558,18 +420,13 @@ export const searchContent = cache(async (query: string, limit = 10, skip = 0) =
       limit,
       skip,
       include: 2,
-    };
-    
-    const audios = await fetchContentful('/entries', audiosParams, [...searchTags, 'audios']) || 
-                   await (async () => {
-                     const client = await getClient();
-                     return await client.getEntries<Content['fields']>(audiosParams);
-                   })();
+    });
+    console.log(`Found ${audios.items.length} audios matching "${query}"`);
 
     return { articles, videos, audios };
-    
   } catch (error) {
     console.error(`Error searching content with query "${query}":`, error);
+    // エラーが発生した場合は空のレスポンスを返す
     return {
       articles: { items: [], total: 0, skip: 0, limit, includes: {} },
       videos: { items: [], total: 0, skip: 0, limit, includes: {} },

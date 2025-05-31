@@ -1,0 +1,155 @@
+{
+  "timestamp": "2025-05-31T04:27:36.879Z",
+  "stats": {
+    "PASS": 14,
+    "FAIL": 0,
+    "WARN": 0,
+    "INFO": 4
+  },
+  "results": [
+    {
+      "category": "HealthCheck",
+      "test": "Endpoint Availability",
+      "status": "PASS",
+      "details": "Status: OK, Environment: production",
+      "solution": null,
+      "timestamp": "2025-05-31T04:27:31.347Z"
+    },
+    {
+      "category": "HealthCheck",
+      "test": "Secret Configuration",
+      "status": "PASS",
+      "details": "Webhook secret is properly configured",
+      "solution": null,
+      "timestamp": "2025-05-31T04:27:31.350Z"
+    },
+    {
+      "category": "Authentication",
+      "test": "Valid Token",
+      "status": "PASS",
+      "details": "Successful authentication and revalidation of 4 paths",
+      "solution": null,
+      "timestamp": "2025-05-31T04:27:31.567Z"
+    },
+    {
+      "category": "Authentication",
+      "test": "Invalid Token Rejection",
+      "status": "PASS",
+      "details": "Correctly rejected invalid authentication token",
+      "solution": null,
+      "timestamp": "2025-05-31T04:27:31.821Z"
+    },
+    {
+      "category": "ContentTypes",
+      "test": "記事 Revalidation",
+      "status": "PASS",
+      "details": "Successfully revalidated 5 paths for 記事",
+      "solution": null,
+      "timestamp": "2025-05-31T04:27:32.030Z"
+    },
+    {
+      "category": "ContentTypes",
+      "test": "カテゴリ Revalidation",
+      "status": "PASS",
+      "details": "Successfully revalidated 3 paths for カテゴリ",
+      "solution": null,
+      "timestamp": "2025-05-31T04:27:32.346Z"
+    },
+    {
+      "category": "ContentTypes",
+      "test": "タグ Revalidation",
+      "status": "PASS",
+      "details": "Successfully revalidated 2 paths for タグ",
+      "solution": null,
+      "timestamp": "2025-05-31T04:27:32.580Z"
+    },
+    {
+      "category": "PageAccess",
+      "test": "ホームページ (/)",
+      "status": "PASS",
+      "details": "Page accessible with status 200",
+      "solution": null,
+      "timestamp": "2025-05-31T04:27:33.628Z"
+    },
+    {
+      "category": "PageAccess",
+      "test": "記事一覧 (/articles)",
+      "status": "PASS",
+      "details": "Page accessible with status 200",
+      "solution": null,
+      "timestamp": "2025-05-31T04:27:34.969Z"
+    },
+    {
+      "category": "PageAccess",
+      "test": "カテゴリ一覧 (/categories)",
+      "status": "PASS",
+      "details": "Page accessible with status 200",
+      "solution": null,
+      "timestamp": "2025-05-31T04:27:35.556Z"
+    },
+    {
+      "category": "PageAccess",
+      "test": "検索ページ (/search)",
+      "status": "PASS",
+      "details": "Page accessible with status 200",
+      "solution": null,
+      "timestamp": "2025-05-31T04:27:36.018Z"
+    },
+    {
+      "category": "Performance",
+      "test": "Webhook Endpoint Response Time",
+      "status": "PASS",
+      "details": "Response time: 198ms (excellent)",
+      "solution": null,
+      "timestamp": "2025-05-31T04:27:36.217Z"
+    },
+    {
+      "category": "Performance",
+      "test": "Home Page Response Time",
+      "status": "PASS",
+      "details": "Response time: 323ms (excellent)",
+      "solution": null,
+      "timestamp": "2025-05-31T04:27:36.540Z"
+    },
+    {
+      "category": "Performance",
+      "test": "Articles Page Response Time",
+      "status": "PASS",
+      "details": "Response time: 337ms (excellent)",
+      "solution": null,
+      "timestamp": "2025-05-31T04:27:36.878Z"
+    },
+    {
+      "category": "ContentfulConfig",
+      "test": "Webhook URL",
+      "status": "INFO",
+      "details": "Expected: https://www.skillpedia.jp/api/revalidate",
+      "solution": "Verify in Contentful > Settings > Webhooks",
+      "timestamp": "2025-05-31T04:27:36.878Z"
+    },
+    {
+      "category": "ContentfulConfig",
+      "test": "Authentication Header",
+      "status": "INFO",
+      "details": "Expected: Authorization: Bearer ouRdt...Y4bG",
+      "solution": "Verify header name and token value in Contentful webhook settings",
+      "timestamp": "2025-05-31T04:27:36.878Z"
+    },
+    {
+      "category": "ContentfulConfig",
+      "test": "Content Types Filter",
+      "status": "INFO",
+      "details": "Expected: content, category, tag",
+      "solution": "Check if webhook is filtered to relevant content types only",
+      "timestamp": "2025-05-31T04:27:36.878Z"
+    },
+    {
+      "category": "ContentfulConfig",
+      "test": "Events Filter",
+      "status": "INFO",
+      "details": "Expected: Entry published, Entry unpublished, Entry deleted",
+      "solution": "Verify which events trigger the webhook",
+      "timestamp": "2025-05-31T04:27:36.878Z"
+    }
+  ]
+}
