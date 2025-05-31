@@ -4,6 +4,33 @@ import { useState, useEffect } from 'react';
 import { ExternalLink, Eye, EyeOff, Edit, X, RefreshCw, Share2, Clock, Copy, CheckCircle } from 'lucide-react';
 
 /**
+ * 許可されたドメインかどうかをチェック
+ */
+function isAllowedPreviewDomain(): boolean {
+  if (typeof window === 'undefined') return true; // SSR時は許可
+  
+  const allowedDomains = [
+    'localhost',
+    '127.0.0.1',
+    'app.contentful.com'
+  ];
+  
+  // 現在のドメインまたはリファラーが許可されているかチェック
+  const currentDomain = window.location.hostname;
+  const referrer = document.referrer;
+  
+  const isCurrentDomainAllowed = allowedDomains.some(domain => 
+    currentDomain.includes(domain)
+  );
+  
+  const isReferrerAllowed = allowedDomains.some(domain => 
+    referrer.includes(domain)
+  );
+  
+  return isCurrentDomainAllowed || isReferrerAllowed;
+}
+
+/**
  * プレビューモード用のトップバナー（改善版）
  * 編集者がプレビューモードにいることを明確に表示
  */
@@ -28,6 +55,22 @@ export function PreviewBanner({
   const [isExiting, setIsExiting] = useState(false);
   const [copySuccess, setCopySuccess] = useState(false);
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [isDomainAllowed, setIsDomainAllowed] = useState(true);
+  
+  // ドメイン制限チェック
+  useEffect(() => {
+    const allowed = isAllowedPreviewDomain();
+    setIsDomainAllowed(allowed);
+    
+    if (!allowed) {
+      console.warn('Preview banner hidden: Domain not in allowlist for preview mode');
+    }
+  }, []);
+  
+  // 許可されていないドメインの場合は何も表示しない
+  if (!isDomainAllowed) {
+    return null;
+  }
 
   // 現在時刻を1分ごとに更新
   useEffect(() => {

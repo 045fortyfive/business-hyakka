@@ -9,6 +9,9 @@ import type { NextRequest } from 'next/server'
 export function middleware(request: NextRequest) {
   const { pathname, searchParams } = request.nextUrl;
   const referer = request.headers.get('referer');
+  const origin = request.headers.get('origin');
+  const host = request.headers.get('host') || request.nextUrl.hostname;
+  
   const isFromContentful = referer?.includes('contentful.com');
   
   // プレビューモードの検出
@@ -16,9 +19,27 @@ export function middleware(request: NextRequest) {
   const hasPreviewParam = searchParams.has('preview') || searchParams.has('secret');
   const isPreviewMode = hasPreviewCookie || hasPreviewParam;
   
+  // ⭐ ドメイン制限: 本番ドメインでのプレビューを無効化
+  const isProductionDomain = host?.includes('skillpedia.jp') && !host?.includes('localhost');
+  
+  // 本番ドメインでプレビューが要求された場合は拒否
+  if (isProductionDomain && isPreviewMode && !isFromContentful) {
+    console.warn('🚫 Preview mode blocked on production domain');
+    console.warn(`🌍 Host: ${host}`);
+    console.warn(`🔗 Referer: ${referer}`);
+    
+    // プレビュークッキーがある場合は削除
+    const response = NextResponse.redirect(new URL(pathname, request.url));
+    response.cookies.delete('__prerender_bypass');
+    response.cookies.delete('__next_preview_data');
+    return response;
+  }
+  
   console.log(`🔍 Middleware check: ${pathname}`);
   console.log(`📊 Preview mode: ${isPreviewMode}`);
   console.log(`🔗 From Contentful: ${isFromContentful}`);
+  console.log(`🌍 Host: ${host}`);
+  console.log(`🏭 Production domain: ${isProductionDomain}`);
   
   const response = NextResponse.next();
   

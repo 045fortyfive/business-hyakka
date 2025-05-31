@@ -6,6 +6,32 @@ import { PreviewBanner } from './PreviewBanner';
 import { PreviewIndicator } from './PreviewIndicator';
 
 /**
+ * 許可されたドメインかどうかをチェック
+ */
+function isAllowedPreviewDomain(): boolean {
+  if (typeof window === 'undefined') return true; // SSR時は許可
+  
+  const allowedDomains = [
+    'localhost',
+    '127.0.0.1',
+    'app.contentful.com'
+  ];
+  
+  const currentDomain = window.location.hostname;
+  const referrer = document.referrer;
+  
+  const isCurrentDomainAllowed = allowedDomains.some(domain => 
+    currentDomain.includes(domain)
+  );
+  
+  const isReferrerAllowed = allowedDomains.some(domain => 
+    referrer.includes(domain)
+  );
+  
+  return isCurrentDomainAllowed || isReferrerAllowed;
+}
+
+/**
  * プレビューモード用のラッパーコンポーネント（改善版）
  * プレビュー時のみバナーを表示し、通常時は何も表示しない
  */
@@ -32,6 +58,17 @@ export function PreviewWrapper({
 }: PreviewWrapperProps) {
   const { isPreview, isLoading } = usePreviewMode();
   const [mounted, setMounted] = useState(false);
+  const [isDomainAllowed, setIsDomainAllowed] = useState(true);
+  
+  // ドメイン制限チェック
+  useEffect(() => {
+    const allowed = isAllowedPreviewDomain();
+    setIsDomainAllowed(allowed);
+    
+    if (!allowed && isPreview) {
+      console.warn('Preview wrapper hidden: Domain not in allowlist for preview mode');
+    }
+  }, [isPreview]);
 
   // クライアントサイドでのマウント状態を管理
   useEffect(() => {
@@ -56,8 +93,8 @@ export function PreviewWrapper({
     return <>{children}</>;
   }
 
-  // プレビューモードでない場合は通常表示
-  if (!isPreview) {
+  // プレビューモードでない場合、または許可されていないドメインの場合は通常表示
+  if (!isPreview || !isDomainAllowed) {
     return <>{children}</>;
   }
 

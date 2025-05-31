@@ -35,9 +35,40 @@ function getPreviewHeaders() {
   };
 }
 
+// 許可されたドメインからのプレビューリクエストかチェック
+function isAllowedPreviewOrigin(request: NextRequest): boolean {
+  const referer = request.headers.get('referer') || '';
+  const origin = request.headers.get('origin') || '';
+  
+  // Contentfulの管理画面からのアクセスのみ許可
+  const allowedOrigins = [
+    'https://app.contentful.com',
+    'https://be.contentful.com', // Contentful backend
+    'http://localhost:3000', // 開発環境
+    'http://127.0.0.1:3000'  // 開発環境
+  ];
+  
+  // リファラーまたはオリジンが許可されたドメインからの場合のみtrue
+  return allowedOrigins.some(allowed => 
+    referer.startsWith(allowed) || origin.startsWith(allowed)
+  );
+}
+
 // OPTIONSリクエスト（CORS プリフライト）への対応
 export async function OPTIONS(request: NextRequest) {
   console.log('🔄 CORS preflight request for preview API');
+  
+  // ドメインチェック
+  if (!isAllowedPreviewOrigin(request)) {
+    console.error('❌ Unauthorized domain for preview');
+    return new NextResponse(JSON.stringify({ 
+      error: 'Unauthorized', 
+      message: 'Preview is only allowed from Contentful admin interface'
+    }), {
+      status: 403,
+      headers: { 'Content-Type': 'application/json' }
+    });
+  }
   
   return new NextResponse(null, {
     status: 200,
@@ -53,6 +84,30 @@ export async function GET(request: NextRequest) {
   const clientIP = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown';
   const userAgent = request.headers.get('user-agent') || 'unknown';
   const referer = request.headers.get('referer') || 'unknown';
+  
+  // ⭐ ドメイン制限: Contentfulからのアクセスのみ許可
+  if (!isAllowedPreviewOrigin(request)) {
+    console.error('❌ Unauthorized domain for preview access');
+    console.error(`🔗 Referer: ${referer}`);
+    console.error(`🌍 Origin: ${request.headers.get('origin')}`);
+    
+    return new NextResponse(
+      JSON.stringify({ 
+        error: 'Unauthorized domain', 
+        message: 'Preview functionality is restricted to Contentful admin interface only. Access from www.skillpedia.jp is not permitted.',
+        allowedDomains: ['https://app.contentful.com'],
+        currentReferer: referer,
+        timestamp: new Date().toISOString()
+      }), 
+      { 
+        status: 403,
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Robots-Tag': 'noindex, nofollow'
+        }
+      }
+    );
+  }
   
   console.log('\n📝=== Contentful Preview Request ===' );
   console.log(`🕰️ Timestamp: ${new Date().toISOString()}`);
@@ -234,6 +289,22 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
   console.log('📮 POST request to preview API');
+  
+  // POSTリクエストでもドメイン制限を適用
+  if (!isAllowedPreviewOrigin(request)) {
+    console.error('❌ Unauthorized domain for POST preview request');
+    return new NextResponse(
+      JSON.stringify({ 
+        error: 'Unauthorized domain', 
+        message: 'Preview API is restricted to Contentful admin interface only',
+        timestamp: new Date().toISOString()
+      }), 
+      { 
+        status: 403,
+        headers: getPreviewHeaders()
+      }
+    );
+  }
   
   try {
     const body = await request.json();
