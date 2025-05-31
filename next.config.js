@@ -43,6 +43,96 @@ const nextConfig = {
   },
   // サーバーコンポーネントのキャッシュを無効化
   serverExternalPackages: ['contentful'],
+  
+  // セキュリティヘッダーの設定（Contentful Live Preview対応）
+  async headers() {
+    return [
+      {
+        // 全ページに適用
+        source: '/(.*)',
+        headers: [
+          {
+            key: 'X-Frame-Options',
+            value: 'SAMEORIGIN', // ContentfulのLive Preview用にSAMEORIGINに変更
+          },
+          {
+            key: 'Content-Security-Policy',
+            value: [
+              "default-src 'self'",
+              "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://app.contentful.com",
+              "style-src 'self' 'unsafe-inline'",
+              "img-src 'self' data: https: blob:",
+              "font-src 'self' data:",
+              "connect-src 'self' https://cdn.contentful.com https://api.contentful.com https://preview.contentful.com https://app.contentful.com",
+              "frame-ancestors 'self' https://app.contentful.com https://*.contentful.com",
+              "frame-src 'self' https://app.contentful.com https://*.contentful.com",
+              "object-src 'none'",
+              "base-uri 'self'",
+            ].join('; '),
+          },
+          {
+            key: 'X-Content-Type-Options',
+            value: 'nosniff',
+          },
+          {
+            key: 'Referrer-Policy',
+            value: 'origin-when-cross-origin',
+          },
+          {
+            key: 'Permissions-Policy',
+            value: 'camera=(), microphone=(), geolocation=()',
+          },
+        ],
+      },
+      {
+        // プレビューページ専用のより緩い設定
+        source: '/api/preview',
+        headers: [
+          {
+            key: 'X-Frame-Options',
+            value: 'ALLOWALL', // プレビューAPI用
+          },
+          {
+            key: 'Access-Control-Allow-Origin',
+            value: 'https://app.contentful.com',
+          },
+          {
+            key: 'Access-Control-Allow-Methods',
+            value: 'GET, POST, OPTIONS',
+          },
+          {
+            key: 'Access-Control-Allow-Headers',
+            value: 'Content-Type, Authorization',
+          },
+        ],
+      },
+      {
+        // プレビューモード時のコンテンツページ用
+        source: '/(articles|videos|audios|categories|mdx-articles)/:path*',
+        headers: [
+          {
+            key: 'X-Frame-Options',
+            value: 'ALLOWALL', // ContentfulのLive Preview用
+          },
+          {
+            key: 'Content-Security-Policy',
+            value: [
+              "default-src 'self'",
+              "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://app.contentful.com https://*.contentful.com",
+              "style-src 'self' 'unsafe-inline'",
+              "img-src 'self' data: https: blob:",
+              "font-src 'self' data:",
+              "connect-src 'self' https://cdn.contentful.com https://api.contentful.com https://preview.contentful.com https://app.contentful.com https://*.contentful.com",
+              "frame-ancestors 'self' https://app.contentful.com https://*.contentful.com",
+              "frame-src 'self' https://app.contentful.com https://*.contentful.com",
+              "object-src 'none'",
+              "base-uri 'self'",
+            ].join('; '),
+          },
+        ],
+      },
+    ];
+  },
 };
 
 module.exports = nextConfig;

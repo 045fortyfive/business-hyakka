@@ -1,10 +1,10 @@
 import { draftMode } from 'next/headers'
 import { redirect } from 'next/navigation'
-import { NextRequest } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 
 /**
  * Contentful Preview API
- * 改善版: セキュリティ強化、エラーハンドリング改善、ログ機能充実
+ * 改善版: Contentful Live Preview対応、セキュリティ強化、CORS対応
  */
 
 // サポートされるコンテンツタイプとそのパスマッピング
@@ -19,6 +19,28 @@ const CONTENT_TYPE_PATHS = {
 
 type ContentType = keyof typeof CONTENT_TYPE_PATHS;
 
+// Contentful Live Preview用のヘッダー設定
+function getPreviewHeaders() {
+  return {
+    'X-Frame-Options': 'ALLOWALL',
+    'Access-Control-Allow-Origin': 'https://app.contentful.com',
+    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Requested-With',
+    'Access-Control-Allow-Credentials': 'true',
+    'Content-Type': 'application/json',
+  };
+}
+
+// OPTIONSリクエスト（CORS プリフライト）への対応
+export async function OPTIONS(request: NextRequest) {
+  console.log('🔄 CORS preflight request for preview API');
+  
+  return new NextResponse(null, {
+    status: 200,
+    headers: getPreviewHeaders(),
+  });
+}
+
 export async function GET(request: NextRequest) {
   const startTime = Date.now();
   const { searchParams, origin } = new URL(request.url);
@@ -26,10 +48,12 @@ export async function GET(request: NextRequest) {
   // IPアドレスやUser-Agentの取得（セキュリティログ用）
   const clientIP = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown';
   const userAgent = request.headers.get('user-agent') || 'unknown';
+  const referer = request.headers.get('referer') || 'unknown';
   
   console.log('\n📝=== Contentful Preview Request ===' );
   console.log(`🕰️ Timestamp: ${new Date().toISOString()}`);
   console.log(`🌍 Client IP: ${clientIP}`);
+  console.log(`🔗 Referer: ${referer}`);
   console.log(`🤖 User Agent: ${userAgent.substring(0, 100)}...`);
   
   try {
@@ -47,7 +71,7 @@ export async function GET(request: NextRequest) {
     
     if (!expectedSecret) {
       console.error('❌ CONTENTFUL_PREVIEW_SECRET is not configured');
-      return new Response(
+      return new NextResponse(
         JSON.stringify({ 
           error: 'Server configuration error', 
           message: 'Preview secret not configured on server',
@@ -55,7 +79,7 @@ export async function GET(request: NextRequest) {
         }), 
         { 
           status: 500,
-          headers: { 'Content-Type': 'application/json' }
+          headers: getPreviewHeaders()
         }
       );
     }
@@ -63,7 +87,7 @@ export async function GET(request: NextRequest) {
     // 3. シークレットの検証
     if (!secret) {
       console.error('❌ No secret provided in request');
-      return new Response(
+      return new NextResponse(
         JSON.stringify({ 
           error: 'Missing secret', 
           message: 'Preview secret is required',
@@ -71,7 +95,7 @@ export async function GET(request: NextRequest) {
         }), 
         { 
           status: 400,
-          headers: { 'Content-Type': 'application/json' }
+          headers: getPreviewHeaders()
         }
       );
     }
@@ -81,7 +105,7 @@ export async function GET(request: NextRequest) {
       console.error(`Expected: ${expectedSecret.substring(0, 10)}...`);
       console.error(`Received: ${secret.substring(0, 10)}...`);
       
-      return new Response(
+      return new NextResponse(
         JSON.stringify({ 
           error: 'Invalid secret', 
           message: 'Invalid preview secret',
@@ -89,7 +113,7 @@ export async function GET(request: NextRequest) {
         }), 
         { 
           status: 401,
-          headers: { 'Content-Type': 'application/json' }
+          headers: getPreviewHeaders()
         }
       );
     }
@@ -97,7 +121,7 @@ export async function GET(request: NextRequest) {
     // 4. スラッグの検証
     if (!slug || slug.trim() === '') {
       console.error('❌ No slug provided in request');
-      return new Response(
+      return new NextResponse(
         JSON.stringify({ 
           error: 'Missing slug', 
           message: 'Content slug is required',
@@ -105,7 +129,7 @@ export async function GET(request: NextRequest) {
         }), 
         { 
           status: 400,
-          headers: { 'Content-Type': 'application/json' }
+          headers: getPreviewHeaders()
         }
       );
     }
@@ -115,7 +139,7 @@ export async function GET(request: NextRequest) {
       console.error(`❌ Invalid content type: ${type}`);
       console.error(`Supported types: ${Object.keys(CONTENT_TYPE_PATHS).join(', ')}`);
       
-      return new Response(
+      return new NextResponse(
         JSON.stringify({ 
           error: 'Invalid content type', 
           message: `Content type '${type}' is not supported`,
@@ -124,7 +148,7 @@ export async function GET(request: NextRequest) {
         }), 
         { 
           status: 400,
-          headers: { 'Content-Type': 'application/json' }
+          headers: getPreviewHeaders()
         }
       );
     }
@@ -137,7 +161,7 @@ export async function GET(request: NextRequest) {
       console.log('✅ Draft mode enabled successfully');
     } catch (draftError) {
       console.error('❌ Failed to enable draft mode:', draftError);
-      return new Response(
+      return new NextResponse(
         JSON.stringify({ 
           error: 'Failed to enable preview mode', 
           message: 'Could not activate draft mode',
@@ -145,7 +169,7 @@ export async function GET(request: NextRequest) {
         }), 
         { 
           status: 500,
-          headers: { 'Content-Type': 'application/json' }
+          headers: getPreviewHeaders()
         }
       );
     }
@@ -161,8 +185,15 @@ export async function GET(request: NextRequest) {
     console.log(`⏱️ Processing time: ${processingTime}ms`);
     console.log('✅ Preview request processed successfully\n');
     
-    // 9. リダイレクト実行
-    redirect(redirectUrl);
+    // 9. リダイレクト実行（Live Preview対応ヘッダー付き）
+    const response = NextResponse.redirect(new URL(redirectUrl, request.url));
+    
+    // Live Preview用のヘッダーを追加
+    Object.entries(getPreviewHeaders()).forEach(([key, value]) => {
+      response.headers.set(key, value);
+    });
+    
+    return response;
     
   } catch (error) {
     const processingTime = Date.now() - startTime;
@@ -173,7 +204,7 @@ export async function GET(request: NextRequest) {
     console.error(`Processing time: ${processingTime}ms\n`);
     
     // エラーレスポンス
-    return new Response(
+    return new NextResponse(
       JSON.stringify({ 
         error: 'Preview request failed', 
         message: error instanceof Error ? error.message : 'Unknown error occurred',
@@ -182,7 +213,48 @@ export async function GET(request: NextRequest) {
       }), 
       { 
         status: 500,
-        headers: { 'Content-Type': 'application/json' }
+        headers: getPreviewHeaders()
+      }
+    );
+  }
+}
+
+/**
+ * POST メソッド対応（Contentful Webhook等からの呼び出し用）
+ */
+export async function POST(request: NextRequest) {
+  console.log('📮 POST request to preview API');
+  
+  try {
+    const body = await request.json();
+    console.log('📦 POST body:', body);
+    
+    // POSTリクエストをGETと同じロジックで処理
+    const url = new URL(request.url);
+    if (body.secret) url.searchParams.set('secret', body.secret);
+    if (body.slug) url.searchParams.set('slug', body.slug);
+    if (body.type) url.searchParams.set('type', body.type);
+    
+    // GETメソッドとして再処理
+    const getRequest = new NextRequest(url, {
+      method: 'GET',
+      headers: request.headers,
+    });
+    
+    return GET(getRequest);
+    
+  } catch (error) {
+    console.error('❌ POST request failed:', error);
+    
+    return new NextResponse(
+      JSON.stringify({ 
+        error: 'POST request failed', 
+        message: error instanceof Error ? error.message : 'Unknown error occurred',
+        timestamp: new Date().toISOString()
+      }), 
+      { 
+        status: 500,
+        headers: getPreviewHeaders()
       }
     );
   }
