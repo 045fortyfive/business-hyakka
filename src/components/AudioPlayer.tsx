@@ -3,11 +3,12 @@
 import { useEffect, useState, useRef } from 'react';
 
 interface AudioPlayerProps {
-  audioUrl: string;
+  src: string;
   title: string;
+  className?: string;
 }
 
-export default function AudioPlayer({ audioUrl, title }: AudioPlayerProps) {
+export default function AudioPlayer({ src, title, className = "" }: AudioPlayerProps) {
   const [isClient, setIsClient] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [duration, setDuration] = useState(0);
@@ -72,17 +73,17 @@ export default function AudioPlayer({ audioUrl, title }: AudioPlayerProps) {
   // サーバーサイドレンダリング時は何も表示しない
   if (!isClient) {
     return (
-      <div className="bg-gray-100 rounded-lg p-4 flex items-center justify-center">
+      <div className={`bg-gray-100 rounded-lg p-4 flex items-center justify-center ${className}`}>
         <p className="text-gray-500">音声プレーヤーを読み込んでいます...</p>
       </div>
     );
   }
   
   return (
-    <div className="bg-gray-100 rounded-lg p-4">
+    <div className={`bg-gray-100 rounded-lg p-4 ${className}`}>
       <audio
         ref={audioRef}
-        src={audioUrl}
+        src={src}
         onLoadedMetadata={handleLoadedMetadata}
         onTimeUpdate={handleTimeUpdateEvent}
         onEnded={handleEnded}

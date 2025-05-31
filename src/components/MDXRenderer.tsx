@@ -16,6 +16,7 @@ import Callout from './mdx/Callout';
 import Figure from './mdx/Figure';
 import Table from './mdx/Table';
 import CustomImage from './mdx/CustomImage';
+import MediaRenderer from './mdx/MediaRenderer';
 import { Br, LineBreak, Spacer, ParagraphBreak } from './mdx/LineBreak';
 
 // カスタムrehype-slugプラグイン
@@ -64,6 +65,7 @@ const components = {
   Figure,
   Table,
   CustomImage,
+  MediaRenderer,
   // 改行関連コンポーネント
   Br,
   LineBreak,
@@ -71,9 +73,9 @@ const components = {
   ParagraphBreak,
   // テーブル関連のコンポーネント
   table: Table,
-  // 画像コンポーネント
-  img: CustomImage,
-  Image: CustomImage,
+  // 画像・メディアコンポーネント
+  img: MediaRenderer,
+  Image: MediaRenderer,
   // その他のカスタムコンポーネント
 };
 

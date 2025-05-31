@@ -93,7 +93,8 @@ body {
 /* カスタムスタイル */
 .aspect-w-16 {
   position: relative;
-  padding-bottom: 56.25%;
+  padding-bottom: 56.25%; /* 16:9 aspect ratio */
+  height: 0;
 }
 
 .aspect-w-16 > * {
@@ -104,6 +105,23 @@ body {
   right: 0;
   bottom: 0;
   left: 0;
+}
+
+/* 動画レスポンシブスタイル */
+.video-responsive {
+  position: relative;
+  width: 100%;
+  height: 0;
+  padding-bottom: 56.25%; /* 16:9 aspect ratio */
+}
+
+.video-responsive iframe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
 }
 
 /* カードのグラデーション */

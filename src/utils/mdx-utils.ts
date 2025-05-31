@@ -12,6 +12,7 @@ import Callout from '@/components/mdx/Callout';
 import CodeBlock from '@/components/mdx/CodeBlock';
 import AdPlacement from '@/components/mdx/AdPlacement';
 import CustomImage from '@/components/mdx/CustomImage';
+import MediaRenderer from '@/components/mdx/MediaRenderer';
 import { Br, LineBreak, Spacer, ParagraphBreak } from '@/components/mdx/LineBreak';
 import Image from 'next/image';
 
@@ -21,12 +22,14 @@ const components = {
   CodeBlock,
   AdPlacement,
   Image: CustomImage,
-  img: CustomImage, // MDX内の<img>タグも処理
+  img: MediaRenderer, // MDX内の<img>タグをMediaRendererで処理
   // 改行関連コンポーネント
   Br,
   LineBreak,
   Spacer,
   ParagraphBreak,
+  // メディア関連コンポーネント
+  MediaRenderer,
   // 他のMDXコンポーネントをここに追加
 };
 
@@ -112,23 +115,39 @@ function getBodyContent(body: any): string {
   }
 }
 
-// Helper function to process image URLs in MDX content
-function processImageUrls(mdxContent: string): string {
+// Helper function to process and sanitize MDX content
+function sanitizeMDXContent(mdxContent: string): string {
   try {
-    // ContentfulのアセットURL（//で始まる相対パス）をhttps:付きの絶対 URLに変換
-    const processedContent = mdxContent.replace(
-      /(!\[.*?\]\(|<img[^>]+src=[\"\']{1})(\/\/[^\)\s\"\'\']+)/g,
+    let processedContent = mdxContent;
+    
+    // 1. URL正規化 - ContentfulのアセットURL（//で始まる相対パス）をhttps:付きの絶対URLに変換
+    processedContent = processedContent.replace(
+      /(!\[.*?\]\(|<img[^>]+src=[\"\']{1}|<video[^>]+src=[\"\']{1}|<audio[^>]+src=[\"\']{1}|<a[^>]+href=[\"\']{1})(\/\/[^\)\s\"\'\']+)/g,
       (match, prefix, url) => {
         const httpsUrl = `https:${url}`;
         return `${prefix}${httpsUrl}`;
       }
     );
     
+    // 2. Markdown画像記法をHTMLに変換（MDXパースエラーを回避）
+    processedContent = processedContent.replace(
+      /!\[([^\]]*)\]\(([^)]+)\)/g,
+      (match, alt, url) => {
+        return `<img src="${url}" alt="${alt || ''}" />`;
+      }
+    );
+    
     return processedContent;
   } catch (error) {
-    console.warn('Error processing image URLs:', error);
+    console.warn('Error sanitizing MDX content:', error);
     return mdxContent;
   }
+}
+
+// Helper function to process media URLs in MDX content (旧関数を置き換え)
+function processMediaUrls(mdxContent: string): string {
+  // 新しいサニタイズ関数を使用
+  return sanitizeMDXContent(mdxContent);
 }
 
 // Helper function to safely extract downloadable files
@@ -232,9 +251,9 @@ export async function renderContentfulMdx(slug: string, contentType: string = 'a
     if (content.fields.mdxContent) {
       console.log('Compiling MDX content...');
       
-      // 改行処理と画像URLを事前処理
+      // 改行処理とメディアURLを事前処理
       let processedMdxContent = processContentfulLineBreaks(content.fields.mdxContent);
-      processedMdxContent = processImageUrls(processedMdxContent);
+      processedMdxContent = processMediaUrls(processedMdxContent);
       
       const { content: mdxContent } = await compileMDX({
         source: processedMdxContent,
