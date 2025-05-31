@@ -11,8 +11,8 @@ export const metadata: Metadata = {
   description: "ビジネススキル向上に役立つ記事の一覧です。基本ビジネススキル、コミュニケーション、マネジメント、業務改善など、様々なカテゴリの記事を掲載しています。",
 };
 
-// 1時間ごとに再検証
-export const revalidate = 3600;
+// Webhookからの再検証で即座更新、フォールバックとして毎日再検証
+export const revalidate = 86400; // 24時間（フォールバック）
 
 // 1ページあたりの記事数
 const ITEMS_PER_PAGE = 9;

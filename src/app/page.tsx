@@ -8,8 +8,8 @@ import { getImageProps } from "@/lib/utils";
 import { CONTENT_TYPES } from "@/lib/types";
 import { CategoryName } from "@/utils/category-colors";
 
-// トップページは静的生成
-export const revalidate = 3600; // 1時間ごとに再検証
+// Webhookからの再検証で即座更新、フォールバックとして毎日再検証
+export const revalidate = 86400; // 24時間（フォールバック）
 
 // 環境変数の確認（デバッグ用）
 console.log('=== 環境変数の確認（トップページ） ===');
