@@ -6,6 +6,7 @@ import Footer from "@/components/Footer";
 import { BackgroundProvider } from "@/contexts/BackgroundContext";
 import BackgroundWrapper from "@/components/BackgroundWrapper";
 import BackgroundControl from "@/components/BackgroundControl";
+import { PreviewWrapper } from "@/components/preview";
 
 const notoSansJP = Noto_Sans_JP({
   subsets: ["latin"],
@@ -31,13 +32,29 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ja" className={notoSansJP.variable}>
+      <head>
+        {/* Next.js標準のプレビューバナーを無効化 */}
+        <style dangerouslySetInnerHTML={{
+          __html: `
+            [data-nextjs-preview-indicator] {
+              display: none !important;
+            }
+            .__next-preview-indicator {
+              display: none !important;
+            }
+          `
+        }} />
+      </head>
       <BackgroundProvider>
         <body className="font-sans antialiased min-h-screen flex flex-col" suppressHydrationWarning={true}>
           <BackgroundWrapper>
-            <Header />
-            <main className="flex-grow">{children}</main>
-            <Footer />
-            <BackgroundControl />
+            {/* 独自のプレビューラッパーで全体をラップ */}
+            <PreviewWrapper>
+              <Header />
+              <main className="flex-grow">{children}</main>
+              <Footer />
+              <BackgroundControl />
+            </PreviewWrapper>
           </BackgroundWrapper>
         </body>
       </BackgroundProvider>

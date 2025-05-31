@@ -2,6 +2,7 @@ import { Metadata } from 'next';
 import { getMdxBySlug, renderContentfulMdx } from '@/utils/mdx-utils';
 import MDXRenderer from '@/components/MDXRenderer';
 import UniversalContentRenderer from '@/components/UniversalContentRenderer';
+import { PreviewWrapper } from '@/components/preview';
 
 interface Props {
   params: {
@@ -74,15 +75,24 @@ export default async function MdxArticlePage({ params }: Props) {
     const contentData = await renderContentfulMdx(slug);
 
     return (
-      <UniversalContentRenderer
-        slug={slug}
-        frontMatter={contentData.frontMatter}
-        content={contentData.content}
-        mdxContent={contentData.mdxContent}
-        relatedContents={contentData.relatedContents}
-        downloadableFiles={contentData.downloadableFiles}
+      <PreviewWrapper
         contentType="article"
-      />
+        slug={slug}
+        title={contentData.frontMatter.title}
+        contentfulEntryId={contentData.contentfulEntryId}
+        lastModified={contentData.lastModified}
+        showMeta={false}
+      >
+        <UniversalContentRenderer
+          slug={slug}
+          frontMatter={contentData.frontMatter}
+          content={contentData.content}
+          mdxContent={contentData.mdxContent}
+          relatedContents={contentData.relatedContents}
+          downloadableFiles={contentData.downloadableFiles}
+          contentType="article"
+        />
+      </PreviewWrapper>
     );
   } catch (error) {
     console.error(`Error rendering article ${slug}:`, error);
@@ -92,40 +102,54 @@ export default async function MdxArticlePage({ params }: Props) {
       const { frontMatter, content } = getMdxBySlug(slug);
 
       return (
-        <UniversalContentRenderer
-          slug={slug}
-          frontMatter={{
-            title: frontMatter.title || slug,
-            description: frontMatter.description,
-            category: frontMatter.category,
-            author: frontMatter.author,
-            publishDate: frontMatter.publishDate,
-            featuredImage: frontMatter.featuredImage,
-          }}
-          content={content}
-          mdxContent={null}
-          relatedContents={[]}
-          downloadableFiles={[]}
+        <PreviewWrapper
           contentType="article"
-        />
+          slug={slug}
+          title={frontMatter.title || slug}
+          showMeta={false}
+        >
+          <UniversalContentRenderer
+            slug={slug}
+            frontMatter={{
+              title: frontMatter.title || slug,
+              description: frontMatter.description,
+              category: frontMatter.category,
+              author: frontMatter.author,
+              publishDate: frontMatter.publishDate,
+              featuredImage: frontMatter.featuredImage,
+            }}
+            content={content}
+            mdxContent={null}
+            relatedContents={[]}
+            downloadableFiles={[]}
+            contentType="article"
+          />
+        </PreviewWrapper>
       );
     } catch (fallbackError) {
       console.error(`Fallback failed for ${slug}:`, fallbackError);
       
       // 最終フォールバック：エラーページ
       return (
-        <UniversalContentRenderer
-          slug={slug}
-          frontMatter={{
-            title: 'エラーが発生しました',
-            description: 'コンテンツの読み込み中にエラーが発生しました。',
-          }}
-          content="# エラーが発生しました\n\nコンテンツの読み込み中にエラーが発生しました。[ホームに戻る](/)"
-          mdxContent={null}
-          relatedContents={[]}
-          downloadableFiles={[]}
+        <PreviewWrapper
           contentType="article"
-        />
+          slug={slug}
+          title="エラーが発生しました"
+          showMeta={false}
+        >
+          <UniversalContentRenderer
+            slug={slug}
+            frontMatter={{
+              title: 'エラーが発生しました',
+              description: 'コンテンツの読み込み中にエラーが発生しました。',
+            }}
+            content="# エラーが発生しました\n\nコンテンツの読み込み中にエラーが発生しました。[ホームに戻る](/)"
+            mdxContent={null}
+            relatedContents={[]}
+            downloadableFiles={[]}
+            contentType="article"
+          />
+        </PreviewWrapper>
       );
     }
   }

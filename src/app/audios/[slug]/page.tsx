@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { getAudioBySlug, getAudios } from "@/lib/api";
 import { renderContentfulMdx } from "@/utils/mdx-utils";
 import UniversalContentRenderer from "@/components/UniversalContentRenderer";
+import { PreviewWrapper } from "@/components/preview";
 
 // 1時間ごとに再検証
 export const revalidate = 3600;
@@ -45,12 +46,16 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     console.error(`Error generating metadata for audio ${slug}:`, error);
 
     // フォールバック
-    const audio = await getAudioBySlug(slug);
-    if (audio) {
-      return {
-        title: `${audio.fields.title} | ビジネススキル百科`,
-        description: audio.fields.description || `${audio.fields.title}に関する音声です。`,
-      };
+    try {
+      const audio = await getAudioBySlug(slug);
+      if (audio) {
+        return {
+          title: `${audio.fields.title} | ビジネススキル百科`,
+          description: audio.fields.description || `${audio.fields.title}に関する音声です。`,
+        };
+      }
+    } catch (fallbackError) {
+      console.error(`Fallback metadata generation failed for audio ${slug}:`, fallbackError);
     }
 
     return {
@@ -102,15 +107,24 @@ export default async function AudioPage({ params }: Props) {
     const contentData = await renderContentfulMdx(slug, 'audio');
 
     return (
-      <UniversalContentRenderer
-        slug={slug}
-        frontMatter={contentData.frontMatter}
-        content={contentData.content}
-        mdxContent={contentData.mdxContent}
-        relatedContents={contentData.relatedContents}
-        downloadableFiles={contentData.downloadableFiles}
+      <PreviewWrapper
         contentType="audio"
-      />
+        slug={slug}
+        title={contentData.frontMatter.title}
+        contentfulEntryId={contentData.contentfulEntryId}
+        lastModified={contentData.lastModified}
+        showMeta={false} // ページ専用なのでメタ情報は非表示
+      >
+        <UniversalContentRenderer
+          slug={slug}
+          frontMatter={contentData.frontMatter}
+          content={contentData.content}
+          mdxContent={contentData.mdxContent}
+          relatedContents={contentData.relatedContents}
+          downloadableFiles={contentData.downloadableFiles}
+          contentType="audio"
+        />
+      </PreviewWrapper>
     );
   } catch (error) {
     console.error(`Error rendering audio ${slug}:`, error);
@@ -134,28 +148,37 @@ export default async function AudioPage({ params }: Props) {
       } = audio.fields;
 
       return (
-        <UniversalContentRenderer
-          slug={slug}
-          frontMatter={{
-            title,
-            description,
-            publishDate,
-            audioUrl,
-            category: category?.fields?.name,
-            tags: tags?.map((tag: any) => tag.fields.name) || [],
-            featuredImage: thumbnail ? {
-              url: `https:${thumbnail.fields.file.url}`,
-              title: thumbnail.fields.title || title,
-              width: thumbnail.fields.file.details?.image?.width || 800,
-              height: thumbnail.fields.file.details?.image?.height || 450,
-            } : undefined,
-          }}
-          content={description || ''}
-          mdxContent={null}
-          relatedContents={[]}
-          downloadableFiles={[]}
+        <PreviewWrapper
           contentType="audio"
-        />
+          slug={slug}
+          title={title}
+          contentfulEntryId={audio.sys.id}
+          lastModified={audio.sys.updatedAt}
+          showMeta={false}
+        >
+          <UniversalContentRenderer
+            slug={slug}
+            frontMatter={{
+              title,
+              description,
+              publishDate,
+              audioUrl,
+              category: category?.fields?.name,
+              tags: tags?.map((tag: any) => tag.fields.name) || [],
+              featuredImage: thumbnail ? {
+                url: `https:${thumbnail.fields.file.url}`,
+                title: thumbnail.fields.title || title,
+                width: thumbnail.fields.file.details?.image?.width || 800,
+                height: thumbnail.fields.file.details?.image?.height || 450,
+              } : undefined,
+            }}
+            content={description || ''}
+            mdxContent={null}
+            relatedContents={[]}
+            downloadableFiles={[]}
+            contentType="audio"
+          />
+        </PreviewWrapper>
       );
     } catch (fallbackError) {
       console.error(`Fallback failed for audio ${slug}:`, fallbackError);
