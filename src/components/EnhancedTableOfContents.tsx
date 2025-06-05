@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState, useRef } from 'react';
-import { generateTableOfContents } from '@/utils/toc-generator';
+import { generateTableOfContents, extractTocFromContentfulRichText } from '@/utils/toc-generator';
 
 interface TocItem {
   id: string;
@@ -33,8 +33,11 @@ export default function EnhancedTableOfContents({
       // 直接TocItemの配列が渡された場合はそれを使用
       setToc(initialToc);
     } else if (content) {
-      // contentから目次を生成
-      const tocItems = generateTableOfContents(content);
+      // Contentfulリッチテキストから目次を生成
+      console.log('Generating TOC from Contentful rich text content');
+      const richTextToc = extractTocFromContentfulRichText(content);
+      const tocItems = generateTableOfContents(richTextToc);
+      console.log(`Generated ${tocItems.length} TOC items from rich text`);
       setToc(tocItems);
     }
   }, [content, initialToc]);

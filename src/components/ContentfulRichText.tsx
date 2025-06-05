@@ -118,7 +118,9 @@ const renderOptions = {
       return <p className="mb-4 leading-relaxed whitespace-pre-line">{children}</p>;
     },
     [BLOCKS.HEADING_1]: (node: any, children: React.ReactNode) => {
-      const headingId = `heading-1-${Math.random().toString(36).substr(2, 9)}`;
+      // 見出しテキストからIDを生成
+      const headingText = typeof children === 'string' ? children : children?.toString() || '';
+      const headingId = `heading-1-${headingText.replace(/[^a-zA-Z0-9\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF]/g, '-').toLowerCase()}`;
       return (
         <h1 id={headingId} className="text-3xl font-bold mb-6 mt-8 first:mt-0 scroll-mt-4">
           {children}
@@ -126,7 +128,8 @@ const renderOptions = {
       );
     },
     [BLOCKS.HEADING_2]: (node: any, children: React.ReactNode) => {
-      const headingId = `heading-2-${Math.random().toString(36).substr(2, 9)}`;
+      const headingText = typeof children === 'string' ? children : children?.toString() || '';
+      const headingId = `heading-2-${headingText.replace(/[^a-zA-Z0-9\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF]/g, '-').toLowerCase()}`;
       return (
         <h2 id={headingId} className="text-2xl font-bold mb-4 mt-6 first:mt-0 scroll-mt-4">
           {children}
@@ -134,7 +137,8 @@ const renderOptions = {
       );
     },
     [BLOCKS.HEADING_3]: (node: any, children: React.ReactNode) => {
-      const headingId = `heading-3-${Math.random().toString(36).substr(2, 9)}`;
+      const headingText = typeof children === 'string' ? children : children?.toString() || '';
+      const headingId = `heading-3-${headingText.replace(/[^a-zA-Z0-9\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF]/g, '-').toLowerCase()}`;
       return (
         <h3 id={headingId} className="text-xl font-bold mb-3 mt-5 first:mt-0 scroll-mt-4">
           {children}
@@ -142,7 +146,8 @@ const renderOptions = {
       );
     },
     [BLOCKS.HEADING_4]: (node: any, children: React.ReactNode) => {
-      const headingId = `heading-4-${Math.random().toString(36).substr(2, 9)}`;
+      const headingText = typeof children === 'string' ? children : children?.toString() || '';
+      const headingId = `heading-4-${headingText.replace(/[^a-zA-Z0-9\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF]/g, '-').toLowerCase()}`;
       return (
         <h4 id={headingId} className="text-lg font-bold mb-2 mt-4 first:mt-0 scroll-mt-4">
           {children}
@@ -150,7 +155,8 @@ const renderOptions = {
       );
     },
     [BLOCKS.HEADING_5]: (node: any, children: React.ReactNode) => {
-      const headingId = `heading-5-${Math.random().toString(36).substr(2, 9)}`;
+      const headingText = typeof children === 'string' ? children : children?.toString() || '';
+      const headingId = `heading-5-${headingText.replace(/[^a-zA-Z0-9\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF]/g, '-').toLowerCase()}`;
       return (
         <h5 id={headingId} className="text-base font-bold mb-2 mt-3 first:mt-0 scroll-mt-4">
           {children}
@@ -158,7 +164,8 @@ const renderOptions = {
       );
     },
     [BLOCKS.HEADING_6]: (node: any, children: React.ReactNode) => {
-      const headingId = `heading-6-${Math.random().toString(36).substr(2, 9)}`;
+      const headingText = typeof children === 'string' ? children : children?.toString() || '';
+      const headingId = `heading-6-${headingText.replace(/[^a-zA-Z0-9\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF]/g, '-').toLowerCase()}`;
       return (
         <h6 id={headingId} className="text-sm font-bold mb-2 mt-3 first:mt-0 scroll-mt-4">
           {children}

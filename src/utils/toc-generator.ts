@@ -98,16 +98,17 @@ export function generateTableOfContents(document: any): TocItem[] {
  * 目次アイテムからHTML要素のIDを生成
  * @param text 見出しテキスト
  * @param index インデックス
+ * @param level 見出しレベル（1-6）
  * @returns HTML要素のID
  */
-export function generateHeadingId(text: string, index: number): string {
+export function generateHeadingId(text: string, index: number, level: number = 1): string {
   // テキストをスラッグ化（日本語対応）
   const slug = text
     .toLowerCase()
     .replace(/[^\w\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF\s]/g, '')
     .replace(/\s+/g, '-');
 
-  return `heading-${slug}-${index}`;
+  return `heading-${level}-${slug}`;
 }
 
 /**
@@ -147,7 +148,7 @@ function extractHeadingsFromRichText(richTextDocument: any): { level: number; te
         }
 
         if (text) {
-          const id = generateHeadingId(text, index++);
+          const id = generateHeadingId(text, index++, level);
           headings.push({ level, text, id });
         }
       }
@@ -171,12 +172,12 @@ function extractHeadingsFromRichText(richTextDocument: any): { level: number; te
 }
 
 /**
- * MDXコンテンツから目次を抽出する
- * @param content MDXコンテンツまたはレンダリング済みのMDXコンテンツ
+ * Contentfulリッチテキストから目次を抽出する（メイン関数）
+ * @param content Contentfulのリッチテキストドキュメントまたは文字列
  * @returns 目次アイテムの配列
  */
-export function extractTocFromMdx(content: any): any {
-  console.log('Extract TOC called with content type:', typeof content);
+export function extractTocFromContentfulRichText(content: any): any {
+  console.log('Extract TOC from Contentful rich text called with content type:', typeof content);
 
   // コンテンツがContentfulのリッチテキストオブジェクトの場合
   if (typeof content === 'object' && content !== null && content.content) {
@@ -190,6 +191,7 @@ export function extractTocFromMdx(content: any): any {
       content: headings.map(heading => ({
         nodeType: `heading-${heading.level}`,
         content: [{ value: heading.text }],
+        id: heading.id,
       })),
     };
   }
@@ -210,15 +212,38 @@ export function extractTocFromMdx(content: any): any {
           content: headings.map(heading => ({
             nodeType: `heading-${heading.level}`,
             content: [{ value: heading.text }],
+            id: heading.id,
           })),
         };
       }
     } catch (e) {
-      console.log('Content is not valid JSON, treating as markdown');
+      console.log('Content is not valid JSON, treating as plain text');
+      return { content: [] };
     }
+  }
 
-    // 通常のMarkdownとして処理
-    console.log('Extracting TOC from MDX content string');
+  // その他の場合は空の目次を返す
+  console.log('Content is not a recognized format:', content);
+  return { content: [] };
+}
+
+/**
+ * MDXコンテンツから目次を抽出する（後方互換性のため）
+ * @param content MDXコンテンツまたはContentfulリッチテキスト
+ * @returns 目次アイテムの配列
+ */
+export function extractTocFromMdx(content: any): any {
+  console.log('Extract TOC from MDX called - redirecting to Contentful rich text extraction');
+
+  // Contentfulリッチテキストの抽出を優先
+  const richTextResult = extractTocFromContentfulRichText(content);
+  if (richTextResult.content && richTextResult.content.length > 0) {
+    return richTextResult;
+  }
+
+  // フォールバック: 従来のMDX処理
+  if (typeof content === 'string') {
+    console.log('Fallback: Extracting TOC from MDX content string');
 
     // 見出しを抽出する正規表現
     const headingRegex = /^(#{1,6})\s+(.+)$/gm;
@@ -229,7 +254,7 @@ export function extractTocFromMdx(content: any): any {
     while ((match = headingRegex.exec(content)) !== null) {
       const level = match[1].length;
       const text = match[2].trim();
-      const id = generateHeadingId(text, index++);
+      const id = generateHeadingId(text, index++, level);
 
       headings.push({ level, text, id });
     }
@@ -239,14 +264,15 @@ export function extractTocFromMdx(content: any): any {
       content: headings.map(heading => ({
         nodeType: `heading-${heading.level}`,
         content: [{ value: heading.text }],
+        id: heading.id,
       })),
     };
 
-    console.log(`Generated TOC with ${headings.length} headings`);
+    console.log(`Generated TOC with ${headings.length} headings from MDX`);
     return document;
   }
 
   // その他の場合は空の目次を返す
-  console.log('Content is not a recognized format:', content);
+  console.log('No valid content found for TOC generation');
   return { content: [] };
 }
