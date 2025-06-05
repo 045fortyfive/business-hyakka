@@ -45,6 +45,9 @@ export default function Header() {
             <Link href="/categories" className="text-gray-600 hover:text-gray-900">
               カテゴリ
             </Link>
+            <Link href="/about" className="text-gray-600 hover:text-gray-900">
+              skillpediaとは？
+            </Link>
           </nav>
 
           {/* 検索バー */}
@@ -117,6 +120,13 @@ export default function Header() {
                 onClick={() => setIsMenuOpen(false)}
               >
                 カテゴリ
+              </Link>
+              <Link
+                href="/about"
+                className="text-gray-600 hover:text-gray-900 text-sm"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                skillpediaとは？
               </Link>
             </nav>
             <div className="mt-2">

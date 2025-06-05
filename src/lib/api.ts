@@ -24,8 +24,8 @@ export async function getClient() {
 }
 
 // 記事一覧を取得（修正版）
-export const getArticles = cache(async (limit = 10, skip = 0): Promise<ContentCollection> => {
-  console.log(`📰 Fetching articles: limit=${limit}, skip=${skip}`);
+export const getArticles = cache(async (limit = 10, skip = 0, orderBy = '-sys.createdAt'): Promise<ContentCollection> => {
+  console.log(`📰 Fetching articles: limit=${limit}, skip=${skip}, orderBy=${orderBy}`);
 
   // 環境変数の確認（デバッグ用）
   console.log('=== 環境変数の確認（getArticles） ===');
@@ -43,7 +43,7 @@ export const getArticles = cache(async (limit = 10, skip = 0): Promise<ContentCo
     console.log('Query parameters:', {
       content_type: CONTENT_TYPE.CONTENT,
       'fields.contentType': CONTENT_TYPES.ARTICLE,
-      order: '-sys.createdAt',
+      order: orderBy,
       limit,
       skip,
       include: 2,
@@ -52,7 +52,7 @@ export const getArticles = cache(async (limit = 10, skip = 0): Promise<ContentCo
     const response = await client.getEntries<Content['fields']>({
       content_type: CONTENT_TYPE.CONTENT,
       'fields.contentType': CONTENT_TYPES.ARTICLE, // contentTypeフィールドに'記事'が含まれているエントリを取得
-      order: '-sys.createdAt',
+      order: orderBy,
       limit,
       skip,
       include: 2, // 関連エンティティ（カテゴリ、タグ、著者）も取得
@@ -107,8 +107,8 @@ export const getArticleBySlug = cache(async (slug: string): Promise<Content | nu
 });
 
 // 動画一覧を取得
-export const getVideos = cache(async (limit = 10, skip = 0): Promise<ContentCollection> => {
-  console.log(`🎥 Fetching videos: limit=${limit}, skip=${skip}`);
+export const getVideos = cache(async (limit = 10, skip = 0, orderBy = '-sys.createdAt'): Promise<ContentCollection> => {
+  console.log(`🎥 Fetching videos: limit=${limit}, skip=${skip}, orderBy=${orderBy}`);
   try {
     // プレビューモードに応じたクライアントを取得
     const client = await getClient();
@@ -116,7 +116,7 @@ export const getVideos = cache(async (limit = 10, skip = 0): Promise<ContentColl
     const response = await client.getEntries<Content['fields']>({
       content_type: CONTENT_TYPE.CONTENT,
       'fields.contentType': CONTENT_TYPES.VIDEO, // contentTypeフィールドに'動画'が含まれているエントリを取得
-      order: '-sys.createdAt',
+      order: orderBy,
       limit,
       skip,
       include: 2,
@@ -159,8 +159,8 @@ export const getVideoBySlug = cache(async (slug: string): Promise<Content | null
 });
 
 // 音声一覧を取得
-export const getAudios = cache(async (limit = 10, skip = 0): Promise<ContentCollection> => {
-  console.log(`🎧 Fetching audios: limit=${limit}, skip=${skip}`);
+export const getAudios = cache(async (limit = 10, skip = 0, orderBy = '-sys.createdAt'): Promise<ContentCollection> => {
+  console.log(`🎧 Fetching audios: limit=${limit}, skip=${skip}, orderBy=${orderBy}`);
   try {
     // プレビューモードに応じたクライアントを取得
     const client = await getClient();
@@ -168,7 +168,7 @@ export const getAudios = cache(async (limit = 10, skip = 0): Promise<ContentColl
     const response = await client.getEntries<Content['fields']>({
       content_type: CONTENT_TYPE.CONTENT,
       'fields.contentType': CONTENT_TYPES.AUDIO, // contentTypeフィールドに'音声'が含まれているエントリを取得
-      order: '-sys.createdAt',
+      order: orderBy,
       limit,
       skip,
       include: 2,
