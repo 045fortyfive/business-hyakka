@@ -1,94 +1,55 @@
 import { Metadata } from "next";
+import Image from "next/image";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getAudioBySlug, getAudios } from "@/lib/api";
+import { formatDate, getImageProps } from "@/lib/utils";
+import AudioPlayer from "@/components/AudioPlayer";
 import { renderContentfulMdx } from "@/utils/mdx-utils";
-import UniversalContentRenderer from "@/components/UniversalContentRenderer";
-import { PreviewWrapper } from "@/components/preview";
+import MDXRenderer from "@/components/MDXRenderer";
+import RelatedContents from "@/components/RelatedContents";
+import ContentfulRichText from "@/components/ContentfulRichText";
 
 // 1時間ごとに再検証
 export const revalidate = 3600;
 
-interface Props {
-  params: {
-    slug: string;
-  };
-}
-
 // 動的メタデータ
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
+export async function generateMetadata({
+  params,
+}: {
+  params: { slug: string };
+}): Promise<Metadata> {
   // paramsを非同期で解決
   const resolvedParams = await Promise.resolve(params);
   const { slug } = resolvedParams;
 
-  try {
-    // まずContentfulからコンテンツを取得
-    const contentfulData = await renderContentfulMdx(slug, 'audio');
-    const title = contentfulData.frontMatter.title || 'タイトルなし';
-    const description = contentfulData.frontMatter.description || `${title}に関する音声`;
+  const audio = await getAudioBySlug(slug);
 
-    return {
-      title: `${title} | ビジネススキル百科`,
-      description,
-      openGraph: {
-        title: `${title} | ビジネススキル百科`,
-        description,
-        images: contentfulData.frontMatter.featuredImage ? [
-          {
-            url: contentfulData.frontMatter.featuredImage.url,
-            width: contentfulData.frontMatter.featuredImage.width,
-            height: contentfulData.frontMatter.featuredImage.height,
-            alt: contentfulData.frontMatter.featuredImage.title || title,
-          }
-        ] : [],
-      },
-    };
-  } catch (error) {
-    console.error(`Error generating metadata for audio ${slug}:`, error);
-
-    // フォールバック
-    try {
-      const audio = await getAudioBySlug(slug);
-      if (audio) {
-        return {
-          title: `${audio.fields.title} | ビジネススキル百科`,
-          description: audio.fields.description || `${audio.fields.title}に関する音声です。`,
-        };
-      }
-    } catch (fallbackError) {
-      console.error(`Fallback metadata generation failed for audio ${slug}:`, fallbackError);
-    }
-
+  if (!audio) {
     return {
       title: "音声が見つかりません | ビジネススキル百科",
     };
   }
+
+  return {
+    title: `${audio.fields.title} | ビジネススキル百科`,
+    description: audio.fields.seoDescription || `${audio.fields.title}に関する音声です。`,
+  };
 }
 
 // 静的パスの生成
 export async function generateStaticParams() {
   try {
-    // Contentfulから音声を取得
-    const { getClient } = await import('@/lib/api');
-    const client = await getClient();
-
-    const { CONTENT_TYPE } = await import('@/lib/contentful');
-    const { CONTENT_TYPES } = await import('@/lib/types');
-
-    const entries = await client.getEntries({
-      content_type: CONTENT_TYPE.CONTENT,
-      'fields.contentType': CONTENT_TYPES.AUDIO,
-      select: ['fields.slug'],
-      limit: 1000, // 十分な数を取得
-    });
+    const audiosData = await getAudios(100); // 最新100件の音声のスラッグを生成
 
     // slugが有効な音声のみを返す
-    const validAudios = entries.items.filter(
-      (audio: any) => audio?.fields?.slug && typeof audio.fields.slug === 'string'
+    const validAudios = audiosData.items.filter(
+      (audio) => audio?.fields?.slug && typeof audio.fields.slug === 'string'
     );
 
     console.log(`Generating static params for ${validAudios.length} audios`);
 
-    return validAudios.map((audio: any) => ({
+    return validAudios.map((audio) => ({
       slug: audio.fields.slug,
     }));
   } catch (error) {
@@ -97,92 +58,267 @@ export async function generateStaticParams() {
   }
 }
 
-export default async function AudioPage({ params }: Props) {
+export default async function AudioPage({
+  params,
+}: {
+  params: { slug: string };
+}) {
   // paramsを非同期で解決
   const resolvedParams = await Promise.resolve(params);
   const { slug } = resolvedParams;
 
   try {
-    // Contentfulからコンテンツを取得
-    const contentData = await renderContentfulMdx(slug, 'audio');
+    // まずContentfulからコンテンツを取得（MDXコンテンツも含む）
+    const { frontMatter, mdxContent, content, relatedContents } = await renderContentfulMdx(slug, 'audio');
 
-    return (
-      <PreviewWrapper
-        contentType="audio"
-        slug={slug}
-        title={contentData.frontMatter.title}
-        contentfulEntryId={contentData.contentfulEntryId}
-        lastModified={contentData.lastModified}
-        showMeta={false} // ページ専用なのでメタ情報は非表示
-      >
-        <UniversalContentRenderer
-          slug={slug}
-          frontMatter={contentData.frontMatter}
-          content={contentData.content}
-          mdxContent={contentData.mdxContent}
-          relatedContents={contentData.relatedContents}
-          downloadableFiles={contentData.downloadableFiles}
-          contentType="audio"
-        />
-      </PreviewWrapper>
-    );
-  } catch (error) {
-    console.error(`Error rendering audio ${slug}:`, error);
-    
-    // フォールバック：従来のAPIから取得
-    try {
-      const audio = await getAudioBySlug(slug);
-      
-      if (!audio) {
-        notFound();
-      }
+    // 通常のAPIからも音声情報を取得
+    const audio = await getAudioBySlug(slug);
 
-      const {
-        title,
-        description,
-        publishDate,
-        audioUrl,
-        category,
-        tags,
-        thumbnail,
-      } = audio.fields;
-
-      return (
-        <PreviewWrapper
-          contentType="audio"
-          slug={slug}
-          title={title}
-          contentfulEntryId={audio.sys.id}
-          lastModified={audio.sys.updatedAt}
-          showMeta={false}
-        >
-          <UniversalContentRenderer
-            slug={slug}
-            frontMatter={{
-              title,
-              description,
-              publishDate,
-              audioUrl,
-              category: category?.fields?.name,
-              tags: tags?.map((tag: any) => tag.fields.name) || [],
-              featuredImage: thumbnail ? {
-                url: `https:${thumbnail.fields.file.url}`,
-                title: thumbnail.fields.title || title,
-                width: thumbnail.fields.file.details?.image?.width || 800,
-                height: thumbnail.fields.file.details?.image?.height || 450,
-              } : undefined,
-            }}
-            content={description || ''}
-            mdxContent={null}
-            relatedContents={[]}
-            downloadableFiles={[]}
-            contentType="audio"
-          />
-        </PreviewWrapper>
-      );
-    } catch (fallbackError) {
-      console.error(`Fallback failed for audio ${slug}:`, fallbackError);
+    // 音声が見つからない場合は404ページを表示
+    if (!audio && !frontMatter.title) {
       notFound();
     }
+
+    // 音声情報を優先的に使用
+    const title = audio?.fields.title || frontMatter.title;
+    const publishDate = audio?.fields.publishDate || frontMatter.publishDate;
+    const audioUrl = audio?.fields.audioUrl || frontMatter.audioUrl;
+    const description = audio?.fields.description || frontMatter.description;
+    const category = audio?.fields.category || null;
+    const tags = audio?.fields.tags || [];
+    const thumbnail = audio?.fields.thumbnail || null;
+
+    // カテゴリーに応じたグラデーションクラスを設定
+    const gradientClass = 'from-green-400 via-teal-500 to-blue-600';
+
+    return (
+      <div className="container mx-auto px-4 py-6 md:py-8 max-w-7xl flex justify-center">
+        <div className="w-full max-w-[800px]">
+          <article>
+            {/* 音声ヘッダー */}
+            <header className="mb-6">
+              {/* カテゴリとパンくずリスト */}
+              <div className="flex flex-wrap items-center text-sm text-gray-500 mb-4">
+                <Link href="/" className="hover:text-blue-600">
+                  ホーム
+                </Link>
+                <span className="mx-2">&gt;</span>
+                <Link href="/audios" className="hover:text-blue-600">
+                  音声一覧
+                </Link>
+                {category && category.fields && category.fields.slug && (
+                  <>
+                    <span className="mx-2">&gt;</span>
+                    <Link
+                      href={`/categories/${category.fields.slug}`}
+                      className="hover:text-blue-600"
+                    >
+                      {category.fields.name}
+                    </Link>
+                  </>
+                )}
+              </div>
+
+              {/* タイトル */}
+              <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold mb-3">{title}</h1>
+
+              {/* 説明文（短い） */}
+              {description && (
+                <p className="text-base md:text-lg text-gray-600 mb-3">{description}</p>
+              )}
+
+              {/* メタ情報 */}
+              <div className="flex flex-wrap items-center text-sm text-gray-600">
+                {frontMatter.category && (
+                  <span className={`px-3 py-1 rounded-full text-white bg-gradient-to-r ${gradientClass} mr-3 mb-2`}>
+                    {frontMatter.category}
+                  </span>
+                )}
+                {publishDate && (
+                  <span className="mr-4 mb-2">
+                    公開日: {formatDate(publishDate)}
+                  </span>
+                )}
+                {frontMatter.author && (
+                  <span className="mb-2">
+                    著者: {frontMatter.author}
+                  </span>
+                )}
+              </div>
+            </header>
+
+            {/* サムネイル画像（あれば） */}
+            {thumbnail && (
+              <div className="mb-6">
+                <Image
+                  src={`https:${thumbnail.fields.file.url}`}
+                  alt={thumbnail.fields.title || title}
+                  width={thumbnail.fields.file.details.image?.width || 800}
+                  height={thumbnail.fields.file.details.image?.height || 450}
+                  className="rounded-lg w-full aspect-video object-cover"
+                />
+              </div>
+            )}
+
+            {/* 音声プレーヤー */}
+            <div className="mb-8">
+              <AudioPlayer audioUrl={audioUrl} title={title} />
+            </div>
+
+            {/* コンテンツ表示 */}
+            {(content || mdxContent || description) && (
+              <div className="bg-white rounded-lg shadow-sm p-4 md:p-6 mb-8">
+                <h2 className="text-xl font-bold mb-4">解説</h2>
+                {content ? (
+                  // Contentfulのリッチテキストコンテンツを優先的に表示
+                  <ContentfulRichText content={content} />
+                ) : mdxContent ? (
+                  // フォールバック: MDXコンテンツを表示
+                  <div className="prose prose-base md:prose-lg max-w-none">
+                    {mdxContent}
+                  </div>
+                ) : description ? (
+                  // 最終フォールバック: 通常の説明文
+                  <div className="prose prose-base md:prose-lg max-w-none">
+                    <p className="whitespace-pre-line">{description}</p>
+                  </div>
+                ) : null}
+              </div>
+            )}
+
+            {/* タグ */}
+            {tags && tags.length > 0 && (
+              <div className="mt-8">
+                <h2 className="text-xl font-bold mb-2">関連タグ</h2>
+                <div className="flex flex-wrap gap-2">
+                  {tags.map((tag) => (
+                    <Link
+                      key={tag.sys.id}
+                      href={`/tags/${tag.fields.slug}`}
+                      className="bg-gray-100 hover:bg-gray-200 px-3 py-1 rounded-full text-sm transition-colors"
+                    >
+                      {tag.fields.name}
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* 関連コンテンツ */}
+            {relatedContents && relatedContents.length > 0 && (
+              <div className="mt-8">
+                <h2 className="text-xl font-bold mb-4">関連コンテンツ</h2>
+                <RelatedContents contents={relatedContents} />
+              </div>
+            )}
+          </article>
+        </div>
+      </div>
+    );
+  } catch (error) {
+    console.error(`音声ページの表示中にエラーが発生しました: ${error}`);
+
+    // 通常のAPIから音声情報を取得
+    const audio = await getAudioBySlug(slug);
+
+    // 音声が見つからない場合は404ページを表示
+    if (!audio) {
+      notFound();
+    }
+
+    const {
+      title,
+      publishDate,
+      audioUrl,
+      description,
+      category,
+      tags,
+      thumbnail,
+    } = audio.fields;
+
+    return (
+      <div className="container mx-auto px-4 py-8 max-w-7xl flex justify-center">
+        <div className="w-full max-w-[800px]">
+          <article>
+            {/* 音声ヘッダー */}
+            <header className="mb-8">
+              {/* カテゴリとパンくずリスト */}
+              <div className="flex items-center text-sm text-gray-500 mb-4">
+                <Link href="/" className="hover:text-blue-600">
+                  ホーム
+                </Link>
+                <span className="mx-2">&gt;</span>
+                <Link href="/audios" className="hover:text-blue-600">
+                  音声一覧
+                </Link>
+                {category && category.fields && category.fields.slug && (
+                  <>
+                    <span className="mx-2">&gt;</span>
+                    <Link
+                      href={`/categories/${category.fields.slug}`}
+                      className="hover:text-blue-600"
+                    >
+                      {category.fields.name}
+                    </Link>
+                  </>
+                )}
+              </div>
+
+              {/* タイトル */}
+              <h1 className="text-3xl md:text-4xl font-bold mb-4">{title}</h1>
+
+              {/* 公開日 */}
+              <div className="mb-6">
+                <time dateTime={publishDate} className="text-gray-500">
+                  {formatDate(publishDate)}
+                </time>
+              </div>
+            </header>
+
+            {/* サムネイル画像（あれば） */}
+            {thumbnail && (
+              <div className="mb-6">
+                <Image
+                  src={`https:${thumbnail.fields.file.url}`}
+                  alt={thumbnail.fields.title || title}
+                  width={thumbnail.fields.file.details.image?.width || 800}
+                  height={thumbnail.fields.file.details.image?.height || 450}
+                  className="rounded-lg w-full aspect-video object-cover"
+                />
+              </div>
+            )}
+
+            {/* 音声プレーヤー */}
+            <div className="mb-8">
+              <AudioPlayer audioUrl={audioUrl} title={title} />
+            </div>
+
+            {/* 音声の説明 */}
+            <div className="prose prose-lg max-w-none mb-8">
+              <h2 className="text-2xl font-bold mb-4">概要</h2>
+              <p className="whitespace-pre-line">{description}</p>
+            </div>
+
+            {/* タグ */}
+            {tags && tags.length > 0 && (
+              <div className="mt-8">
+                <h2 className="text-xl font-bold mb-2">関連タグ</h2>
+                <div className="flex flex-wrap gap-2">
+                  {tags.map((tag) => (
+                    <Link
+                      key={tag.sys.id}
+                      href={`/tags/${tag.fields.slug}`}
+                      className="bg-gray-100 hover:bg-gray-200 px-3 py-1 rounded-full text-sm transition-colors"
+                    >
+                      {tag.fields.name}
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )}
+          </article>
+        </div>
+      </div>
+    );
   }
 }

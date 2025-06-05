@@ -3,7 +3,7 @@ import { getMdxBySlug, renderContentfulMdx } from '@/utils/mdx-utils';
 import MDXRenderer from '@/components/MDXRenderer';
 import Link from 'next/link';
 import EnhancedTableOfContents from '@/components/EnhancedTableOfContents';
-import { extractTocFromMdx, generateTableOfContents } from '@/utils/toc-generator';
+
 import RelatedContents from '@/components/RelatedContents';
 import DownloadSection from '@/components/DownloadSection';
 import ContentfulRichText from '@/components/ContentfulRichText';
@@ -79,8 +79,7 @@ export default async function MdxArticlePage({ params }: Props) {
     // まずContentfulからコンテンツを取得
     const { content, mdxContent, frontMatter, relatedContents, downloadableFiles } = await renderContentfulMdx(slug);
 
-    // bodyから目次を生成（mdxContentではなく）
-    const toc = extractTocFromMdx(content);
+    // bodyから目次を生成（EnhancedTableOfContentsコンポーネント内で処理）
 
     // カテゴリーに応じたグラデーションクラスを設定
     const gradientClass = 'from-blue-400 via-sky-500 to-indigo-600';
@@ -141,23 +140,25 @@ export default async function MdxArticlePage({ params }: Props) {
 
           {/* 目次 */}
           <div className="mb-6">
-            <EnhancedTableOfContents toc={generateTableOfContents(toc)} type="main" />
+            <EnhancedTableOfContents content={content} type="main" />
           </div>
 
           {/* 記事本文 */}
           <article className="bg-white rounded-lg shadow-sm p-4 md:p-6">
-            {mdxContent ? (
-              // Contentfulから取得したMDXコンテンツを表示
+            {content ? (
+              // Contentfulのリッチテキストコンテンツを優先的に表示
+              <ContentfulRichText content={content} />
+            ) : mdxContent ? (
+              // フォールバック: MDXコンテンツを表示
               <div className="prose prose-base md:prose-lg max-w-none">
                 {mdxContent}
               </div>
-            ) : content ? (
-              // Contentfulのリッチテキストコンテンツを表示
-              <ContentfulRichText content={content} />
             ) : (
-              // ファイルシステムから取得したMDXコンテンツを表示
+              // 最終フォールバック: エラーメッセージ
               <div className="prose prose-base md:prose-lg max-w-none">
-                <MDXRenderer content={content} />
+                <div className="p-4 border border-yellow-200 rounded-lg bg-yellow-50">
+                  <p className="text-yellow-800">コンテンツが見つかりません。</p>
+                </div>
               </div>
             )}
           </article>
@@ -181,8 +182,7 @@ export default async function MdxArticlePage({ params }: Props) {
     // Contentfulからの取得に失敗した場合はファイルシステムから取得
     const { content } = getMdxBySlug(slug);
 
-    // 記事の内容からTOCを生成
-    const toc = extractTocFromMdx(content);
+    // 記事の内容からTOCを生成（EnhancedTableOfContentsコンポーネント内で処理）
 
     // カテゴリーに応じたグラデーションクラスを設定
     const gradientClass = 'from-blue-400 via-sky-500 to-indigo-600';
@@ -203,7 +203,7 @@ export default async function MdxArticlePage({ params }: Props) {
 
           {/* 目次 */}
           <div className="mb-6">
-            <EnhancedTableOfContents toc={generateTableOfContents(toc)} type="main" />
+            <EnhancedTableOfContents content={content} type="main" />
           </div>
 
           {/* 記事本文 */}
