@@ -56,9 +56,13 @@ export default function TableOfContents({ content }: TableOfContentsProps) {
 
   // 目次項目をクリックしたときの処理
   const handleClick = (id: string) => {
+    console.log('[ToC] Attempting to scroll to ID:', id);
     const element = document.getElementById(id);
     if (element) {
+      console.log('[ToC] Element found:', element);
       element.scrollIntoView({ behavior: 'smooth' });
+    } else {
+      console.error('[ToC] Element NOT found for ID:', id);
     }
   };
 
