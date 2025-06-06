@@ -36,8 +36,9 @@ export function generateTableOfContents(document: any): TocItem[] {
       // 見出しレベルを取得（H1=1, H2=2, H3=3, H4=4）
       const level = parseInt(node.nodeType.slice(-1));
 
-      // 一意のIDを生成
-      const id = `heading-${currentId++}`;
+      // 一意のIDを生成 (RichTextRendererと合わせる)
+      // const id = `heading-${currentId++}`; // 古いID生成方法
+      const id = generateHeadingId(text, currentId++); // RichTextRendererと同じID生成方法を使用
 
       headings.push({
         id,
@@ -81,14 +82,21 @@ export function generateTableOfContents(document: any): TocItem[] {
     stack[stack.length - 1].push(heading);
   });
 
-  // ダミーの見出しを削除
+  // ダミーの見出しを削除し、子要素を昇格させる
   function cleanupDummies(items: TocItem[]): TocItem[] {
-    return items
-      .filter(item => item.text !== '')
-      .map(item => ({
-        ...item,
-        children: cleanupDummies(item.children),
-      }));
+    return items.flatMap(item => {
+      if (item.text !== '') {
+        // テキストを持つ有効なアイテムは保持し、子要素も再帰的に処理
+        return [{
+          ...item,
+          children: cleanupDummies(item.children),
+        }];
+      } else {
+        // テキストがないダミーアイテムは削除し、その子要素を現在のレベルに昇格させる
+        // 子要素もダミー要素を含む可能性があるため、再帰的に処理
+        return cleanupDummies(item.children);
+      }
+    });
   }
 
   return cleanupDummies(toc);
