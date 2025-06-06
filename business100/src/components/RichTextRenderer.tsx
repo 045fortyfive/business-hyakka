@@ -6,6 +6,17 @@ import VideoPlayer from './VideoPlayer';
 import AudioPlayer from './AudioPlayer';
 import { generateHeadingId } from '@/utils/toc-generator';
 
+// Helper function to check for YouTube URLs and extract video ID
+function isYouTubeUrl(url: string): string | null {
+  if (!url) return null;
+  const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+  const match = url.match(regExp);
+  if (match && match[2].length === 11) {
+    return match[2];
+  }
+  return null;
+}
+
 interface RichTextRendererProps {
   content: any; // Contentfulのリッチテキストドキュメント
   assets?: any[]; // 埋め込みアセット（画像など）
@@ -214,11 +225,40 @@ export default function RichTextRenderer({
             );
 
           // 動画の場合
-          case 'video':
+          case 'video': {
+            const videoUrl = entry.fields.videoUrlEmbed;
+            const videoId = isYouTubeUrl(videoUrl);
+
+            if (videoId) {
+              return (
+                <div className="my-6">
+                  <iframe
+                    width="560"
+                    height="315"
+                    src={`https://www.youtube.com/embed/${videoId}`}
+                    title={entry.fields.title || 'YouTube video player'}
+                    frameBorder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                    className="youtube-embed mx-auto"
+                  ></iframe>
+                  <h3 className="text-lg font-semibold mt-2 text-center">
+                    <Link
+                      href={`/videos/${entry.fields.slug}`}
+                      className="text-blue-600 hover:underline"
+                    >
+                      {entry.fields.title}
+                    </Link>
+                  </h3>
+                </div>
+              );
+            }
+
+            // Fallback to existing VideoPlayer for non-YouTube URLs
             return (
               <div className="my-6">
                 <VideoPlayer
-                  videoUrl={entry.fields.videoUrlEmbed}
+                  videoUrl={videoUrl}
                   title={entry.fields.title}
                 />
                 <h3 className="text-lg font-semibold mt-2">
@@ -264,8 +304,28 @@ export default function RichTextRenderer({
       },
       [INLINES.HYPERLINK]: (node: any, children: React.ReactNode) => {
         const { uri } = node.data;
-        const isInternal = uri.startsWith('/');
+        const videoId = isYouTubeUrl(uri);
 
+        if (videoId) {
+          // If it's a YouTube video URL, render the iframe embed
+          return (
+            <div className="my-6"> {/* Added a div wrapper for block display and margin */}
+              <iframe
+                width="560"
+                height="315"
+                src={`https://www.youtube.com/embed/${videoId}`}
+                title="YouTube video player" // Generic title
+                frameBorder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+                className="youtube-embed mx-auto" // Reusing class from previous embed
+              ></iframe>
+            </div>
+          );
+        }
+
+        // Otherwise, render as a normal hyperlink
+        const isInternal = uri.startsWith('/');
         return (
           <Link
             href={uri}
