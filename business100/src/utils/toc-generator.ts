@@ -133,3 +133,14 @@ export function generateHeadingId(text: string, index: number): string {
   console.log('[toc-generator] generateHeadingId CALLED. Text:', text, 'Index:', index, 'Resulting ID:', generatedId);
   return generatedId;
 }
+
+/**
+ * Alias for generateTableOfContents to maintain compatibility with components
+ * that may be calling this older or alternative name.
+ * @param document Contentful rich text document
+ * @returns Array of TocItem
+ */
+export function extractTocFromContentfulRichText(document: any): TocItem[] {
+  console.warn('[toc-generator] DEPRECATION WARNING: extractTocFromContentfulRichText is deprecated. Please use generateTableOfContents instead.');
+  return generateTableOfContents(document);
+}
