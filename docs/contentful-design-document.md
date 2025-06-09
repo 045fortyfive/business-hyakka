@@ -28,6 +28,7 @@
 | featuredImage | Media | - | コンテンツのメイン画像 |
 | thumbnail | Media | - | コンテンツのサムネイル画像 |
 | publishDate | Date & time | - | コンテンツの公開日 |
+| displayOrder | Number | - | ホームページでの表示順序（0001-9999、シリーズのグループ化に使用） |
 | relatedContents | Reference (多数) | - | 関連するコンテンツへの参照 |
 | advertisements | Reference (多数) | - | 記事内に表示する広告への参照 |
 
@@ -37,6 +38,7 @@
 - **contentType**: '記事', '動画', '音声'のいずれかであること
 - **videoUrl**: contentTypeが'動画'の場合は必須
 - **audioUrl**: contentTypeが'音声'の場合は必須
+- **displayOrder**: 1-9999の範囲の整数（シリーズのグループ化に使用、例：100,101,102...）
 
 ### 2.2 Category（カテゴリ）
 

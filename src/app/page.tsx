@@ -54,62 +54,44 @@ export default async function Home() {
     console.log(`取得結果: 記事=${articlesData.items.length}, 動画=${videosData.items.length}, 音声=${audiosData.items.length}, カテゴリ=${categoriesData.items.length}`);
 
     // ヒーローカルーセル用のスライドを作成
-    const heroSlides = [];
+    const heroSlides: Array<{
+      id: string;
+      title: string;
+      description: string;
+      imageUrl: string;
+      linkUrl: string;
+      linkText: string;
+      category: string;
+    }> = [];
 
-    // すべての記事をヒーローカルーセルに追加
-    articlesData.items.forEach(article => {
-      if (article.fields && article.fields.title) {
-        // カテゴリー情報の取得
-        const category = article.fields.category && article.fields.category.length > 0
-          ? article.fields.category[0]?.fields?.name
-          : "ビジネススキル";
+    // すべてのコンテンツを統合してdisplayOrderで並び替え
+    const allContent = [
+      ...articlesData.items.map(item => ({ ...item, type: 'article' as const })),
+      ...videosData.items.map(item => ({ ...item, type: 'video' as const })),
+      ...audiosData.items.map(item => ({ ...item, type: 'audio' as const }))
+    ];
 
-        // 画像URLの取得
-        let imageUrl = "/placeholder.svg";
-        if (article.fields.featuredImage && article.fields.featuredImage.fields && article.fields.featuredImage.fields.file) {
-          const fileUrl = article.fields.featuredImage.fields.file.url;
-          // 画像URLの形式に応じて適切に処理
-          if (fileUrl.startsWith('//')) {
-            imageUrl = `https:${fileUrl}`;
-          } else if (fileUrl.startsWith('/')) {
-            imageUrl = fileUrl;
-          } else if (fileUrl.startsWith('http')) {
-            imageUrl = fileUrl;
-          } else {
-            imageUrl = `https://${fileUrl}`;
-          }
-        }
-
-        console.log(`Hero slide for article "${article.fields.title}":`, {
-          id: article.sys.id,
-          imageUrl: imageUrl,
-          category: category,
-        });
-
-        heroSlides.push({
-          id: article.sys.id,
-          title: article.fields.title,
-          description: article.fields.description || `${category}に関する記事です。`,
-          imageUrl: imageUrl,
-          linkUrl: `/articles/${article.fields.slug}`,
-          linkText: "記事を読む",
-          category: category,
-        });
-      }
+    // displayOrderで並び替え（displayOrderがない場合は最後に配置）
+    allContent.sort((a, b) => {
+      const orderA = (a.fields as any)?.displayOrder || 9999;
+      const orderB = (b.fields as any)?.displayOrder || 9999;
+      return orderA - orderB;
     });
 
-    // 動画コンテンツもヒーローカルーセルに追加
-    videosData.items.forEach(video => {
-      if (video.fields && video.fields.title) {
+    // 並び替えられたコンテンツをヒーローカルーセルに追加
+    allContent.forEach(content => {
+      if (content.fields && (content.fields as any).title) {
+        const fields = content.fields as any;
+
         // カテゴリー情報の取得
-        const category = video.fields.category && video.fields.category.length > 0
-          ? video.fields.category[0]?.fields?.name
+        const category = fields.category && fields.category.length > 0
+          ? fields.category[0]?.fields?.name
           : "ビジネススキル";
 
         // 画像URLの取得
         let imageUrl = "/placeholder.svg";
-        if (video.fields.featuredImage && video.fields.featuredImage.fields && video.fields.featuredImage.fields.file) {
-          const fileUrl = video.fields.featuredImage.fields.file.url;
+        if (fields.featuredImage && fields.featuredImage.fields && fields.featuredImage.fields.file) {
+          const fileUrl = fields.featuredImage.fields.file.url;
           // 画像URLの形式に応じて適切に処理
           if (fileUrl.startsWith('//')) {
             imageUrl = `https:${fileUrl}`;
@@ -120,53 +102,41 @@ export default async function Home() {
           } else {
             imageUrl = `https://${fileUrl}`;
           }
-          console.log(`Video image URL: ${imageUrl}`);
         }
 
-        heroSlides.push({
-          id: video.sys.id,
-          title: video.fields.title,
-          description: video.fields.description || `${category}に関する動画です。`,
+        // コンテンツタイプに応じたリンクURLとテキストを設定
+        let linkUrl = '';
+        let linkText = '';
+
+        switch (content.type) {
+          case 'article':
+            linkUrl = `/articles/${fields.slug}`;
+            linkText = "記事を読む";
+            break;
+          case 'video':
+            linkUrl = `/videos/${fields.slug}`;
+            linkText = "動画を見る";
+            break;
+          case 'audio':
+            linkUrl = `/audios/${fields.slug}`;
+            linkText = "音声を聴く";
+            break;
+        }
+
+        console.log(`Hero slide for ${content.type} "${fields.title}":`, {
+          id: content.sys.id,
           imageUrl: imageUrl,
-          linkUrl: `/videos/${video.fields.slug}`,
-          linkText: "動画を見る",
           category: category,
+          displayOrder: fields.displayOrder
         });
-      }
-    });
-
-    // 音声コンテンツもヒーローカルーセルに追加
-    audiosData.items.forEach(audio => {
-      if (audio.fields && audio.fields.title) {
-        // カテゴリー情報の取得
-        const category = audio.fields.category && audio.fields.category.length > 0
-          ? audio.fields.category[0]?.fields?.name
-          : "ビジネススキル";
-
-        // 画像URLの取得
-        let imageUrl = "/placeholder.svg";
-        if (audio.fields.featuredImage && audio.fields.featuredImage.fields && audio.fields.featuredImage.fields.file) {
-          const fileUrl = audio.fields.featuredImage.fields.file.url;
-          // 画像URLの形式に応じて適切に処理
-          if (fileUrl.startsWith('//')) {
-            imageUrl = `https:${fileUrl}`;
-          } else if (fileUrl.startsWith('/')) {
-            imageUrl = fileUrl;
-          } else if (fileUrl.startsWith('http')) {
-            imageUrl = fileUrl;
-          } else {
-            imageUrl = `https://${fileUrl}`;
-          }
-          console.log(`Audio image URL: ${imageUrl}`);
-        }
 
         heroSlides.push({
-          id: audio.sys.id,
-          title: audio.fields.title,
-          description: audio.fields.description || `${category}に関する音声です。`,
+          id: content.sys.id,
+          title: fields.title,
+          description: fields.description || `${category}に関する${content.type === 'article' ? '記事' : content.type === 'video' ? '動画' : '音声'}です。`,
           imageUrl: imageUrl,
-          linkUrl: `/audios/${audio.fields.slug}`,
-          linkText: "音声を聴く",
+          linkUrl: linkUrl,
+          linkText: linkText,
           category: category,
         });
       }
@@ -220,6 +190,7 @@ export default async function Home() {
               slides={heroSlides.map(slide => ({
                 id: slide.id,
                 title: slide.title,
+                description: slide.description,
                 imageUrl: slide.imageUrl,
                 linkUrl: slide.linkUrl,
                 linkText: slide.linkText,

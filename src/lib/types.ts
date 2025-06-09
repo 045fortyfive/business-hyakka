@@ -45,6 +45,7 @@ export interface ContentFields {
   featuredImage?: Asset;
   thumbnail?: Asset;
   publishDate?: string;
+  displayOrder?: number; // ホームページでの表示順序（0001-9999）
   relatedContents?: Entry<ContentFields>[]; // 関連コンテンツへの参照
 }
 

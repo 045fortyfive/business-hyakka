@@ -43,6 +43,7 @@ export interface ContentFields {
   audioUrl?: string;
   featuredImage?: Asset;
   thumbnail?: Asset;
+  displayOrder?: number; // ホームページでの表示順序（0001-9999）
 }
 
 export type Content = Entry<ContentFields>;

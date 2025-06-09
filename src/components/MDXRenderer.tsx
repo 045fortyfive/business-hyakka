@@ -58,6 +58,25 @@ function extractTextFromNode(node: any): string {
   return '';
 }
 
+// カスタムスタイリングコンポーネント
+const CustomIns = ({ children, ...props }: any) => (
+  <ins className="underline decoration-2 decoration-blue-500 bg-blue-50 px-1 rounded" {...props}>
+    {children}
+  </ins>
+);
+
+const RedText = ({ children, ...props }: any) => (
+  <span className="text-red-600 font-medium" {...props}>
+    {children}
+  </span>
+);
+
+const YellowHighlight = ({ children, ...props }: any) => (
+  <mark className="bg-yellow-200 px-1 rounded" {...props}>
+    {children}
+  </mark>
+);
+
 // MDXで使用するコンポーネント
 const components = {
   CodeBlock,
@@ -76,6 +95,10 @@ const components = {
   // 画像・メディアコンポーネント
   img: MediaRenderer,
   Image: MediaRenderer,
+  // カスタムスタイリングコンポーネント
+  ins: CustomIns,
+  RedText,
+  YellowHighlight,
   // その他のカスタムコンポーネント
 };
 
@@ -143,6 +166,23 @@ export default function MDXRenderer({ content }: MDXRendererProps) {
           margin-top: 1rem;
           margin-bottom: 1.5rem;
           line-height: 1.8;
+        }
+        .prose ins {
+          text-decoration: underline;
+          text-decoration-color: #3b82f6;
+          text-decoration-thickness: 2px;
+          background-color: #eff6ff;
+          padding: 0 0.25rem;
+          border-radius: 0.25rem;
+        }
+        .prose mark {
+          background-color: #fef08a;
+          padding: 0 0.25rem;
+          border-radius: 0.25rem;
+        }
+        .prose .text-red-600 {
+          color: #dc2626;
+          font-weight: 500;
         }
       `}</style>
       <MDXRemote {...mdxSource} components={components} />
