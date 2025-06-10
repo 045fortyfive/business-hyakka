@@ -15,11 +15,20 @@ import CustomImage from '@/components/mdx/CustomImage';
 import MediaRenderer from '@/components/mdx/MediaRenderer';
 import { Br, LineBreak, Spacer, ParagraphBreak } from '@/components/mdx/LineBreak';
 import { CustomIns, RedText, YellowHighlight } from '@/components/mdx/CustomStyling';
+import { H1, H2, H3, H4, H5, H6 } from '@/components/mdx/Heading';
 import { extractTocFromMdx, addHeadingIds, TocItem } from '@/utils/toc-utils';
 import Image from 'next/image';
 
 // MDXコンポーネントの設定
 const components = {
+  // 見出しコンポーネント
+  h1: H1,
+  h2: H2,
+  h3: H3,
+  h4: H4,
+  h5: H5,
+  h6: H6,
+  // その他のコンポーネント
   Callout,
   CodeBlock,
   AdPlacement,
