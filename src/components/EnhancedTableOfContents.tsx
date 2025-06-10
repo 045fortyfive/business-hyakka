@@ -272,7 +272,7 @@ export default function EnhancedTableOfContents({
               href={`#${item.id}`}
               onClick={(e) => handleClick(item.id, e)}
               className={`
-                block py-2 px-2 hover:bg-gray-50 transition-colors flex items-center rounded
+                block py-2 px-2 hover:bg-gray-50 transition-colors flex items-center rounded text-sm
                 ${activeId === item.id ? 'text-blue-600 font-medium bg-blue-50' : 'text-gray-700 hover:text-gray-900'}
               `}
               style={{ paddingLeft: `${(item.level - 1) * 12 + 8}px` }}
@@ -295,7 +295,7 @@ export default function EnhancedTableOfContents({
   if (toc.length === 0) {
     return (
       <div className={`bg-white rounded-lg shadow-sm p-4 ${className}`}>
-        <h2 className="text-xl font-bold mb-3 pb-2 border-b border-gray-200">目次</h2>
+        <h2 className="text-base font-bold mb-3 pb-2 border-b border-gray-200">目次</h2>
         <p className="text-gray-500 italic text-sm">
           {enableDynamicToc ? '目次を生成中...' : '目次がありません'}
         </p>
@@ -311,7 +311,7 @@ export default function EnhancedTableOfContents({
         className={`bg-white rounded-lg shadow-sm p-4 mb-6 ${className}`}
         id="main-toc"
       >
-        <h2 className="text-xl font-bold mb-3 pb-2 border-b border-gray-200">目次</h2>
+        <h2 className="text-base font-bold mb-3 pb-2 border-b border-gray-200">目次</h2>
         <nav className="toc max-h-96 overflow-y-auto">
           {renderTocItems(toc)}
         </nav>
@@ -330,7 +330,7 @@ export default function EnhancedTableOfContents({
       `}
     >
       <div className="bg-white rounded-lg shadow-lg p-4 max-h-[80vh] overflow-hidden">
-        <h2 className="text-lg font-bold mb-3 pb-2 border-b border-gray-200">目次</h2>
+        <h2 className="text-base font-bold mb-3 pb-2 border-b border-gray-200">目次</h2>
         <nav className="toc overflow-y-auto max-h-[calc(80vh-5rem)]">
           {renderTocItems(toc)}
         </nav>

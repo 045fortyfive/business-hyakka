@@ -14,6 +14,8 @@ import AdPlacement from '@/components/mdx/AdPlacement';
 import CustomImage from '@/components/mdx/CustomImage';
 import MediaRenderer from '@/components/mdx/MediaRenderer';
 import { Br, LineBreak, Spacer, ParagraphBreak } from '@/components/mdx/LineBreak';
+import { CustomIns, RedText, YellowHighlight } from '@/components/mdx/CustomStyling';
+import { extractTocFromMdx, addHeadingIds, TocItem } from '@/utils/toc-utils';
 import Image from 'next/image';
 
 // MDXコンポーネントの設定
@@ -30,6 +32,10 @@ const components = {
   ParagraphBreak,
   // メディア関連コンポーネント
   MediaRenderer,
+  // カスタムスタイリングコンポーネント
+  ins: CustomIns,
+  RedText,
+  YellowHighlight,
   // 他のMDXコンポーネントをここに追加
 };
 
@@ -227,34 +233,46 @@ export async function renderContentfulMdx(slug: string, contentType: string = 'a
       };
     }
 
-    console.log(`Found content: ${content.fields.title}`);
+    console.log(`Found content: ${(content.fields as any).title}`);
     console.log(`Content fields:`, {
-      title: content.fields.title,
-      hasCategory: !!content.fields.category,
-      categoryLength: content.fields.category?.length,
-      hasAuthor: !!content.fields.author,
-      authorLength: content.fields.author?.length,
-      hasFeaturedImage: !!content.fields.featuredImage,
-      hasBody: !!content.fields.body,
-      hasMdxContent: !!content.fields.mdxContent
+      title: (content.fields as any).title,
+      hasCategory: !!(content.fields as any).category,
+      categoryLength: (content.fields as any).category?.length,
+      hasAuthor: !!(content.fields as any).author,
+      authorLength: (content.fields as any).author?.length,
+      hasFeaturedImage: !!(content.fields as any).featuredImage,
+      hasBody: !!(content.fields as any).body,
+      hasMdxContent: !!(content.fields as any).mdxContent,
+      videoUrl: (content.fields as any).videoUrl,
+      audioUrl: (content.fields as any).audioUrl,
+      allFields: Object.keys(content.fields)
     });
 
     // Extract safe values
-    const categoryName = getCategoryName(content.fields.category);
-    const authorName = getAuthorName(content.fields.author);
-    const tagNames = getTagNames(content.fields.tags);
-    const featuredImage = getFeaturedImage(content.fields.featuredImage);
-    const bodyContent = getBodyContent(content.fields.body);
+    const fields = content.fields as any;
+    const categoryName = getCategoryName(fields.category);
+    const authorName = getAuthorName(fields.author);
+    const tagNames = getTagNames(fields.tags);
+    const featuredImage = getFeaturedImage(fields.featuredImage);
+    const bodyContent = getBodyContent(fields.body);
     const downloadableFiles = getDownloadableFiles(content);
 
     // MDXコンテンツがある場合はそれを使用
-    if (content.fields.mdxContent) {
+    if (fields.mdxContent) {
       console.log('Compiling MDX content...');
-      
+
       // 改行処理とメディアURLを事前処理
-      let processedMdxContent = processContentfulLineBreaks(content.fields.mdxContent);
+      let processedMdxContent = processContentfulLineBreaks(fields.mdxContent);
       processedMdxContent = processMediaUrls(processedMdxContent);
-      
+
+      // 目次を生成
+      console.log('MDX content for TOC extraction:', processedMdxContent.substring(0, 500));
+      const tocItems = extractTocFromMdx(processedMdxContent);
+      console.log('Generated TOC items:', tocItems);
+
+      // 見出しにIDを追加
+      processedMdxContent = addHeadingIds(processedMdxContent, tocItems);
+
       const { content: mdxContent } = await compileMDX({
         source: processedMdxContent,
         components,
@@ -262,27 +280,28 @@ export async function renderContentfulMdx(slug: string, contentType: string = 'a
       });
 
       return {
-      slug,
-      frontMatter: {
-      title: content.fields.title || 'タイトルなし',
-      description: content.fields.description || '',
-      category: categoryName,
-      tags: tagNames,
-      author: authorName,
-      publishDate: content.fields.publishDate,
-      videoUrl: content.fields.videoUrl,
-      audioUrl: content.fields.audioUrl,
-      featuredImage,
-      },
-      content: bodyContent,
-      mdxContent,
-      relatedContents: content.fields.relatedContents || [],
-      downloadableFiles,
+        slug,
+        frontMatter: {
+          title: fields.title || 'タイトルなし',
+          description: fields.description || '',
+          category: categoryName,
+          tags: tagNames,
+          author: authorName,
+          publishDate: fields.publishDate,
+          videoUrl: fields.videoUrl,
+          audioUrl: fields.audioUrl,
+          featuredImage,
+        },
+        content: processedMdxContent, // MDXコンテンツをcontentに渡す
+        mdxContent,
+        tocItems, // 目次を追加
+        relatedContents: fields.relatedContents || [],
+        downloadableFiles,
         // Preview関連情報を追加
-      contentfulEntryId: content.sys.id,
-      lastModified: content.sys.updatedAt,
-      version: content.sys.version
-    };
+        contentfulEntryId: content.sys.id,
+        lastModified: content.sys.updatedAt,
+        version: (content.sys as any).version
+      };
     }
 
     // MDXコンテンツがない場合は通常のコンテンツを返す
@@ -290,24 +309,24 @@ export async function renderContentfulMdx(slug: string, contentType: string = 'a
     return {
       slug,
       frontMatter: {
-        title: content.fields.title || 'タイトルなし',
-        description: content.fields.description || '',
+        title: fields.title || 'タイトルなし',
+        description: fields.description || '',
         category: categoryName,
         tags: tagNames,
         author: authorName,
-        publishDate: content.fields.publishDate,
-        videoUrl: content.fields.videoUrl,
-        audioUrl: content.fields.audioUrl,
+        publishDate: fields.publishDate,
+        videoUrl: fields.videoUrl,
+        audioUrl: fields.audioUrl,
         featuredImage,
       },
       content: bodyContent,
       mdxContent: null,
-      relatedContents: content.fields.relatedContents || [],
+      relatedContents: fields.relatedContents || [],
       downloadableFiles,
       // Preview関連情報を追加
       contentfulEntryId: content.sys.id,
       lastModified: content.sys.updatedAt,
-      version: content.sys.version
+      version: (content.sys as any).version
     };
   } catch (error) {
     console.error(`MDXコンテンツのレンダリング中にエラーが発生しました: ${error}`);

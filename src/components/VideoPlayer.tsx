@@ -4,29 +4,39 @@ import { useEffect, useState } from 'react';
 import { extractYouTubeId } from '@/lib/utils';
 
 interface VideoPlayerProps {
-  src: string;
+  videoUrl: string;
   title: string;
   className?: string;
 }
 
-export default function VideoPlayer({ src, title, className = "" }: VideoPlayerProps) {
+export default function VideoPlayer({ videoUrl, title, className = "" }: VideoPlayerProps) {
   const [isClient, setIsClient] = useState(false);
   const [hasError, setHasError] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
   // YouTubeの埋め込みコードを生成
   const getEmbedCode = () => {
-    if (!src) return null;
+    console.log('VideoPlayer: getEmbedCode called with videoUrl:', videoUrl);
+    
+    if (!videoUrl) {
+      console.log('VideoPlayer: No videoUrl provided');
+      return null;
+    }
 
     // YouTube URLの場合
-    const youtubeId = extractYouTubeId(src);
+    const youtubeId = extractYouTubeId(videoUrl);
+    console.log('VideoPlayer: Extracted YouTube ID:', youtubeId);
+    
     if (youtubeId) {
       // YouTube埋め込みURLに追加パラメータを設定
-      return `https://www.youtube.com/embed/${youtubeId}?rel=0&modestbranding=1&showinfo=0&fs=1&cc_load_policy=0&iv_load_policy=3&autohide=0`;
+      const embedUrl = `https://www.youtube.com/embed/${youtubeId}?rel=0&modestbranding=1&showinfo=0&fs=1&cc_load_policy=0&iv_load_policy=3&autohide=0`;
+      console.log('VideoPlayer: Generated embed URL:', embedUrl);
+      return embedUrl;
     }
 
     // その他の場合は直接URLを使用
-    return src;
+    console.log('VideoPlayer: Using direct URL:', videoUrl);
+    return videoUrl;
   };
 
   // iframeの読み込み完了を処理
@@ -46,11 +56,11 @@ export default function VideoPlayer({ src, title, className = "" }: VideoPlayerP
     setIsClient(true);
   }, []);
 
-  // srcが変更された時にリセット
+  // videoUrlが変更された時にリセット
   useEffect(() => {
     setIsLoading(true);
     setHasError(false);
-  }, [src]);
+  }, [videoUrl]);
 
   // サーバーサイドレンダリング時は何も表示しない
   if (!isClient) {

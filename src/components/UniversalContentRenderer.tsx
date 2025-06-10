@@ -1,6 +1,7 @@
 import React from 'react';
 import Link from 'next/link';
 import EnhancedTableOfContents from '@/components/EnhancedTableOfContents';
+import MdxTableOfContents from '@/components/MdxTableOfContents';
 import RelatedContents from '@/components/RelatedContents';
 import DownloadSection from '@/components/DownloadSection';
 import ContentfulRichText from '@/components/ContentfulRichText';
@@ -30,6 +31,7 @@ interface UniversalContentRendererProps {
   };
   content?: string;
   mdxContent?: React.ReactElement | null;
+  tocItems?: Array<{id: string, title: string, level: number, children?: any[]}>;
   relatedContents?: any[];
   downloadableFiles?: Array<{url: string, title: string, filename: string}>;
   contentType?: string;
@@ -67,6 +69,7 @@ export default function UniversalContentRenderer({
   frontMatter,
   content,
   mdxContent,
+  tocItems = [],
   relatedContents = [],
   downloadableFiles = [],
   contentType = 'article',
@@ -76,6 +79,17 @@ export default function UniversalContentRenderer({
 }: UniversalContentRendererProps) {
   // 目次の生成（MDXコンテンツがある場合）
   const toc = content ? extractTocFromMdx(content) : [];
+  
+  // デバッグログを追加
+  console.log('UniversalContentRenderer - Debug info:', {
+    hasTocItems: tocItems.length > 0,
+    tocItemsCount: tocItems.length,
+    hasToc: toc.length > 0,
+    tocCount: toc.length,
+    hasContent: !!content,
+    hasMdxContent: !!mdxContent,
+    contentType
+  });
 
   // カテゴリーに応じたグラデーションクラス
   const gradientClass = 'from-blue-400 via-sky-500 to-indigo-600';
@@ -154,8 +168,15 @@ export default function UniversalContentRenderer({
         </SafeSection>
 
         {/* メイン動画プレイヤー */}
-        {frontMatter.videoUrl && (
-          <SafeSection 
+        {(() => {
+          console.log('UniversalContentRenderer: Checking video URL:', {
+            hasVideoUrl: !!frontMatter.videoUrl,
+            videoUrl: frontMatter.videoUrl,
+            contentType
+          });
+          return frontMatter.videoUrl;
+        })() && (
+          <SafeSection
             sectionName="動画プレイヤー"
             fallback={
               <div className="bg-gray-100 rounded-lg p-8 text-center">
@@ -164,8 +185,16 @@ export default function UniversalContentRenderer({
             }
           >
             <div className="mb-6">
-              <VideoPlayer 
-                src={frontMatter.videoUrl}
+              {(() => {
+                console.log('UniversalContentRenderer: Rendering VideoPlayer with props:', {
+                  videoUrl: frontMatter.videoUrl,
+                  title: frontMatter.title,
+                  className: "w-full"
+                });
+                return null;
+              })()}
+              <VideoPlayer
+                videoUrl={frontMatter.videoUrl}
                 title={frontMatter.title}
                 className="w-full"
               />
@@ -194,14 +223,20 @@ export default function UniversalContentRenderer({
         )}
 
         {/* 目次 */}
-        {toc.length > 0 && (
+        {(tocItems.length > 0 || toc.length > 0) && (
           <SafeSection sectionName="目次">
             <div className="mb-6">
-              <EnhancedTableOfContents
-                toc={toc}
-                type="main"
-                enableDynamicToc={true}
-              />
+              {tocItems.length > 0 ? (
+                // MDX目次を表示
+                <MdxTableOfContents tocItems={tocItems} />
+              ) : (
+                // Contentful Rich Text目次を表示
+                <EnhancedTableOfContents
+                  toc={toc}
+                  type="main"
+                  enableDynamicToc={true}
+                />
+              )}
             </div>
           </SafeSection>
         )}

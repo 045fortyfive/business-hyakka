@@ -96,13 +96,38 @@ export function extractPlainTextFromRichText(richText: any): string {
  * @returns YouTube動画ID
  */
 export function extractYouTubeId(url: string): string | null {
-  if (!url) return null;
+  if (!url || typeof url !== 'string') {
+    console.warn('Invalid URL provided to extractYouTubeId:', url);
+    return null;
+  }
 
-  // YouTube URLからIDを抽出する正規表現
-  const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
-  const match = url.match(regExp);
+  // URLをトリムして正規化
+  const cleanUrl = url.trim();
 
-  return (match && match[2].length === 11) ? match[2] : null;
+  // 複数のYouTube URLパターンに対応
+  const patterns = [
+    // 標準的なwatch URL
+    /(?:youtube\.com\/watch\?v=)([a-zA-Z0-9_-]{11})/,
+    // 短縮URL
+    /(?:youtu\.be\/)([a-zA-Z0-9_-]{11})/,
+    // 埋め込みURL
+    /(?:youtube\.com\/embed\/)([a-zA-Z0-9_-]{11})/,
+    // モバイルURL
+    /(?:m\.youtube\.com\/watch\?v=)([a-zA-Z0-9_-]{11})/,
+    // その他のパラメータ付きURL
+    /(?:youtube\.com\/.*[?&]v=)([a-zA-Z0-9_-]{11})/,
+  ];
+
+  for (const pattern of patterns) {
+    const match = cleanUrl.match(pattern);
+    if (match && match[1] && match[1].length === 11) {
+      console.log('Successfully extracted YouTube ID:', match[1], 'from URL:', cleanUrl);
+      return match[1];
+    }
+  }
+
+  console.warn('Could not extract YouTube ID from URL:', cleanUrl);
+  return null;
 }
 
 /**

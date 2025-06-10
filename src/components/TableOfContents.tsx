@@ -79,7 +79,7 @@ export default function TableOfContents({ content }: TableOfContentsProps) {
               className={`
                 block py-1 hover:text-blue-600 transition-colors
                 ${activeId === item.id ? 'text-blue-600 font-medium' : 'text-gray-700'}
-                ${level === 0 ? 'font-medium' : 'text-sm'}
+                ${level === 0 ? 'text-base font-medium' : level === 1 ? 'text-sm' : 'text-sm'}
                 ${level > 1 ? 'text-gray-500' : ''}
               `}
             >
@@ -99,7 +99,7 @@ export default function TableOfContents({ content }: TableOfContentsProps) {
   return (
     <div className="sticky top-4">
       <div className="bg-white rounded-lg p-5 shadow-sm border border-gray-100">
-        <h2 className="text-lg font-bold mb-4 text-gray-800 border-b pb-2">目次</h2>
+        <h2 className="text-base font-bold mb-4 text-gray-800 border-b pb-2">目次</h2>
         <nav className="toc">{renderTocItems(toc)}</nav>
       </div>
     </div>

@@ -74,6 +74,7 @@ export default async function VideoPage({ params }: Props) {
         frontMatter={contentData.frontMatter}
         content={contentData.content}
         mdxContent={contentData.mdxContent}
+        tocItems={contentData.tocItems} // 目次アイテムを追加
         relatedContents={contentData.relatedContents}
         downloadableFiles={contentData.downloadableFiles}
         contentType="video"
