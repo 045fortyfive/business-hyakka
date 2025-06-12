@@ -13,6 +13,7 @@ import CodeBlock from '@/components/mdx/CodeBlock';
 import AdPlacement from '@/components/mdx/AdPlacement';
 import CustomImage from '@/components/mdx/CustomImage';
 import MediaRenderer from '@/components/mdx/MediaRenderer';
+import Table from '@/components/mdx/Table';
 import { Br, LineBreak, Spacer, ParagraphBreak } from '@/components/mdx/LineBreak';
 import { CustomIns, RedText, YellowHighlight } from '@/components/mdx/CustomStyling';
 import { H1, H2, H3, H4, H5, H6 } from '@/components/mdx/Heading';
@@ -32,8 +33,11 @@ const components = {
   Callout,
   CodeBlock,
   AdPlacement,
+  Table,
   Image: CustomImage,
   img: MediaRenderer, // MDX内の<img>タグをMediaRendererで処理
+  // テーブル関連コンポーネント
+  table: Table,
   // 改行関連コンポーネント
   Br,
   LineBreak,
