@@ -155,7 +155,7 @@ export default function RichTextRenderer({
         if (mimeType.startsWith('audio/')) {
           return (
             <figure className="my-8 bg-gray-50 p-4 rounded-lg">
-              <AudioPlayer audioUrl={url} title={title || ''} />
+              <AudioPlayer src={url} title={title || ''} />
               {title && (
                 <figcaption className="text-center text-sm text-gray-500 mt-3">{title}</figcaption>
               )}
@@ -244,7 +244,7 @@ export default function RichTextRenderer({
             return (
               <div className="my-6">
                 <AudioPlayer
-                  audioUrl={entry.fields.audioUrl}
+                  src={entry.fields.audioUrl}
                   title={entry.fields.title}
                 />
                 <h3 className="text-lg font-semibold mt-2">

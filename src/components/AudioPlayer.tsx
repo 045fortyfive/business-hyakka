@@ -13,17 +13,26 @@ export default function AudioPlayer({ src, title, className = "" }: AudioPlayerP
   const [isPlaying, setIsPlaying] = useState(false);
   const [duration, setDuration] = useState(0);
   const [currentTime, setCurrentTime] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
+  const [hasError, setHasError] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
   const audioRef = useRef<HTMLAudioElement>(null);
   
   // 再生/一時停止を切り替える
-  const togglePlay = () => {
-    if (audioRef.current) {
-      if (isPlaying) {
-        audioRef.current.pause();
-      } else {
-        audioRef.current.play();
+  const togglePlay = async () => {
+    if (audioRef.current && !hasError) {
+      try {
+        if (isPlaying) {
+          audioRef.current.pause();
+        } else {
+          await audioRef.current.play();
+        }
+        setIsPlaying(!isPlaying);
+      } catch (error) {
+        console.error('Audio playback error:', error);
+        setHasError(true);
+        setErrorMessage('音声の再生に失敗しました');
       }
-      setIsPlaying(!isPlaying);
     }
   };
   
@@ -46,7 +55,24 @@ export default function AudioPlayer({ src, title, className = "" }: AudioPlayerP
   const handleLoadedMetadata = () => {
     if (audioRef.current) {
       setDuration(audioRef.current.duration);
+      setIsLoading(false);
+      setHasError(false);
     }
+  };
+
+  // オーディオの読み込みエラー処理
+  const handleError = (error: any) => {
+    console.error('Audio loading error:', error);
+    setIsLoading(false);
+    setHasError(true);
+    setErrorMessage('音声ファイルの読み込みに失敗しました');
+    setIsPlaying(false);
+  };
+
+  // オーディオの読み込み開始処理
+  const handleLoadStart = () => {
+    setIsLoading(true);
+    setHasError(false);
   };
   
   // 再生時間が更新されたときの処理
@@ -78,6 +104,22 @@ export default function AudioPlayer({ src, title, className = "" }: AudioPlayerP
       </div>
     );
   }
+
+  // エラー状態の表示
+  if (hasError) {
+    return (
+      <div className={`bg-red-50 border border-red-200 rounded-lg p-4 ${className}`}>
+        <div className="flex items-center mb-2">
+          <svg className="w-5 h-5 text-red-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
+            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+          </svg>
+          <h3 className="text-red-800 font-medium">{title}</h3>
+        </div>
+        <p className="text-red-600 text-sm">{errorMessage}</p>
+        <p className="text-red-500 text-xs mt-1">音声ファイルのURLを確認してください</p>
+      </div>
+    );
+  }
   
   return (
     <div className={`bg-gray-100 rounded-lg p-4 ${className}`}>
@@ -87,16 +129,29 @@ export default function AudioPlayer({ src, title, className = "" }: AudioPlayerP
         onLoadedMetadata={handleLoadedMetadata}
         onTimeUpdate={handleTimeUpdateEvent}
         onEnded={handleEnded}
+        onError={handleError}
+        onLoadStart={handleLoadStart}
         className="hidden"
+        preload="metadata"
       />
       
       <div className="flex items-center mb-2">
         <button
           onClick={togglePlay}
-          className="bg-blue-600 text-white rounded-full w-10 h-10 flex items-center justify-center focus:outline-none hover:bg-blue-700"
-          aria-label={isPlaying ? '一時停止' : '再生'}
+          disabled={isLoading || hasError}
+          className={`rounded-full w-10 h-10 flex items-center justify-center focus:outline-none transition-colors ${
+            isLoading || hasError
+              ? 'bg-gray-400 cursor-not-allowed'
+              : 'bg-blue-600 text-white hover:bg-blue-700'
+          }`}
+          aria-label={isLoading ? '読み込み中' : isPlaying ? '一時停止' : '再生'}
         >
-          {isPlaying ? (
+          {isLoading ? (
+            <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+          ) : isPlaying ? (
             <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
               <path
                 fillRule="evenodd"
@@ -117,6 +172,7 @@ export default function AudioPlayer({ src, title, className = "" }: AudioPlayerP
         
         <div className="ml-4 flex-grow">
           <h3 className="text-lg font-medium text-gray-800">{title}</h3>
+          {isLoading && <p className="text-sm text-gray-500">音声を読み込んでいます...</p>}
         </div>
       </div>
       

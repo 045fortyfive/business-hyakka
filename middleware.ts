@@ -59,6 +59,7 @@ export function middleware(request: NextRequest) {
       "style-src 'self' 'unsafe-inline'",
       "img-src 'self' data: https: blob:",
       "font-src 'self' data:",
+      "media-src 'self' https://downloads.ctfassets.net https://images.ctfassets.net https://*.ctfassets.net",
       "connect-src 'self' https://cdn.contentful.com https://api.contentful.com https://preview.contentful.com https://app.contentful.com https://*.contentful.com",
       "frame-ancestors 'self' https://app.contentful.com https://*.contentful.com",
       "frame-src 'self' https://app.contentful.com https://*.contentful.com",

@@ -214,7 +214,7 @@ export default function UniversalContentRenderer({
             }
           >
             <div className="mb-6">
-              <AudioPlayer 
+              <AudioPlayer
                 src={frontMatter.audioUrl}
                 title={frontMatter.title}
                 className="w-full"
