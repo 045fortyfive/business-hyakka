@@ -5,6 +5,7 @@ import MdxTableOfContents from '@/components/MdxTableOfContents';
 import RelatedContents from '@/components/RelatedContents';
 import DownloadSection from '@/components/DownloadSection';
 import ContentfulRichText from '@/components/ContentfulRichText';
+import MDXRenderer from '@/components/MDXRenderer';
 import CustomImage from '@/components/mdx/CustomImage';
 import VideoPlayer from '@/components/VideoPlayer';
 import AudioPlayer from '@/components/AudioPlayer';
@@ -257,11 +258,18 @@ export default function UniversalContentRenderer({
                 {mdxContent}
               </div>
             ) : content ? (
-              // Contentfulのリッチテキストコンテンツを表示
-              <ContentfulRichText content={content} />
+              // Contentfulのリッチテキストコンテンツまたはプレーンテキストを表示
+              typeof content === 'string' && content.includes('#') ? (
+                // MDXライクなコンテンツの場合はMDXRendererを使用
+                <MDXRenderer content={content} />
+              ) : (
+                // リッチテキストコンテンツの場合はContentfulRichTextを使用
+                <ContentfulRichText content={content} />
+              )
             ) : (
               <div className="text-gray-500 text-center py-8">
                 <p>コンテンツがありません</p>
+                <p className="text-sm mt-2">デバッグ情報: mdxContent={mdxContent ? 'あり' : 'なし'}, content={content ? 'あり' : 'なし'}</p>
               </div>
             )}
           </article>

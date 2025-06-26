@@ -45,10 +45,21 @@ export async function generateStaticParams() {
 
     // カテゴリデータが存在し、slugが有効な場合のみ返す
     const validCategories = categoriesData.items.filter(
-      (category) => category?.fields?.slug && typeof category.fields.slug === 'string'
+      (category) => {
+        const hasValidSlug = category?.fields?.slug &&
+                           typeof category.fields.slug === 'string' &&
+                           category.fields.slug !== 'undefined' &&
+                           category.fields.slug.trim() !== '';
+
+        if (!hasValidSlug) {
+          console.warn(`Category "${category?.fields?.name || 'Unknown'}" has invalid slug: "${category?.fields?.slug}"`);
+        }
+
+        return hasValidSlug;
+      }
     );
 
-    console.log(`Generating static params for ${validCategories.length} categories`);
+    console.log(`Generating static params for ${validCategories.length} valid categories out of ${categoriesData.items.length} total`);
 
     return validCategories.map((category) => ({
       slug: category.fields.slug,
@@ -66,12 +77,25 @@ export default async function CategoryPage({
   params: { slug: string };
 }) {
   try {
+    // slugの検証
+    if (!params.slug || params.slug === 'undefined' || params.slug.trim() === '') {
+      console.error(`Invalid category slug: "${params.slug}"`);
+      notFound();
+    }
+
     // カテゴリに属するコンテンツを取得
     const { articles, videos, audios, category } = await getContentByCategory(params.slug);
 
     // カテゴリが見つからない場合は404ページを表示
     if (!category || !category.fields) {
+      console.error(`Category not found for slug: "${params.slug}"`);
       notFound();
+    }
+
+    // カテゴリのslugが正しく設定されているか確認
+    if (!category.fields.slug || category.fields.slug === 'undefined') {
+      console.error(`Category "${category.fields.name}" has invalid slug: "${category.fields.slug}"`);
+      // この場合は一時的にカテゴリ名をslugとして使用
     }
 
     // カテゴリ一覧を取得

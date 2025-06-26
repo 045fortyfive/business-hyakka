@@ -273,6 +273,8 @@ export async function renderContentfulMdx(slug: string, contentType: string = 'a
     // MDXコンテンツがある場合はそれを使用
     if (fields.mdxContent) {
       console.log('Compiling MDX content...');
+      console.log('MDX content length:', fields.mdxContent.length);
+      console.log('MDX content preview:', fields.mdxContent.substring(0, 200));
 
       // 改行処理とメディアURLを事前処理
       let processedMdxContent = processContentfulLineBreaks(fields.mdxContent);
@@ -286,35 +288,64 @@ export async function renderContentfulMdx(slug: string, contentType: string = 'a
       // 見出しにIDを追加
       processedMdxContent = addHeadingIds(processedMdxContent, tocItems);
 
-      const { content: mdxContent } = await compileMDX({
-        source: processedMdxContent,
-        components,
-        options: { parseFrontmatter: true },
-      });
+      try {
+        const { content: mdxContent } = await compileMDX({
+          source: processedMdxContent,
+          components,
+          options: { parseFrontmatter: true },
+        });
 
-      return {
-        slug,
-        frontMatter: {
-          title: fields.title || 'タイトルなし',
-          description: fields.description || '',
-          category: categoryName,
-          tags: tagNames,
-          author: authorName,
-          publishDate: fields.publishDate,
-          videoUrl: fields.videoUrl,
-          audioUrl: fields.audioUrl,
-          featuredImage,
-        },
-        content: processedMdxContent, // MDXコンテンツをcontentに渡す
-        mdxContent,
-        tocItems, // 目次を追加
-        relatedContents: fields.relatedContents || [],
-        downloadableFiles,
-        // Preview関連情報を追加
-        contentfulEntryId: content.sys.id,
-        lastModified: content.sys.updatedAt,
-        version: (content.sys as any).version
-      };
+        console.log('MDX compilation successful');
+
+        return {
+          slug,
+          frontMatter: {
+            title: fields.title || 'タイトルなし',
+            description: fields.description || '',
+            category: categoryName,
+            tags: tagNames,
+            author: authorName,
+            publishDate: fields.publishDate,
+            videoUrl: fields.videoUrl,
+            audioUrl: fields.audioUrl,
+            featuredImage,
+          },
+          content: processedMdxContent, // MDXコンテンツをcontentに渡す
+          mdxContent,
+          tocItems, // 目次を追加
+          relatedContents: fields.relatedContents || [],
+          downloadableFiles,
+          // Preview関連情報を追加
+          contentfulEntryId: content.sys.id,
+          lastModified: content.sys.updatedAt,
+          version: (content.sys as any).version
+        };
+      } catch (mdxError) {
+        console.error('MDX compilation failed:', mdxError);
+        // MDXコンパイルに失敗した場合は、プレーンテキストとして表示
+        return {
+          slug,
+          frontMatter: {
+            title: fields.title || 'タイトルなし',
+            description: fields.description || '',
+            category: categoryName,
+            tags: tagNames,
+            author: authorName,
+            publishDate: fields.publishDate,
+            videoUrl: fields.videoUrl,
+            audioUrl: fields.audioUrl,
+            featuredImage,
+          },
+          content: processedMdxContent, // 処理済みMDXコンテンツをcontentに渡す
+          mdxContent: null, // MDXコンパイルに失敗したのでnull
+          tocItems,
+          relatedContents: fields.relatedContents || [],
+          downloadableFiles,
+          contentfulEntryId: content.sys.id,
+          lastModified: content.sys.updatedAt,
+          version: (content.sys as any).version
+        };
+      }
     }
 
     // MDXコンテンツがない場合は通常のコンテンツを返す
