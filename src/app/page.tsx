@@ -262,7 +262,7 @@ export default async function Home() {
             </h1>
             <p className="text-lg md:text-xl mb-6">
               若手ビジネスパーソンのためのスキルアップ情報サイト。
-              記事、動画、音声で、いつでもどこでもビジネススキルを学べます。
+              記事、動画、音声でいつでもどこでもビジネススキルを学べます。
             </p>
             <div className="flex flex-wrap gap-4">
               <a
