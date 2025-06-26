@@ -53,6 +53,31 @@ export default async function Home() {
 
     console.log(`取得結果: 記事=${articlesData.items.length}, 動画=${videosData.items.length}, 音声=${audiosData.items.length}, カテゴリ=${categoriesData.items.length}`);
 
+    // 重複除去のヘルパー関数
+    const deduplicateContent = (contents: Array<{sys: {id: string}, type: string, fields: any}>) => {
+      const contentMap = new Map();
+      const typePriority = { 'article': 1, 'video': 2, 'audio': 3 };
+
+      contents.forEach(content => {
+        const id = content.sys.id;
+        const currentPriority = typePriority[content.type as keyof typeof typePriority] || 999;
+
+        if (!contentMap.has(id)) {
+          contentMap.set(id, content);
+        } else {
+          const existingContent = contentMap.get(id);
+          const existingPriority = typePriority[existingContent.type as keyof typeof typePriority] || 999;
+
+          // より高い優先度（数値が小さい）のものを採用
+          if (currentPriority < existingPriority) {
+            contentMap.set(id, content);
+          }
+        }
+      });
+
+      return Array.from(contentMap.values());
+    };
+
     // ヒーローカルーセル用のスライドを作成
     const heroSlides: Array<{
       id: string;
@@ -64,12 +89,17 @@ export default async function Home() {
       category: string;
     }> = [];
 
-    // すべてのコンテンツを統合してdisplayOrderで並び替え
-    const allContent = [
+    // すべてのコンテンツを統合（重複除去前）
+    const allContentWithDuplicates = [
       ...articlesData.items.map(item => ({ ...item, type: 'article' as const })),
       ...videosData.items.map(item => ({ ...item, type: 'video' as const })),
       ...audiosData.items.map(item => ({ ...item, type: 'audio' as const }))
     ];
+
+    // 重複を除去
+    const allContent = deduplicateContent(allContentWithDuplicates);
+
+    console.log(`重複除去後: ${allContent.length}件（除去前: ${allContentWithDuplicates.length}件）`);
 
     // displayOrderで並び替え（displayOrderがない場合は最後に配置）
     allContent.sort((a, b) => {
@@ -171,9 +201,18 @@ export default async function Home() {
       description?: string;
     }>;
 
-    // 各カテゴリーのコンテンツを取得
+    // 各カテゴリーのコンテンツを取得（重複除去）
     const categoryContents = categories.map(category => {
-      const content = categorizeContent([...articlesData.items, ...videosData.items, ...audiosData.items], category.name);
+      // カテゴリー別のコンテンツを取得（重複除去前）
+      const categoryContentWithDuplicates = [
+        ...categorizeContent(articlesData.items.map(item => ({ ...item, type: 'article' as const })), category.name),
+        ...categorizeContent(videosData.items.map(item => ({ ...item, type: 'video' as const })), category.name),
+        ...categorizeContent(audiosData.items.map(item => ({ ...item, type: 'audio' as const })), category.name)
+      ];
+
+      // 重複を除去
+      const content = deduplicateContent(categoryContentWithDuplicates);
+
       return {
         ...category,
         content
