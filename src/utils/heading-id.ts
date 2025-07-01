@@ -6,10 +6,21 @@
  * @returns URL-safe なID
  */
 export function generateHeadingId(title: string): string {
-  return title
-    .toLowerCase()
-    .replace(/[^\w\s\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF]/g, '') // 日本語文字と英数字のみ残す
-    .replace(/\s+/g, '-') // スペースをハイフンに
-    .replace(/^-+|-+$/g, '') // 先頭末尾のハイフンを削除
-    .substring(0, 50); // 長すぎる場合は切り詰め
+  // 入力値の検証
+  if (!title || typeof title !== 'string') {
+    console.warn('generateHeadingId: Invalid title provided:', title);
+    return '';
+  }
+
+  try {
+    return title
+      .toLowerCase()
+      .replace(/[^\w\s\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF]/g, '') // 日本語文字と英数字のみ残す
+      .replace(/\s+/g, '-') // スペースをハイフンに
+      .replace(/^-+|-+$/g, '') // 先頭末尾のハイフンを削除
+      .substring(0, 50); // 長すぎる場合は切り詰め
+  } catch (error) {
+    console.error('Error in generateHeadingId:', error, 'title:', title);
+    return '';
+  }
 }

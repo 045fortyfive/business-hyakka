@@ -14,40 +14,57 @@ export function usePreviewMode() {
   const checkPreviewMode = useCallback(async () => {
     try {
       setError(null);
-      
-      // Cookie を確認してプレビューモードかどうかを判定
-      const response = await fetch('/api/preview-status', {
-        method: 'GET',
-        credentials: 'include',
-        headers: {
-          'Cache-Control': 'no-cache'
-        }
-      });
 
-      if (response.ok) {
-        const data = await response.json();
-        setIsPreview(data.isPreview || false);
-        setLastChecked(new Date());
-      } else {
-        // APIが利用できない場合は、Cookie の存在で判定
-        const cookies = document.cookie;
-        const isDraftMode = cookies.includes('__prerender_bypass') || cookies.includes('__next_preview_data');
-        setIsPreview(isDraftMode);
-        setLastChecked(new Date());
-        
-        if (response.status >= 500) {
-          setError(`Preview status API error: ${response.status}`);
+      // まずCookieベースの判定を行う（より確実）
+      const cookies = document.cookie;
+      const isDraftMode = cookies.includes('__prerender_bypass') || cookies.includes('__next_preview_data');
+
+      // URLパラメータからもチェック
+      const urlParams = new URLSearchParams(window.location.search);
+      const hasPreviewParam = urlParams.has('preview') || urlParams.has('draft');
+
+      const isPreviewMode = isDraftMode || hasPreviewParam;
+      setIsPreview(isPreviewMode);
+      setLastChecked(new Date());
+
+      // APIが利用可能な場合のみ追加チェック（オプション）
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 3000); // 3秒でタイムアウト
+
+        const response = await fetch('/api/preview-status', {
+          method: 'GET',
+          credentials: 'include',
+          headers: {
+            'Cache-Control': 'no-cache'
+          },
+          signal: controller.signal
+        });
+
+        clearTimeout(timeoutId);
+
+        if (response.ok) {
+          const data = await response.json();
+          setIsPreview(data.isPreview || isPreviewMode);
         }
+      } catch (apiError) {
+        // APIエラーは無視して、Cookieベースの判定を使用
+        console.debug('Preview status API not available, using cookie-based detection');
       }
     } catch (error) {
       console.error('Preview mode check failed:', error);
       setError(error instanceof Error ? error.message : 'Unknown error');
-      
+
       // フォールバック: Cookie の存在で判定
-      const cookies = document.cookie;
-      const isDraftMode = cookies.includes('__prerender_bypass') || cookies.includes('__next_preview_data');
-      setIsPreview(isDraftMode);
-      setLastChecked(new Date());
+      try {
+        const cookies = document.cookie;
+        const isDraftMode = cookies.includes('__prerender_bypass') || cookies.includes('__next_preview_data');
+        setIsPreview(isDraftMode);
+        setLastChecked(new Date());
+      } catch (fallbackError) {
+        console.error('Fallback preview detection failed:', fallbackError);
+        setIsPreview(false);
+      }
     } finally {
       setIsLoading(false);
     }

@@ -165,10 +165,59 @@ function sanitizeMDXContent(mdxContent: string): string {
   }
 }
 
+// Helper function to sanitize problematic MDX patterns
+function sanitizeProblematicMDXPatterns(mdxContent: string): string {
+  if (!mdxContent || typeof mdxContent !== 'string') {
+    return '';
+  }
+
+  try {
+    let sanitized = mdxContent;
+
+    // 問題のあるパターンを修正
+    // 空のYellowHighlightタグを修正
+    sanitized = sanitized.replace(/<YellowHighlight>\s*<\/YellowHighlight>/g, '');
+    sanitized = sanitized.replace(/<YellowHighlight\s*\/>/g, '');
+
+    // 空のRedTextタグを修正
+    sanitized = sanitized.replace(/<RedText>\s*<\/RedText>/g, '');
+    sanitized = sanitized.replace(/<RedText\s*\/>/g, '');
+
+    // 空のCustomInsタグを修正
+    sanitized = sanitized.replace(/<CustomIns>\s*<\/CustomIns>/g, '');
+    sanitized = sanitized.replace(/<CustomIns\s*\/>/g, '');
+
+    // ネストしたタグの問題を修正
+    sanitized = sanitized.replace(/<YellowHighlight>\s*<YellowHighlight>/g, '<YellowHighlight>');
+    sanitized = sanitized.replace(/<\/YellowHighlight>\s*<\/YellowHighlight>/g, '</YellowHighlight>');
+
+    return sanitized;
+  } catch (error) {
+    console.error('Error in sanitizeProblematicMDXPatterns:', error);
+    return mdxContent;
+  }
+}
+
 // Helper function to process media URLs in MDX content (旧関数を置き換え)
 function processMediaUrls(mdxContent: string): string {
-  // 新しいサニタイズ関数を使用
-  return sanitizeMDXContent(mdxContent);
+  // 入力値の検証
+  if (!mdxContent || typeof mdxContent !== 'string') {
+    console.warn('processMediaUrls: Invalid content provided:', typeof mdxContent);
+    return '';
+  }
+
+  try {
+    // 問題のあるパターンをサニタイズ
+    let processed = sanitizeProblematicMDXPatterns(mdxContent);
+
+    // 新しいサニタイズ関数を使用
+    processed = sanitizeMDXContent(processed);
+
+    return processed;
+  } catch (error) {
+    console.error('Error in processMediaUrls:', error);
+    return mdxContent; // エラーの場合は元のコンテンツを返す
+  }
 }
 
 // Helper function to safely extract downloadable files
@@ -297,10 +346,34 @@ export async function renderContentfulMdx(slug: string, contentType: string = 'a
       processedMdxContent = addHeadingIds(processedMdxContent, tocItems);
 
       try {
+        // MDXコンパイル前の検証
+        if (!processedMdxContent || typeof processedMdxContent !== 'string') {
+          throw new Error('Invalid MDX content: content is not a string');
+        }
+
+        console.log('Starting MDX compilation...');
+        console.log('MDX content sample for compilation:', processedMdxContent.substring(0, 300));
+
+        // 問題のあるパターンを事前チェック
+        const problematicPatterns = [
+          /<YellowHighlight[^>]*>/g,
+          /<RedText[^>]*>/g,
+          /<CustomIns[^>]*>/g
+        ];
+
+        for (const pattern of problematicPatterns) {
+          const matches = processedMdxContent.match(pattern);
+          if (matches) {
+            console.log('Found potentially problematic pattern:', pattern, matches.slice(0, 3));
+          }
+        }
+
         const { content: mdxContent } = await compileMDX({
           source: processedMdxContent,
           components,
-          options: { parseFrontmatter: true },
+          options: {
+            parseFrontmatter: true
+          },
         });
 
         console.log('MDX compilation successful');
@@ -330,6 +403,14 @@ export async function renderContentfulMdx(slug: string, contentType: string = 'a
         };
       } catch (mdxError) {
         console.error('MDX compilation failed:', mdxError);
+        console.error('MDX content that failed to compile:', processedMdxContent.substring(0, 500));
+
+        // エラーの詳細をログに出力
+        if (mdxError instanceof Error) {
+          console.error('Error message:', mdxError.message);
+          console.error('Error stack:', mdxError.stack);
+        }
+
         // MDXコンパイルに失敗した場合は、プレーンテキストとして表示
         return {
           slug,

@@ -81,9 +81,22 @@ export async function generateStaticParams() {
       limit: 1000, // 十分な数を取得
     });
 
+    // 問題のある記事を一時的にスキップ
+    const problematicSlugs = ['ichinichisekkeijyutu', 'jibunnonobashikata'];
+
     // slugが有効な音声のみを返す
     const validAudios = entries.items.filter(
-      (audio: any) => audio?.fields?.slug && typeof audio.fields.slug === 'string'
+      (audio: any) => {
+        const hasValidSlug = audio?.fields?.slug && typeof audio.fields.slug === 'string';
+
+        // 問題のある記事をスキップ
+        if (problematicSlugs.includes(audio.fields.slug)) {
+          console.warn(`Skipping problematic audio: ${audio.fields.slug}`);
+          return false;
+        }
+
+        return hasValidSlug;
+      }
     );
 
     console.log(`Generating static params for ${validAudios.length} audios`);
@@ -101,6 +114,13 @@ export default async function AudioPage({ params }: Props) {
   // paramsを非同期で解決
   const resolvedParams = await Promise.resolve(params);
   const { slug } = resolvedParams;
+
+  // 問題のある記事を一時的にスキップ
+  const problematicSlugs = ['ichinichisekkeijyutu', 'jibunnonobashikata'];
+  if (problematicSlugs.includes(slug)) {
+    console.warn(`Redirecting problematic audio: ${slug}`);
+    notFound();
+  }
 
   try {
     // Contentfulからコンテンツを取得

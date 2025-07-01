@@ -59,23 +59,44 @@ function extractTextFromNode(node: any): string {
 }
 
 // カスタムスタイリングコンポーネント
-const CustomIns = ({ children, ...props }: any) => (
-  <ins className="underline decoration-2 decoration-blue-500 bg-blue-50 px-1 rounded" {...props}>
-    {children}
-  </ins>
-);
+const CustomIns = ({ children, ...props }: any) => {
+  // 安全性チェック
+  if (children === null || children === undefined) {
+    return null;
+  }
 
-const RedText = ({ children, ...props }: any) => (
-  <span className="text-red-600 font-medium" {...props}>
-    {children}
-  </span>
-);
+  return (
+    <ins className="underline decoration-2 decoration-blue-500 bg-blue-50 px-1 rounded" {...props}>
+      {children}
+    </ins>
+  );
+};
 
-const YellowHighlight = ({ children, ...props }: any) => (
-  <mark className="bg-yellow-200 px-1 rounded" {...props}>
-    {children}
-  </mark>
-);
+const RedText = ({ children, ...props }: any) => {
+  // 安全性チェック
+  if (children === null || children === undefined) {
+    return null;
+  }
+
+  return (
+    <span className="text-red-600 font-medium" {...props}>
+      {children}
+    </span>
+  );
+};
+
+const YellowHighlight = ({ children, ...props }: any) => {
+  // 安全性チェック
+  if (children === null || children === undefined) {
+    return null;
+  }
+
+  return (
+    <mark className="bg-yellow-200 px-1 rounded" {...props}>
+      {children}
+    </mark>
+  );
+};
 
 // MDXで使用するコンポーネント
 const components = {
@@ -91,10 +112,10 @@ const components = {
   Spacer,
   ParagraphBreak,
   // テーブル関連のコンポーネント
-  table: Table,
+  table: (props: any) => <Table {...props} />,
   // 画像・メディアコンポーネント
-  img: MediaRenderer,
-  Image: MediaRenderer,
+  img: (props: any) => <MediaRenderer {...props} />,
+  Image: (props: any) => <MediaRenderer {...props} />,
   // カスタムスタイリングコンポーネント
   ins: CustomIns,
   RedText,

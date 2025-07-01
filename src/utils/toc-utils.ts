@@ -28,19 +28,31 @@ export function extractTocFromMdx(mdxContent: string): TocItem[] {
   console.log('Starting heading extraction with regex:', headingRegex);
 
   while ((match = headingRegex.exec(mdxContent)) !== null) {
-    const level = match[1].length; // #の数でレベルを判定
-    const title = match[2].trim();
-    
-    console.log('Found heading:', { level, title, fullMatch: match[0] });
-    
-    // IDを生成（日本語対応）
-    const id = generateHeadingId(title);
-    
-    headings.push({
-      id,
-      title,
-      level
-    });
+    try {
+      const level = match[1]?.length; // #の数でレベルを判定
+      const title = match[2]?.trim();
+
+      // 値の検証
+      if (!level || !title || typeof title !== 'string') {
+        console.warn('Invalid heading match:', match);
+        continue;
+      }
+
+      console.log('Found heading:', { level, title, fullMatch: match[0] });
+
+      // IDを生成（日本語対応）
+      const id = generateHeadingId(title);
+
+      if (id) {
+        headings.push({
+          id,
+          title,
+          level
+        });
+      }
+    } catch (error) {
+      console.error('Error processing heading:', error, match);
+    }
   }
   
   console.log('Extracted headings:', headings);
@@ -68,28 +80,45 @@ function generateHeadingIdDeprecated(title: string): string {
  * @returns 階層化された目次
  */
 function buildTocHierarchy(headings: TocItem[]): TocItem[] {
+  // 入力値の検証
+  if (!Array.isArray(headings)) {
+    console.warn('buildTocHierarchy: Invalid headings provided:', typeof headings);
+    return [];
+  }
+
   const result: TocItem[] = [];
   const stack: TocItem[] = [];
 
-  for (const heading of headings) {
-    // スタックから現在のレベル以上のアイテムを削除
-    while (stack.length > 0 && stack[stack.length - 1].level >= heading.level) {
-      stack.pop();
-    }
-
-    if (stack.length === 0) {
-      // トップレベル
-      result.push(heading);
-    } else {
-      // 親要素の子として追加
-      const parent = stack[stack.length - 1];
-      if (!parent.children) {
-        parent.children = [];
+  try {
+    for (const heading of headings) {
+      // 見出しオブジェクトの検証
+      if (!heading || typeof heading !== 'object' || !heading.id || !heading.title || !heading.level) {
+        console.warn('buildTocHierarchy: Invalid heading object:', heading);
+        continue;
       }
-      parent.children.push(heading);
-    }
 
-    stack.push(heading);
+      // スタックから現在のレベル以上のアイテムを削除
+      while (stack.length > 0 && stack[stack.length - 1].level >= heading.level) {
+        stack.pop();
+      }
+
+      if (stack.length === 0) {
+        // トップレベル
+        result.push(heading);
+      } else {
+        // 親要素の子として追加
+        const parent = stack[stack.length - 1];
+        if (!parent.children) {
+          parent.children = [];
+        }
+        parent.children.push(heading);
+      }
+
+      stack.push(heading);
+    }
+  } catch (error) {
+    console.error('Error in buildTocHierarchy:', error);
+    return [];
   }
 
   return result;
@@ -123,6 +152,17 @@ export function flattenToc(tocItems: TocItem[]): TocItem[] {
  * @returns ID付きのMDXコンテンツ
  */
 export function addHeadingIds(mdxContent: string, tocItems: TocItem[]): string {
+  // 入力値の検証
+  if (!mdxContent || typeof mdxContent !== 'string') {
+    console.warn('addHeadingIds: Invalid mdxContent provided:', typeof mdxContent);
+    return '';
+  }
+
+  if (!Array.isArray(tocItems)) {
+    console.warn('addHeadingIds: Invalid tocItems provided:', typeof tocItems);
+    return mdxContent;
+  }
+
   // 現在は見出しIDの追加を無効化（MDXコンパイルエラーを回避）
   // 将来的にはより安全な実装に変更予定
   return mdxContent;
