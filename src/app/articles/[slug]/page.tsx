@@ -1,6 +1,5 @@
 import { Metadata } from 'next';
 import { getMdxBySlug, renderContentfulMdx } from '@/utils/mdx-utils';
-import MDXRenderer from '@/components/MDXRenderer';
 import UniversalContentRenderer from '@/components/UniversalContentRenderer';
 import { PreviewWrapper } from '@/components/preview';
 
@@ -72,7 +71,9 @@ export default async function MdxArticlePage({ params }: Props) {
 
   try {
     // Contentfulからコンテンツを取得
+    console.log(`Rendering article: ${slug}`);
     const contentData = await renderContentfulMdx(slug);
+    console.log(`Successfully rendered article: ${slug}`);
 
     return (
       <PreviewWrapper
@@ -175,10 +176,20 @@ export async function generateStaticParams() {
 
     // slugが有効な記事のみを返す
     const validArticles = entries.items.filter(
-      (article: any) => article?.fields?.slug && typeof article.fields.slug === 'string'
+      (article: any) => {
+        const hasValidSlug = article?.fields?.slug &&
+                           typeof article.fields.slug === 'string' &&
+                           article.fields.slug.trim() !== '';
+
+        if (!hasValidSlug) {
+          console.warn(`Article "${article?.fields?.title || 'Unknown'}" has invalid slug: "${article?.fields?.slug}"`);
+        }
+
+        return hasValidSlug;
+      }
     );
 
-    console.log(`Generating static params for ${validArticles.length} articles`);
+    console.log(`Generating static params for ${validArticles.length} valid articles out of ${entries.items.length} total`);
 
     return validArticles.map((article: any) => ({
       slug: article.fields.slug,

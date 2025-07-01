@@ -220,34 +220,8 @@ export default async function MdxArticlePage({ params }: Props) {
 
 // 静的ページ生成のためのパスを取得
 export async function generateStaticParams() {
-  try {
-    // Contentfulから記事を取得
-    const { getClient } = await import('@/lib/api');
-    const client = await getClient();
-
-    const { CONTENT_TYPE } = await import('@/lib/contentful');
-    const { CONTENT_TYPES } = await import('@/lib/types');
-
-    const entries = await client.getEntries({
-      content_type: CONTENT_TYPE.CONTENT,
-      'fields.contentType': CONTENT_TYPES.ARTICLE,
-      select: ['fields.slug'],
-      limit: 1000, // 十分な数を取得
-    });
-
-    // slugが有効な記事のみを返す
-    const validArticles = entries.items.filter(
-      (article: any) => article?.fields?.slug && typeof article.fields.slug === 'string'
-    );
-
-    console.log(`Generating static params for ${validArticles.length} MDX articles`);
-
-    return validArticles.map((article: any) => ({
-      slug: article.fields.slug,
-    }));
-  } catch (error) {
-    console.error('Error generating static params for MDX articles:', error);
-    // エラーが発生した場合は空の配列を返す
-    return [];
-  }
+  // MDX記事ページは現在使用していないため、空の配列を返す
+  // 将来的にMDX専用の記事を分離する場合は、ここで適切なフィルタリングを行う
+  console.log('MDX articles page: returning empty static params (disabled)');
+  return [];
 }

@@ -76,30 +76,46 @@ export interface TocItem {
  * @returns 見出し情報の配列
  */
 function extractHeadingsFromMarkdown(content: string): HeadingInfo[] {
+  console.log('Extracting headings from markdown content');
+
   const headings: HeadingInfo[] = [];
   const existingIds: string[] = [];
-  
-  // 見出しを抽出する正規表現
-  const headingRegex = /^(#{1,6})\s+(.+)$/gm;
-  let match;
-  let index = 0;
 
-  while ((match = headingRegex.exec(content)) !== null) {
-    const level = match[1].length;
-    const text = match[2].trim();
-    
-    if (text) {
-      const id = generateHeadingId(text, index++, existingIds);
-      existingIds.push(id);
-      
-      headings.push({
-        id,
-        text,
-        level
-      });
-    }
+  if (!content || typeof content !== 'string') {
+    console.log('Invalid markdown content:', typeof content);
+    return headings;
   }
 
+  try {
+    // 見出しを抽出する正規表現
+    const headingRegex = /^(#{1,6})\s+(.+)$/gm;
+    let match;
+    let index = 0;
+
+    while ((match = headingRegex.exec(content)) !== null) {
+      try {
+        const level = match[1].length;
+        const text = match[2].trim();
+
+        if (text && typeof text === 'string') {
+          const id = generateHeadingId(text, index++, existingIds);
+          existingIds.push(id);
+
+          headings.push({
+            id,
+            text,
+            level
+          });
+        }
+      } catch (error) {
+        console.error('Error processing heading match:', error, match);
+      }
+    }
+  } catch (error) {
+    console.error('Error extracting headings from markdown:', error);
+  }
+
+  console.log(`Extracted ${headings.length} headings from markdown`);
   return headings;
 }
 
@@ -109,40 +125,83 @@ function extractHeadingsFromMarkdown(content: string): HeadingInfo[] {
  * @returns 見出し情報の配列
  */
 function extractHeadingsFromRichText(document: any): HeadingInfo[] {
+  console.log('Extracting headings from rich text document');
+
   const headings: HeadingInfo[] = [];
   const existingIds: string[] = [];
-  
+
+  // documentが文字列の場合はJSONパースを試行
+  if (typeof document === 'string') {
+    try {
+      document = JSON.parse(document);
+    } catch (error) {
+      console.error('Failed to parse document as JSON:', error);
+      return headings;
+    }
+  }
+
   if (!document || !document.content || !Array.isArray(document.content)) {
+    console.log('Invalid document structure:', {
+      hasDocument: !!document,
+      hasContent: !!(document && document.content),
+      isContentArray: !!(document && document.content && Array.isArray(document.content))
+    });
     return headings;
   }
 
   let index = 0;
 
   function traverseContent(content: any[]) {
+    if (!Array.isArray(content)) {
+      console.warn('traverseContent: content is not an array:', typeof content);
+      return;
+    }
+
     content.forEach((node: any) => {
-      // 見出しノードをチェック
-      if (node.nodeType && node.nodeType.startsWith('heading-')) {
-        const level = parseInt(node.nodeType.replace('heading-', ''));
-        const text = node.content
-          ?.map((textNode: any) => textNode.value || '')
-          .join('')
-          .trim();
+      try {
+        // 見出しノードをチェック
+        if (node && node.nodeType && typeof node.nodeType === 'string' && node.nodeType.startsWith('heading-')) {
+          const level = parseInt(node.nodeType.replace('heading-', ''));
 
-        if (text && level >= 1 && level <= 6) {
-          const id = generateHeadingId(text, index++, existingIds);
-          existingIds.push(id);
-          
-          headings.push({
-            id,
-            text,
-            level
-          });
+          // node.contentが存在し、配列であることを確認
+          if (!node.content || !Array.isArray(node.content)) {
+            console.warn('Invalid heading node content:', node);
+            return;
+          }
+
+          const text = node.content
+            ?.map((textNode: any) => {
+              // textNodeが有効で、valueプロパティが文字列であることを確認
+              if (textNode && typeof textNode.value === 'string') {
+                return textNode.value;
+              } else if (textNode && typeof textNode === 'string') {
+                return textNode;
+              } else {
+                console.warn('Invalid text node:', textNode);
+                return '';
+              }
+            })
+            .join('')
+            .trim();
+
+          if (text && level >= 1 && level <= 6) {
+            const id = generateHeadingId(text, index++, existingIds);
+            existingIds.push(id);
+
+            headings.push({
+              id,
+              text,
+              level
+            });
+          }
         }
-      }
 
-      // 再帰的に子要素を探索
-      if (node.content && Array.isArray(node.content)) {
-        traverseContent(node.content);
+        // 再帰的に子要素を探索
+        if (node && node.content && Array.isArray(node.content)) {
+          traverseContent(node.content);
+        }
+      } catch (error) {
+        console.error('Error processing node in traverseContent:', error, node);
       }
     });
   }
@@ -242,40 +301,45 @@ export function buildTocHierarchy(headings: HeadingInfo[]): TocItem[] {
 export function extractTocFromContent(content: any): TocItem[] {
   console.log('Extracting TOC from content, type:', typeof content);
 
-  // 1. 文字列の場合（Markdown/MDXまたはJSON文字列）
-  if (typeof content === 'string') {
-    // JSON文字列かどうかチェック
-    try {
-      const parsedContent = JSON.parse(content);
-      if (parsedContent && typeof parsedContent === 'object') {
-        console.log('Content is JSON string, processing as rich text');
-        const headings = extractHeadingsFromRichText(parsedContent);
+  try {
+    // 1. 文字列の場合（Markdown/MDXまたはJSON文字列）
+    if (typeof content === 'string') {
+      // JSON文字列かどうかチェック
+      try {
+        const parsedContent = JSON.parse(content);
+        if (parsedContent && typeof parsedContent === 'object') {
+          console.log('Content is JSON string, processing as rich text');
+          const headings = extractHeadingsFromRichText(parsedContent);
+          return buildTocHierarchy(headings);
+        }
+      } catch (e) {
+        // JSON でない場合はMarkdownとして処理
+        console.log('Content is markdown string');
+        const headings = extractHeadingsFromMarkdown(content);
         return buildTocHierarchy(headings);
       }
-    } catch (e) {
-      // JSON でない場合はMarkdownとして処理
-      console.log('Content is markdown string');
-      const headings = extractHeadingsFromMarkdown(content);
+    }
+
+    // 2. Contentfulのリッチテキストオブジェクトの場合
+    if (content && typeof content === 'object' && content.content) {
+      console.log('Content is rich text object');
+      const headings = extractHeadingsFromRichText(content);
       return buildTocHierarchy(headings);
     }
-  }
 
-  // 2. Contentfulのリッチテキストオブジェクトの場合
-  if (content && typeof content === 'object' && content.content) {
-    console.log('Content is rich text object');
-    const headings = extractHeadingsFromRichText(content);
-    return buildTocHierarchy(headings);
-  }
+    // 3. DOM要素の場合
+    if (content instanceof Element) {
+      console.log('Content is DOM element');
+      const headings = extractHeadingsFromDom(content);
+      return buildTocHierarchy(headings);
+    }
 
-  // 3. DOM要素の場合
-  if (content instanceof Element) {
-    console.log('Content is DOM element');
-    const headings = extractHeadingsFromDom(content);
-    return buildTocHierarchy(headings);
+    console.log('No valid content format detected, returning empty TOC');
+    return [];
+  } catch (error) {
+    console.error('Error extracting TOC from content:', error);
+    return [];
   }
-
-  console.log('No valid content format detected, returning empty TOC');
-  return [];
 }
 
 /**

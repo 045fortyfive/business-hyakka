@@ -17,11 +17,11 @@ import Table from '@/components/mdx/Table';
 import { Br, LineBreak, Spacer, ParagraphBreak } from '@/components/mdx/LineBreak';
 import { CustomIns, RedText, YellowHighlight } from '@/components/mdx/CustomStyling';
 import { H1, H2, H3, H4, H5, H6 } from '@/components/mdx/Heading';
-import { extractTocFromMdx, addHeadingIds, TocItem } from '@/utils/toc-utils';
-import Image from 'next/image';
+import Figure from '@/components/mdx/Figure';
+import { extractTocFromMdx, addHeadingIds } from '@/utils/toc-utils';
 
 // MDXコンポーネントの設定
-const components = {
+const components: any = {
   // 見出しコンポーネント
   h1: H1,
   h2: H2,
@@ -49,6 +49,8 @@ const components = {
   ins: CustomIns,
   RedText,
   YellowHighlight,
+  // Figure コンポーネント
+  Figure,
   // 他のMDXコンポーネントをここに追加
 };
 
@@ -142,7 +144,7 @@ function sanitizeMDXContent(mdxContent: string): string {
     // 1. URL正規化 - ContentfulのアセットURL（//で始まる相対パス）をhttps:付きの絶対URLに変換
     processedContent = processedContent.replace(
       /(!\[.*?\]\(|<img[^>]+src=[\"\']{1}|<video[^>]+src=[\"\']{1}|<audio[^>]+src=[\"\']{1}|<a[^>]+href=[\"\']{1})(\/\/[^\)\s\"\'\']+)/g,
-      (match, prefix, url) => {
+      (_match, prefix, url) => {
         const httpsUrl = `https:${url}`;
         return `${prefix}${httpsUrl}`;
       }
@@ -151,7 +153,7 @@ function sanitizeMDXContent(mdxContent: string): string {
     // 2. Markdown画像記法をHTMLに変換（MDXパースエラーを回避）
     processedContent = processedContent.replace(
       /!\[([^\]]*)\]\(([^)]+)\)/g,
-      (match, alt, url) => {
+      (_match, alt, url) => {
         return `<img src="${url}" alt="${alt || ''}" />`;
       }
     );
@@ -282,8 +284,14 @@ export async function renderContentfulMdx(slug: string, contentType: string = 'a
 
       // 目次を生成
       console.log('MDX content for TOC extraction:', processedMdxContent.substring(0, 500));
-      const tocItems = extractTocFromMdx(processedMdxContent);
-      console.log('Generated TOC items:', tocItems);
+      let tocItems: any[] = [];
+      try {
+        tocItems = extractTocFromMdx(processedMdxContent);
+        console.log('Generated TOC items:', tocItems);
+      } catch (tocError) {
+        console.error('Error generating TOC:', tocError);
+        tocItems = [];
+      }
 
       // 見出しにIDを追加
       processedMdxContent = addHeadingIds(processedMdxContent, tocItems);
