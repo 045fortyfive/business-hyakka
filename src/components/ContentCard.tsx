@@ -1,6 +1,38 @@
 import Image from 'next/image';
 import Link from 'next/link';
-import { formatDate } from '@/lib/utils';
+import { formatDate, generateUnsplashImageUrl } from '@/lib/utils';
+
+// カテゴリに応じたグラデーションクラスを取得
+function getCategoryGradientClass(categoryName: string): string {
+  switch (categoryName) {
+    case '基礎ビジネススキル':
+      return 'from-blue-500 via-sky-600 to-indigo-700';
+    case '思考法':
+      return 'from-violet-500 via-purple-600 to-indigo-700';
+    case '業務改善':
+      return 'from-teal-500 via-cyan-600 to-sky-700';
+    case 'マネジメントスキル':
+      return 'from-orange-500 via-red-600 to-rose-700';
+    default:
+      return 'from-blue-500 via-sky-600 to-indigo-700';
+  }
+}
+
+// カテゴリに応じたアイコンSVGを取得
+function getCategoryIcon(categoryName: string): string {
+  switch (categoryName) {
+    case '基礎ビジネススキル':
+      return '<svg fill="currentColor" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>';
+    case '思考法':
+      return '<svg fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>';
+    case '業務改善':
+      return '<svg fill="currentColor" viewBox="0 0 24 24"><path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/></svg>';
+    case 'マネジメントスキル':
+      return '<svg fill="currentColor" viewBox="0 0 24 24"><path d="M16 4c0-1.11.89-2 2-2s2 .89 2 2-.89 2-2 2-2-.89-2-2zm4 18v-6h2.5l-2.54-7.63A1.5 1.5 0 0 0 18.54 7H16c-.8 0-1.54.37-2.01.99L12 10l-1.99-2.01A2.5 2.5 0 0 0 8 7H5.46c-.8 0-1.54.37-2.01.99L1 12h2.5v10h3v-3h11v3h3z"/></svg>';
+    default:
+      return '<svg fill="currentColor" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>';
+  }
+}
 
 // コンテンツカードのプロパティ型定義
 interface ContentCardProps {
@@ -90,14 +122,46 @@ export default function ContentCard({
     }
   };
 
+  // 画像の処理ロジック
+  let imageUrl = null;
+  let useGradientCard = false;
+  let gradientClass = '';
+  let iconSvg = '';
+
+  if (thumbnail) {
+    imageUrl = thumbnail.url;
+  } else {
+    // 画像がない場合は、Unsplash画像またはグラデーションカードを使用
+    const shouldUseUnsplash = Math.random() > 0.8; // 20%の確率でUnsplash画像を使用（グラデーションカードを80%表示）
+
+    if (shouldUseUnsplash) {
+      imageUrl = generateUnsplashImageUrl(category.name, 444, 250);
+    } else {
+      useGradientCard = true;
+      gradientClass = getCategoryGradientClass(category.name);
+      iconSvg = getCategoryIcon(category.name);
+    }
+  }
+
   return (
     <div className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300">
       <Link href={contentPath}>
         <div className="relative h-36 sm:h-40 md:h-48 w-full">
-          {thumbnail ? (
+          {useGradientCard ? (
+            // グラデーションカード
+            <div className={`bg-gradient-to-br ${gradientClass} h-full w-full flex flex-col items-center justify-center text-white relative`}>
+              <div
+                className="w-12 h-12 mb-2 opacity-80"
+                dangerouslySetInnerHTML={{ __html: iconSvg }}
+              />
+              <div className="text-center px-4">
+                <h3 className="text-sm font-semibold line-clamp-2">{title}</h3>
+              </div>
+            </div>
+          ) : imageUrl ? (
             <Image
-              src={thumbnail.url}
-              alt={thumbnail.alt || title}
+              src={imageUrl}
+              alt={thumbnail?.alt || title}
               fill
               sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, 33vw"
               className="object-cover"

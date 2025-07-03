@@ -24,20 +24,20 @@ export default async function Home() {
   try {
     console.log('データ取得開始...');
 
-    // 最新の記事、動画、音声を取得
-    const articlesPromise = getArticles(10).catch(error => {
+    // 最新の記事、動画、音声を取得（業務改善カテゴリのコンテンツも含めるため数を増加）
+    const articlesPromise = getArticles(25).catch(error => {
       console.error('記事の取得に失敗:', error);
+      return { items: [], total: 0, skip: 0, limit: 25, includes: {} };
+    });
+
+    const videosPromise = getVideos(10).catch(error => {
+      console.error('動画の取得に失敗:', error);
       return { items: [], total: 0, skip: 0, limit: 10, includes: {} };
     });
 
-    const videosPromise = getVideos(5).catch(error => {
-      console.error('動画の取得に失敗:', error);
-      return { items: [], total: 0, skip: 0, limit: 5, includes: {} };
-    });
-
-    const audiosPromise = getAudios(5).catch(error => {
+    const audiosPromise = getAudios(15).catch(error => {
       console.error('音声の取得に失敗:', error);
-      return { items: [], total: 0, skip: 0, limit: 5, includes: {} };
+      return { items: [], total: 0, skip: 0, limit: 15, includes: {} };
     });
 
     const categoriesPromise = getCategories().catch(error => {
@@ -84,10 +84,13 @@ export default async function Home() {
       id: string;
       title: string;
       description: string;
-      imageUrl: string;
+      imageUrl: string | null;
       linkUrl: string;
       linkText: string;
       category: string;
+      useGradientCard?: boolean;
+      gradientClass?: string;
+      iconSvg?: string;
     }> = [];
 
     // すべてのコンテンツを統合（重複除去前）
@@ -122,6 +125,8 @@ export default async function Home() {
         // 画像URLの取得と改善されたフォールバック
         let imageUrl = null;
         let useGradientCard = false;
+        let gradientClass = '';
+        let iconSvg = '';
 
         if (fields.featuredImage && fields.featuredImage.fields && fields.featuredImage.fields.file) {
           const fileUrl = fields.featuredImage.fields.file.url;
@@ -137,13 +142,35 @@ export default async function Home() {
           }
         } else {
           // 画像がない場合は、Unsplash画像またはグラデーションカードを使用
-          const shouldUseUnsplash = Math.random() > 0.5; // 50%の確率でUnsplash画像を使用
+          const shouldUseUnsplash = Math.random() > 0.8; // 20%の確率でUnsplash画像を使用（グラデーションカードを80%表示）
 
           if (shouldUseUnsplash) {
             imageUrl = generateUnsplashImageUrl(category, 800, 450);
           } else {
             useGradientCard = true;
-            // グラデーションカードの場合はimageUrlをnullのままにする
+
+            // カテゴリに応じたグラデーションクラスとアイコンを設定
+            switch (category) {
+              case '基礎ビジネススキル':
+                gradientClass = 'from-blue-500 via-sky-600 to-indigo-700';
+                iconSvg = '<svg fill="currentColor" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>';
+                break;
+              case '思考法':
+                gradientClass = 'from-violet-500 via-purple-600 to-indigo-700';
+                iconSvg = '<svg fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>';
+                break;
+              case '業務改善':
+                gradientClass = 'from-teal-500 via-cyan-600 to-sky-700';
+                iconSvg = '<svg fill="currentColor" viewBox="0 0 24 24"><path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/></svg>';
+                break;
+              case 'マネジメントスキル':
+                gradientClass = 'from-orange-500 via-red-600 to-rose-700';
+                iconSvg = '<svg fill="currentColor" viewBox="0 0 24 24"><path d="M16 4c0-1.11.89-2 2-2s2 .89 2 2-.89 2-2 2-2-.89-2-2zm4 18v-6h2.5l-2.54-7.63A1.5 1.5 0 0 0 18.54 7H16c-.8 0-1.54.37-2.01.99L12 10l-1.99-2.01A2.5 2.5 0 0 0 8 7H5.46c-.8 0-1.54.37-2.01.99L1 12h2.5v10h3v-3h11v3h3z"/></svg>';
+                break;
+              default:
+                gradientClass = 'from-blue-500 via-sky-600 to-indigo-700';
+                iconSvg = '<svg fill="currentColor" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>';
+            }
           }
         }
 
@@ -166,15 +193,7 @@ export default async function Home() {
             break;
         }
 
-        console.log(`Hero slide for ${content.type} "${fields.title}":`, {
-          id: content.sys.id,
-          imageUrl: imageUrl,
-          category: category,
-          displayOrder: fields.displayOrder
-        });
 
-        // グラデーションカードの情報を取得
-        const gradientDesign = generateGradientCardDesign(category, fields.title, content.type);
 
         heroSlides.push({
           id: content.sys.id,
@@ -184,10 +203,9 @@ export default async function Home() {
           linkUrl: linkUrl,
           linkText: linkText,
           category: category,
-          useGradientCard,
-          gradientClass: gradientDesign.gradientClass,
-          iconSvg: gradientDesign.iconSvg,
-          accentColor: gradientDesign.accentColor
+          useGradientCard: useGradientCard,
+          gradientClass: gradientClass,
+          iconSvg: iconSvg
         });
       }
     });
@@ -253,14 +271,7 @@ export default async function Home() {
 
     const finalCategoryContents = [...priorityCategoryContents, ...otherCategoryContents];
 
-    // デバッグ用ログ
-    const categoryDebugInfo = categoryContents.map(cat => ({
-      name: cat.name,
-      contentCount: cat.content.length
-    }));
-    console.log('🏷️ カテゴリ別コンテンツ数:', categoryDebugInfo);
-    console.log('🎯 優先カテゴリ:', priorityCategoryContents.map(cat => `${cat.name}(${cat.content.length}件)`));
-    console.log('📋 最終表示カテゴリ:', finalCategoryContents.map(cat => `${cat.name}(${cat.content.length}件)`));
+
 
     return (
       <div className="container mx-auto px-4 py-4 sm:py-6 md:py-8">
@@ -276,7 +287,10 @@ export default async function Home() {
                 imageUrl: slide.imageUrl,
                 linkUrl: slide.linkUrl,
                 linkText: slide.linkText,
-                category: slide.category
+                category: slide.category,
+                useGradientCard: slide.useGradientCard,
+                gradientClass: slide.gradientClass,
+                iconSvg: slide.iconSvg
               }))}
               autoplayInterval={3000}
             />

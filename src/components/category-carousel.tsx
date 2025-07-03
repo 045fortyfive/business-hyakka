@@ -84,10 +84,42 @@ export function CategoryCarousel({
     });
   };
 
-  // アイテムがない場合は表示しない
-  if (items.length === 0) {
-    return null;
-  }
+  // アイテムがない場合はプレースホルダーカードを表示
+  const displayItems = items.length === 0 ? [
+    {
+      sys: {
+        id: 'placeholder-1',
+        createdAt: new Date().toISOString()
+      },
+      fields: {
+        title: `${categoryName}のコンテンツを準備中です`,
+        slug: 'coming-soon',
+        contentType: ['記事']
+      }
+    },
+    {
+      sys: {
+        id: 'placeholder-2',
+        createdAt: new Date().toISOString()
+      },
+      fields: {
+        title: `近日公開予定`,
+        slug: 'coming-soon',
+        contentType: ['記事']
+      }
+    },
+    {
+      sys: {
+        id: 'placeholder-3',
+        createdAt: new Date().toISOString()
+      },
+      fields: {
+        title: `お楽しみに`,
+        slug: 'coming-soon',
+        contentType: ['記事']
+      }
+    }
+  ] : items;
 
   // グラデーションカラーのクラス名を取得
   const getBorderGradientClass = () => {
@@ -137,7 +169,7 @@ export function CategoryCarousel({
             paddingRight: '80px' // 3つ目のカードが見切れるようにパディングを設定
           }}
         >
-          {items.map((item) => {
+          {displayItems.map((item) => {
             // 画像URLの取得
             let imageUrl = null;
             let hasImage = false;
@@ -146,6 +178,9 @@ export function CategoryCarousel({
               imageUrl = fileUrl.startsWith('//') ? `https:${fileUrl}` : fileUrl;
               hasImage = true;
             }
+
+            // プレースホルダーカードかどうかを判定
+            const isPlaceholder = item.sys.id.startsWith('placeholder-');
 
             // コンテンツタイプに応じたURLパスを生成
             const contentType = item.fields.contentType && item.fields.contentType[0];
@@ -156,6 +191,37 @@ export function CategoryCarousel({
               contentPath = '/audios/';
             }
 
+            const cardContent = (
+              <>
+                {hasImage ? (
+                  <>
+                    {/* 画像部分 - 正方形の上半分 */}
+                    <div className="relative w-full" style={{ height: 'calc(50% - 1px)' }}>
+                      <Image
+                        src={imageUrl!}
+                        alt={item.fields.title}
+                        fill
+                        sizes="(max-width: 640px) 160px, (max-width: 768px) 180px, 200px"
+                        className="object-cover"
+                      />
+                    </div>
+                    {/* 詳細部分 - 正方形の下半分 */}
+                    <div className="p-2 flex flex-col flex-grow" style={{ height: 'calc(50% - 1px)' }}>
+                      <h3 className="font-medium text-gray-900 text-xs sm:text-sm md:text-base leading-snug line-clamp-3">{item.fields.title}</h3>
+                    </div>
+                  </>
+                ) : (
+                  /* フルサイズグラデーション背景 - 画像なしカード */
+                  <GradientPlaceholder
+                    title={item.fields.title}
+                    categoryName={categoryName}
+                    contentType={contentType}
+                    className="w-full h-full rounded-lg"
+                  />
+                )}
+              </>
+            );
+
             return (
               <div
                 key={item.sys.id}
@@ -164,34 +230,17 @@ export function CategoryCarousel({
                 {/* カード本体 */}
                 <div className={`p-[2px] rounded-xl bg-gradient-to-br ${getBorderGradientClass()} h-[160px] sm:h-[180px] md:h-[200px]`}>
                   <div className="bg-white rounded-lg overflow-hidden h-full flex flex-col">
-                    <Link href={`${contentPath}${item.fields.slug}`} className="flex flex-col h-full">
-                      {hasImage ? (
-                        <>
-                          {/* 画像部分 - 正方形の上半分 */}
-                          <div className="relative w-full" style={{ height: 'calc(50% - 1px)' }}>
-                            <Image
-                              src={imageUrl!}
-                              alt={item.fields.title}
-                              fill
-                              sizes="(max-width: 640px) 160px, (max-width: 768px) 180px, 200px"
-                              className="object-cover"
-                            />
-                          </div>
-                          {/* 詳細部分 - 正方形の下半分 */}
-                          <div className="p-2 flex flex-col flex-grow" style={{ height: 'calc(50% - 1px)' }}>
-                            <h3 className="font-medium text-gray-900 text-xs sm:text-sm md:text-base leading-snug line-clamp-3">{item.fields.title}</h3>
-                          </div>
-                        </>
-                      ) : (
-                        /* フルサイズグラデーション背景 - 画像なしカード */
-                        <GradientPlaceholder
-                          title={item.fields.title}
-                          categoryName={categoryName}
-                          contentType={contentType}
-                          className="w-full h-full rounded-lg"
-                        />
-                      )}
-                    </Link>
+                    {isPlaceholder ? (
+                      /* プレースホルダーカードはリンクなし */
+                      <div className="flex flex-col h-full">
+                        {cardContent}
+                      </div>
+                    ) : (
+                      /* 通常のカードはリンクあり */
+                      <Link href={`${contentPath}${item.fields.slug}`} className="flex flex-col h-full">
+                        {cardContent}
+                      </Link>
+                    )}
                   </div>
                 </div>
                 {/* 日付表示 - カードの外側 */}

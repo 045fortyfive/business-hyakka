@@ -17,12 +17,53 @@ export function cn(...inputs: ClassValue[]) {
  * @returns フォーマットされた日付文字列（例: 2023年4月1日）
  */
 export function formatDate(dateString: string): string {
+  if (!dateString) {
+    return '日付未設定';
+  }
+
   const date = new Date(dateString);
+
+  // 無効な日付の場合
+  if (isNaN(date.getTime())) {
+    return '日付未設定';
+  }
+
   return date.toLocaleDateString('ja-JP', {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
   });
+}
+
+/**
+ * Unsplash画像URLを生成する
+ * @param category カテゴリ名
+ * @param width 画像の幅
+ * @param height 画像の高さ
+ * @returns Unsplash画像URL
+ */
+export function generateUnsplashImageUrl(category: string, width: number, height: number): string {
+  // カテゴリに応じたキーワードを設定
+  let keyword = 'business';
+
+  switch (category) {
+    case '基礎ビジネススキル':
+      keyword = 'business,office,professional';
+      break;
+    case '思考法':
+      keyword = 'thinking,strategy,planning';
+      break;
+    case '業務改善':
+      keyword = 'improvement,efficiency,workflow';
+      break;
+    case 'マネジメントスキル':
+      keyword = 'management,leadership,team';
+      break;
+    default:
+      keyword = 'business,professional';
+  }
+
+  return `https://source.unsplash.com/${width}x${height}/?${keyword}`;
 }
 
 /**

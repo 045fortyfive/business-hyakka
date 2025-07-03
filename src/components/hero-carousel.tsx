@@ -4,12 +4,13 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { GradientPlaceholder } from '@/utils/gradient-card-design'
 
 interface HeroSlide {
   id: string
   title: string
   description: string
-  imageUrl: string
+  imageUrl: string | null
   linkUrl: string
   linkText: string
   category?: string
@@ -138,15 +139,14 @@ export function HeroCarousel({
       >
         {/* 背景ブラー効果 - 明るさ調整 */}
         <div className="absolute inset-0 z-0 overflow-hidden">
-          {slides.length > 0 && (
-
-<Image
-  src={slides[currentSlide].imageUrl}
-  alt="Background"
-  fill
-  className="object-cover scale-150 blur-sm opacity-40"
-  priority
-/>
+          {slides.length > 0 && slides[currentSlide].imageUrl && (
+            <Image
+              src={slides[currentSlide].imageUrl}
+              alt="Background"
+              fill
+              className="object-cover scale-150 blur-sm opacity-40"
+              priority
+            />
           )}
           <div className="absolute inset-0 bg-gradient-to-r from-black/50 via-black/30 to-black/50 backdrop-blur-lg" />
         </div>
@@ -193,28 +193,45 @@ export function HeroCarousel({
                       <div className={`rounded-xl overflow-hidden shadow-lg transition-all duration-300 ${
                         isActive ? 'shadow-2xl' : 'shadow-md'
                       }`}>
-                        {/* 画像のみ表示 */}
-                        <div className="relative aspect-square overflow-hidden">
-                          <Image
-                            src={slide.imageUrl}
-                            alt={slide.title}
-                            fill
-                            priority={isActive}
-                            className={`object-cover transition-transform duration-500 ${
-                              isActive ? 'scale-105' : 'scale-100'
-                            }`}
-                          />
-                          {slide.category && (
-                            <div className="absolute top-3 left-3 bg-black/60 backdrop-blur-sm text-white text-xs font-medium px-2.5 py-1 rounded-full">
-                              {slide.category}
-                            </div>
-                          )}
-                          {isActive && (
-                            <div className="absolute top-3 right-3 bg-blue-600/80 backdrop-blur-sm text-white text-xs font-semibold px-2.5 py-1 rounded-full">
-                              注目
-                            </div>
-                          )}
-                        </div>
+                        {slide.imageUrl ? (
+                          /* 画像ありカード */
+                          <div className="relative aspect-square overflow-hidden">
+                            <Image
+                              src={slide.imageUrl}
+                              alt={slide.title}
+                              fill
+                              priority={isActive}
+                              className={`object-cover transition-transform duration-500 ${
+                                isActive ? 'scale-105' : 'scale-100'
+                              }`}
+                            />
+                            {slide.category && (
+                              <div className="absolute top-3 left-3 bg-black/60 backdrop-blur-sm text-white text-xs font-medium px-2.5 py-1 rounded-full">
+                                {slide.category}
+                              </div>
+                            )}
+                            {isActive && (
+                              <div className="absolute top-3 right-3 bg-blue-600/80 backdrop-blur-sm text-white text-xs font-semibold px-2.5 py-1 rounded-full">
+                                注目
+                              </div>
+                            )}
+                          </div>
+                        ) : (
+                          /* 画像なしカード - フルサイズグラデーション背景 */
+                          <div className="relative aspect-square overflow-hidden">
+                            <GradientPlaceholder
+                              title={slide.title}
+                              categoryName={slide.category || 'デフォルト'}
+                              contentType="記事"
+                              className="w-full h-full"
+                            />
+                            {isActive && (
+                              <div className="absolute top-3 right-3 bg-blue-600/80 backdrop-blur-sm text-white text-xs font-semibold px-2.5 py-1 rounded-full">
+                                注目
+                              </div>
+                            )}
+                          </div>
+                        )}
                       </div>
                     </div>
                   );
