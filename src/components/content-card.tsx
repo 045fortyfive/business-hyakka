@@ -9,6 +9,7 @@ import {
   CardTitle,
   CardDescription
 } from "@/components/ui/base-card"
+import { generateUnsplashImageUrl, generateGradientCardDesign } from "@/utils/image-utils"
 
 interface ContentCardProps {
   title: string;
@@ -81,6 +82,14 @@ export default function ContentCard({
     day: "numeric",
   })
 
+  // 画像がない場合の処理
+  const shouldUseUnsplash = !thumbnail && Math.random() > 0.5
+  const fallbackImageUrl = shouldUseUnsplash
+    ? generateUnsplashImageUrl(category.name, 444, 250)
+    : null
+
+  const gradientDesign = generateGradientCardDesign(category.name, title, contentType)
+
   // コンテンツタイプに応じたURLパスを生成
   const contentPath = `/${contentType}s/${slug}`;
 
@@ -89,20 +98,45 @@ export default function ContentCard({
       <div className="bg-white rounded-lg overflow-hidden h-full flex flex-col">
         <CardLink href={contentPath} className="flex flex-col h-full">
           <div className="flex-shrink-0">
-            <CardImage
-              src={
-                thumbnail?.url ||
-                "/placeholder.svg?height=200&width=444&query=business content"
-              }
-              alt={thumbnail?.alt || title}
-              containerClassName="rounded-t-lg"
-              priority={false}
-            >
-              <CardBadge color={typeInfo.bgColor} className="flex items-center">
-                {typeInfo.icon}
-                <span className={`ml-1 text-xs font-medium ${typeInfo.textColor}`}>{typeInfo.label}</span>
-              </CardBadge>
-            </CardImage>
+            {thumbnail?.url || fallbackImageUrl ? (
+              <CardImage
+                src={thumbnail?.url || fallbackImageUrl || ''}
+                alt={thumbnail?.alt || title}
+                containerClassName="rounded-t-lg"
+                priority={false}
+              >
+                <CardBadge color={typeInfo.bgColor} className="flex items-center">
+                  {typeInfo.icon}
+                  <span className={`ml-1 text-xs font-medium ${typeInfo.textColor}`}>{typeInfo.label}</span>
+                </CardBadge>
+              </CardImage>
+            ) : (
+              <div className={`relative h-[200px] bg-gradient-to-br ${gradientDesign.gradientClass} rounded-t-lg overflow-hidden`}>
+                {/* 背景パターン */}
+                <div className="absolute inset-0 opacity-20">
+                  <div className="w-full h-full" style={{
+                    backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23ffffff' fill-opacity='0.4'%3E%3Ccircle cx='30' cy='30' r='2'/%3E%3C/g%3E%3C/svg%3E")`,
+                    backgroundSize: '30px 30px'
+                  }} />
+                </div>
+
+                {/* コンテンツ */}
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="text-center text-white">
+                    <div className="w-16 h-16 mx-auto mb-4" dangerouslySetInnerHTML={{ __html: gradientDesign.iconSvg }} />
+                    <h3 className="text-lg font-semibold mb-2">{category.name}</h3>
+                    <p className="text-sm opacity-90">{typeInfo.label}コンテンツ</p>
+                  </div>
+                </div>
+
+                {/* バッジ */}
+                <CardBadge color={typeInfo.bgColor} className="flex items-center absolute top-4 left-4">
+                  {typeInfo.icon}
+                  <span className={`ml-1 text-xs font-medium ${typeInfo.textColor}`}>{typeInfo.label}</span>
+                </CardBadge>
+              </div>
+            )}
+
           </div>
           <CardContent className="bg-gradient-to-br from-white via-blue-50/20 to-purple-50/30 flex-grow flex flex-col">
             <CardTitle className="text-gray-800">{title}</CardTitle>

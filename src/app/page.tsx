@@ -7,6 +7,7 @@ import { CategoryCarousel } from "@/components/category-carousel";
 import { getImageProps } from "@/lib/utils";
 import { CONTENT_TYPES } from "@/lib/types";
 import { CategoryName } from "@/utils/category-colors";
+import { generateUnsplashImageUrl, generateGradientCardDesign } from "@/utils/image-utils";
 
 // Webhookからの再検証で即座更新、フォールバックとして毎日再検証
 export const revalidate = 86400; // 24時間（フォールバック）
@@ -118,8 +119,10 @@ export default async function Home() {
           ? fields.category[0]?.fields?.name
           : "ビジネススキル";
 
-        // 画像URLの取得
-        let imageUrl = "/placeholder.svg";
+        // 画像URLの取得と改善されたフォールバック
+        let imageUrl = null;
+        let useGradientCard = false;
+
         if (fields.featuredImage && fields.featuredImage.fields && fields.featuredImage.fields.file) {
           const fileUrl = fields.featuredImage.fields.file.url;
           // 画像URLの形式に応じて適切に処理
@@ -131,6 +134,16 @@ export default async function Home() {
             imageUrl = fileUrl;
           } else {
             imageUrl = `https://${fileUrl}`;
+          }
+        } else {
+          // 画像がない場合は、Unsplash画像またはグラデーションカードを使用
+          const shouldUseUnsplash = Math.random() > 0.5; // 50%の確率でUnsplash画像を使用
+
+          if (shouldUseUnsplash) {
+            imageUrl = generateUnsplashImageUrl(category, 800, 450);
+          } else {
+            useGradientCard = true;
+            // グラデーションカードの場合はimageUrlをnullのままにする
           }
         }
 
@@ -160,6 +173,9 @@ export default async function Home() {
           displayOrder: fields.displayOrder
         });
 
+        // グラデーションカードの情報を取得
+        const gradientDesign = generateGradientCardDesign(category, fields.title, content.type);
+
         heroSlides.push({
           id: content.sys.id,
           title: fields.title,
@@ -168,6 +184,10 @@ export default async function Home() {
           linkUrl: linkUrl,
           linkText: linkText,
           category: category,
+          useGradientCard,
+          gradientClass: gradientDesign.gradientClass,
+          iconSvg: gradientDesign.iconSvg,
+          accentColor: gradientDesign.accentColor
         });
       }
     });

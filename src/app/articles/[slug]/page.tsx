@@ -1,5 +1,4 @@
 import { Metadata } from 'next';
-import { notFound } from 'next/navigation';
 import { getMdxBySlug, renderContentfulMdx } from '@/utils/mdx-utils';
 import UniversalContentRenderer from '@/components/UniversalContentRenderer';
 import { PreviewWrapper } from '@/components/preview';
@@ -70,12 +69,7 @@ export default async function MdxArticlePage({ params }: Props) {
   const resolvedParams = await Promise.resolve(params);
   const { slug } = resolvedParams;
 
-  // 問題のある記事を一時的にスキップ
-  const problematicSlugs = ['ichinichisekkeijyutu', 'jibunnonobashikata'];
-  if (problematicSlugs.includes(slug)) {
-    console.warn(`Redirecting problematic article: ${slug}`);
-    notFound();
-  }
+  // スキップ処理を削除 - 強化されたエラーハンドリングで対応
 
   try {
     // Contentfulからコンテンツを取得
@@ -182,21 +176,12 @@ export async function generateStaticParams() {
       limit: 1000, // 十分な数を取得
     });
 
-    // 問題のある記事を一時的にスキップ
-    const problematicSlugs = ['ichinichisekkeijyutu', 'jibunnonobashikata'];
-
     // slugが有効な記事のみを返す
     const validArticles = entries.items.filter(
       (article: any) => {
         const hasValidSlug = article?.fields?.slug &&
                            typeof article.fields.slug === 'string' &&
                            article.fields.slug.trim() !== '';
-
-        // 問題のある記事をスキップ
-        if (problematicSlugs.includes(article.fields.slug)) {
-          console.warn(`Skipping problematic article: ${article.fields.slug}`);
-          return false;
-        }
 
         if (!hasValidSlug) {
           console.warn(`Article "${article?.fields?.title || 'Unknown'}" has invalid slug: "${article?.fields?.slug}"`);
@@ -213,7 +198,9 @@ export async function generateStaticParams() {
     }));
   } catch (error) {
     console.error('Error generating static params for articles:', error);
-    // エラーが発生した場合は空の配列を返す
-    return [];
+    // エラーの場合は最小限のパラメータを返す
+    return [
+      { slug: 'merabiannohousoku' }, // 動作確認済みの記事
+    ];
   }
 }

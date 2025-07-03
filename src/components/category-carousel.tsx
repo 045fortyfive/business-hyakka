@@ -5,6 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { getGradientColorByCategory } from '@/utils/category-colors';
+import { GradientPlaceholder } from '@/utils/gradient-card-design';
 
 interface CategoryCarouselProps {
   title: string;
@@ -138,10 +139,12 @@ export function CategoryCarousel({
         >
           {items.map((item) => {
             // 画像URLの取得
-            let imageUrl = "/placeholder.svg";
+            let imageUrl = null;
+            let hasImage = false;
             if (item.fields.featuredImage && item.fields.featuredImage.fields && item.fields.featuredImage.fields.file) {
               const fileUrl = item.fields.featuredImage.fields.file.url;
               imageUrl = fileUrl.startsWith('//') ? `https:${fileUrl}` : fileUrl;
+              hasImage = true;
             }
 
             // コンテンツタイプに応じたURLパスを生成
@@ -164,13 +167,22 @@ export function CategoryCarousel({
                     <Link href={`${contentPath}${item.fields.slug}`} className="flex flex-col h-full">
                       {/* 画像部分 - 正方形の上半分 */}
                       <div className="relative w-full" style={{ height: 'calc(50% - 1px)' }}>
-                        <Image
-                          src={imageUrl}
-                          alt={item.fields.title}
-                          fill
-                          sizes="(max-width: 640px) 160px, (max-width: 768px) 180px, 200px"
-                          className="object-cover"
-                        />
+                        {hasImage ? (
+                          <Image
+                            src={imageUrl!}
+                            alt={item.fields.title}
+                            fill
+                            sizes="(max-width: 640px) 160px, (max-width: 768px) 180px, 200px"
+                            className="object-cover"
+                          />
+                        ) : (
+                          <GradientPlaceholder
+                            title={item.fields.title}
+                            categoryName={categoryName}
+                            contentType={contentType}
+                            className="w-full h-full rounded-t-lg"
+                          />
+                        )}
                       </div>
                       {/* 詳細部分 - 正方形の下半分 */}
                       <div className="p-2 flex flex-col flex-grow" style={{ height: 'calc(50% - 1px)' }}>

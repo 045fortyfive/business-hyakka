@@ -4,15 +4,20 @@ import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { generateUnsplashImageUrl } from '@/utils/image-utils'
 
 interface SimpleCardSlide {
   id: string
   title: string
   description: string
-  imageUrl: string
+  imageUrl: string | null
   linkUrl: string
   linkText: string
   category?: string
+  useGradientCard?: boolean
+  gradientClass?: string
+  iconSvg?: string
+  accentColor?: string
 }
 
 interface SimpleCardCarouselProps {
@@ -130,14 +135,20 @@ export function SimpleCardCarousel({
         {/* 背景ぼかし効果 - 白ベースでぼかしを強化 */}
         <div className="absolute inset-0 z-0 overflow-hidden">
           <div className="absolute inset-0 w-full h-full bg-white">
-            <Image
-              src={slides[currentSlide]?.imageUrl || '/placeholder.svg'}
-              alt="Background"
-              fill
-              className="object-cover scale-125 blur-2xl opacity-50"
-              priority
-              unoptimized={true}
-            />
+            {slides[currentSlide]?.imageUrl ? (
+              <Image
+                src={slides[currentSlide].imageUrl}
+                alt="Background"
+                fill
+                className="object-cover scale-125 blur-2xl opacity-50"
+                priority
+                unoptimized={true}
+              />
+            ) : slides[currentSlide]?.useGradientCard ? (
+              <div className={`w-full h-full bg-gradient-to-br ${slides[currentSlide]?.gradientClass || 'from-blue-500 to-indigo-600'} opacity-30`} />
+            ) : (
+              <div className="w-full h-full bg-gradient-to-br from-blue-100 to-indigo-200 opacity-50" />
+            )}
           </div>
           <div className="absolute inset-0 bg-gradient-to-br from-white/80 via-gray-100/80 to-white/80 backdrop-blur-sm" />
         </div>
@@ -172,18 +183,91 @@ export function SimpleCardCarousel({
                     <div className={`w-full h-full p-[2px] bg-gradient-to-br from-blue-400 via-sky-500 to-indigo-600 rounded-xl overflow-hidden shadow-lg transition-all duration-300 ${
                       isActive ? 'scale-105' : ''
                     }`}>
-                      <div className="bg-white rounded-lg flex flex-col h-full">
+                      {slide.useGradientCard && !slide.imageUrl ? (
+                        /* フルサイズグラデーションカード */
+                        <div className={`w-full h-full bg-gradient-to-br ${slide.gradientClass || 'from-blue-500 to-indigo-600'} rounded-lg flex flex-col justify-between relative overflow-hidden`}>
+                          {/* 背景パターン */}
+                          <div className="absolute inset-0 opacity-20">
+                            <div className="w-full h-full" style={{
+                              backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23ffffff' fill-opacity='0.4'%3E%3Ccircle cx='30' cy='30' r='2'/%3E%3C/g%3E%3C/svg%3E")`,
+                              backgroundSize: '30px 30px'
+                            }} />
+                          </div>
+
+                          {/* 上部：カテゴリとアイコン */}
+                          <div className="relative z-10 p-3 sm:p-4">
+                            <div className="flex items-center justify-between">
+                              <span className="text-xs sm:text-sm font-medium text-white/90 bg-white/20 px-2 py-1 rounded-full">
+                                {slide.category}
+                              </span>
+                              <div className="w-6 h-6 sm:w-8 sm:h-8 text-white/80" dangerouslySetInnerHTML={{ __html: slide.iconSvg || '' }} />
+                            </div>
+                          </div>
+
+                          {/* 中央：タイトル */}
+                          <div className="relative z-10 px-3 sm:px-4 flex-grow flex items-center">
+                            <h3 className="text-sm sm:text-base md:text-lg font-bold text-white leading-tight line-clamp-3">
+                              {slide.title}
+                            </h3>
+                          </div>
+
+                          {/* 下部：詳細ボタン */}
+                          <div className="relative z-10 p-3 sm:p-4">
+                            <div className="flex items-center justify-between">
+                              <span className="text-xs text-white/80">
+                                {slide.linkText}
+                              </span>
+                              <div className="w-5 h-5 text-white/80">
+                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                                </svg>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ) : (
+                        /* 通常のカード（画像あり） */
+                        <div className="bg-white rounded-lg flex flex-col h-full">
                         {/* 画像部分 */}
                         <div className="relative w-full h-[85px] sm:h-[102px] md:h-[119px]">
-                          <Image
-                            src={slide.imageUrl || '/placeholder.svg'}
-                            alt={slide.title}
-                            fill
-                            className="object-cover"
-                            sizes="(max-width: 640px) 240px, (max-width: 768px) 280px, 320px"
-                            priority={isActive}
-                            unoptimized={true}
-                          />
+                          {slide.imageUrl ? (
+                            <Image
+                              src={slide.imageUrl}
+                              alt={slide.title}
+                              fill
+                              className="object-cover"
+                              sizes="(max-width: 640px) 240px, (max-width: 768px) 280px, 320px"
+                              priority={isActive}
+                              unoptimized={true}
+                            />
+                          ) : slide.useGradientCard ? (
+                            <div className={`w-full h-full bg-gradient-to-br ${slide.gradientClass || 'from-blue-500 to-indigo-600'} flex items-center justify-center relative overflow-hidden`}>
+                              {/* 背景パターン */}
+                              <div className="absolute inset-0 opacity-20">
+                                <div className="w-full h-full" style={{
+                                  backgroundImage: `url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23ffffff' fill-opacity='0.3'%3E%3Ccircle cx='20' cy='20' r='1'/%3E%3C/g%3E%3C/svg%3E")`,
+                                  backgroundSize: '20px 20px'
+                                }} />
+                              </div>
+
+                              {/* コンテンツ */}
+                              <div className="text-center z-10 px-2">
+                                <div className="w-6 h-6 mx-auto mb-1 text-white" dangerouslySetInnerHTML={{ __html: slide.iconSvg || '' }} />
+                                <span className="text-[10px] text-white font-medium block leading-tight">{slide.category}</span>
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="w-full h-full bg-gradient-to-br from-blue-100 to-indigo-200 flex items-center justify-center">
+                              <div className="text-center">
+                                <div className="w-6 h-6 mx-auto mb-1 bg-white rounded-full flex items-center justify-center">
+                                  <svg className="w-3 h-3 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                  </svg>
+                                </div>
+                                <span className="text-[10px] text-indigo-700 font-medium">{slide.category}</span>
+                              </div>
+                            </div>
+                          )}
 
                           {/* カテゴリーバッジ */}
                           {slide.category && (
@@ -210,7 +294,8 @@ export function SimpleCardCarousel({
                             </span>
                           </div>
                         </div>
-                      </div>
+                        </div>
+                      )}
                     </div>
                   </Link>
                 </div>

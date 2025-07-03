@@ -62,7 +62,7 @@ export default function AudioPlayer({ src, title, className = "" }: AudioPlayerP
 
   // オーディオの読み込みエラー処理
   const handleError = (error: any) => {
-    console.error('Audio loading error:', error);
+    console.warn('Audio loading error:', error || 'Unknown audio error');
     setIsLoading(false);
     setHasError(true);
     setErrorMessage('音声ファイルの読み込みに失敗しました');

@@ -2,8 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import matter from 'gray-matter';
 import { compileMDX } from 'next-mdx-remote/rsc';
-import { Content, ContentFields } from '@/lib/types';
-import { Asset } from 'contentful';
+import { Content } from '@/lib/types';
 import { getContentBySlug } from '@/lib/api';
 import { processContentfulLineBreaks } from '@/utils/linebreak-utils';
 
@@ -165,6 +164,89 @@ function sanitizeMDXContent(mdxContent: string): string {
   }
 }
 
+// Helper function to sanitize Callout tags
+function sanitizeCalloutTags(mdxContent: string): string {
+  if (!mdxContent || typeof mdxContent !== 'string') {
+    return '';
+  }
+
+  try {
+    let sanitized = mdxContent;
+
+    // 1. 不完全なCalloutタグを修正
+    // 開始タグがあるが終了タグがない場合
+    const calloutOpenRegex = /<Callout[^>]*>/g;
+    const calloutCloseRegex = /<\/Callout>/g;
+
+    const openMatches = sanitized.match(calloutOpenRegex) || [];
+    const closeMatches = sanitized.match(calloutCloseRegex) || [];
+
+    // 開始タグの数が終了タグより多い場合、不足分を追加
+    if (openMatches.length > closeMatches.length) {
+      const missingCloseTags = openMatches.length - closeMatches.length;
+      for (let i = 0; i < missingCloseTags; i++) {
+        sanitized += '\n</Callout>';
+      }
+    }
+
+    // 2. 空のCalloutタグを削除
+    sanitized = sanitized.replace(/<Callout[^>]*>\s*<\/Callout>/g, '');
+
+    // 3. 不正な属性を修正
+    sanitized = sanitized.replace(/<Callout\s+type="([^"]*)"[^>]*>/g, '<Callout type="$1">');
+    sanitized = sanitized.replace(/<Callout\s+type='([^']*)'[^>]*>/g, '<Callout type="$1">');
+
+    // 4. type属性がない場合はデフォルトを追加
+    sanitized = sanitized.replace(/<Callout\s*>/g, '<Callout type="info">');
+
+    return sanitized;
+  } catch (error) {
+    console.error('Error in sanitizeCalloutTags:', error);
+    return mdxContent;
+  }
+}
+
+// Helper function to sanitize code blocks
+function sanitizeCodeBlocks(mdxContent: string): string {
+  if (!mdxContent || typeof mdxContent !== 'string') {
+    return '';
+  }
+
+  try {
+    let sanitized = mdxContent;
+
+    // 1. CodeBlockコンポーネントの不正な使用を修正
+    // <CodeBlock language="javascript">undefined</CodeBlock> のようなパターン
+    sanitized = sanitized.replace(/<CodeBlock([^>]*)>undefined<\/CodeBlock>/g, '<CodeBlock$1></CodeBlock>');
+    sanitized = sanitized.replace(/<CodeBlock([^>]*)>null<\/CodeBlock>/g, '<CodeBlock$1></CodeBlock>');
+
+    // 2. 空のCodeBlockを修正
+    sanitized = sanitized.replace(/<CodeBlock([^>]*)>\s*<\/CodeBlock>/g, '');
+
+    // 3. 不正な属性値を修正
+    sanitized = sanitized.replace(/language="undefined"/g, 'language="text"');
+    sanitized = sanitized.replace(/language="null"/g, 'language="text"');
+    sanitized = sanitized.replace(/language=""/g, 'language="text"');
+
+    // 4. マークダウンコードブロックの修正
+    // ```undefined や ```null のようなパターン
+    sanitized = sanitized.replace(/```undefined\n/g, '```text\n');
+    sanitized = sanitized.replace(/```null\n/g, '```text\n');
+    sanitized = sanitized.replace(/```\s*\n/g, '```text\n');
+
+    // 5. 不完全なコードブロックを修正
+    sanitized = sanitized.replace(/```[^`]*$/g, ''); // 閉じられていないコードブロック
+
+    // 6. Calloutタグの修正
+    sanitized = sanitizeCalloutTags(sanitized);
+
+    return sanitized;
+  } catch (error) {
+    console.error('Error in sanitizeCodeBlocks:', error);
+    return mdxContent;
+  }
+}
+
 // Helper function to sanitize problematic MDX patterns
 function sanitizeProblematicMDXPatterns(mdxContent: string): string {
   if (!mdxContent || typeof mdxContent !== 'string') {
@@ -174,22 +256,48 @@ function sanitizeProblematicMDXPatterns(mdxContent: string): string {
   try {
     let sanitized = mdxContent;
 
-    // 問題のあるパターンを修正
-    // 空のYellowHighlightタグを修正
+    // 1. 最も問題となる太字とカスタムタグの混在パターンを修正
+    // すべてのカスタムタグに対して適用
+    const customTags = ['YellowHighlight', 'RedText', 'CustomIns'];
+
+    for (const tag of customTags) {
+      // **<Tag>text**→**text</Tag>** のようなパターン
+      const pattern1 = new RegExp(`\\*\\*<${tag}>([^*]*)\\*\\*([^<]*)<\\/${tag}>\\*\\*`, 'g');
+      sanitized = sanitized.replace(pattern1, `**<${tag}>$1$2</${tag}>**`);
+
+      // **<Tag>text</Tag>** のようなパターン
+      const pattern2 = new RegExp(`\\*\\*<${tag}>([^<]*)<\\/${tag}>\\*\\*`, 'g');
+      sanitized = sanitized.replace(pattern2, `**<${tag}>$1</${tag}>**`);
+
+      // <Tag>**text**</Tag> のようなパターン
+      const pattern3 = new RegExp(`<${tag}>\\*\\*([^*]*)\\*\\*<\\/${tag}>`, 'g');
+      sanitized = sanitized.replace(pattern3, `**<${tag}>$1</${tag}>**`);
+
+      // **<Tag>text**text</Tag> のような複雑なパターン
+      const pattern4 = new RegExp(`\\*\\*<${tag}>([^<]*?)\\*\\*([^<]*?)<\\/${tag}>`, 'g');
+      sanitized = sanitized.replace(pattern4, `**<${tag}>$1$2</${tag}>**`);
+    }
+
+    // 2. 空のタグを削除
     sanitized = sanitized.replace(/<YellowHighlight>\s*<\/YellowHighlight>/g, '');
-    sanitized = sanitized.replace(/<YellowHighlight\s*\/>/g, '');
-
-    // 空のRedTextタグを修正
     sanitized = sanitized.replace(/<RedText>\s*<\/RedText>/g, '');
-    sanitized = sanitized.replace(/<RedText\s*\/>/g, '');
-
-    // 空のCustomInsタグを修正
     sanitized = sanitized.replace(/<CustomIns>\s*<\/CustomIns>/g, '');
-    sanitized = sanitized.replace(/<CustomIns\s*\/>/g, '');
 
-    // ネストしたタグの問題を修正
+    // 3. 不正な属性を持つタグを修正
+    sanitized = sanitized.replace(/<YellowHighlight[^>]*>/g, '<YellowHighlight>');
+    sanitized = sanitized.replace(/<RedText[^>]*>/g, '<RedText>');
+    sanitized = sanitized.replace(/<CustomIns[^>]*>/g, '<CustomIns>');
+
+    // 4. 壊れたネストを修正
     sanitized = sanitized.replace(/<YellowHighlight>\s*<YellowHighlight>/g, '<YellowHighlight>');
     sanitized = sanitized.replace(/<\/YellowHighlight>\s*<\/YellowHighlight>/g, '</YellowHighlight>');
+
+    // 5. 不完全なタグを修正
+    sanitized = sanitized.replace(/<YellowHighlight([^>]*)$/g, ''); // 閉じられていないタグ
+    sanitized = sanitized.replace(/^([^<]*)<\/YellowHighlight>/g, '$1'); // 開始タグのないタグ
+
+    // 6. コードブロックの検証と修正
+    sanitized = sanitizeCodeBlocks(sanitized);
 
     return sanitized;
   } catch (error) {
@@ -352,22 +460,8 @@ export async function renderContentfulMdx(slug: string, contentType: string = 'a
         }
 
         console.log('Starting MDX compilation...');
-        console.log('MDX content sample for compilation:', processedMdxContent.substring(0, 300));
 
-        // 問題のあるパターンを事前チェック
-        const problematicPatterns = [
-          /<YellowHighlight[^>]*>/g,
-          /<RedText[^>]*>/g,
-          /<CustomIns[^>]*>/g
-        ];
-
-        for (const pattern of problematicPatterns) {
-          const matches = processedMdxContent.match(pattern);
-          if (matches) {
-            console.log('Found potentially problematic pattern:', pattern, matches.slice(0, 3));
-          }
-        }
-
+        // MDXコンパイル
         const { content: mdxContent } = await compileMDX({
           source: processedMdxContent,
           components,
@@ -402,14 +496,7 @@ export async function renderContentfulMdx(slug: string, contentType: string = 'a
           version: (content.sys as any).version
         };
       } catch (mdxError) {
-        console.error('MDX compilation failed:', mdxError);
-        console.error('MDX content that failed to compile:', processedMdxContent.substring(0, 500));
-
-        // エラーの詳細をログに出力
-        if (mdxError instanceof Error) {
-          console.error('Error message:', mdxError.message);
-          console.error('Error stack:', mdxError.stack);
-        }
+        console.error('MDX compilation failed:', mdxError instanceof Error ? mdxError.message : mdxError);
 
         // MDXコンパイルに失敗した場合は、プレーンテキストとして表示
         return {

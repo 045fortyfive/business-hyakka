@@ -25,13 +25,13 @@ interface CustomImageProps {
   responsive?: boolean;
 }
 
-export default function CustomImage({ 
-  src, 
-  alt = '', 
+export default function CustomImage({
+  src,
+  alt,
   title,
   description,
-  width, 
-  height, 
+  width,
+  height,
   className = '',
   priority = false,
   quality = 80,

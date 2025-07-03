@@ -110,15 +110,22 @@ export function generateBlurDataUrl(originalUrl: string): string {
  * @returns alt属性の文字列
  */
 export function generateImageAlt(
-  title?: string, 
-  description?: string, 
+  title?: string,
+  description?: string,
   fallback: string = ''
 ): string {
   if (title && description) {
     return `${title} - ${description}`;
   }
-  
-  return title || description || fallback;
+
+  const result = title || description || fallback;
+
+  // alt属性が空の場合は、デフォルトの説明を提供
+  if (!result || result.trim() === '') {
+    return 'Image';
+  }
+
+  return result;
 }
 
 /**
