@@ -100,11 +100,11 @@ export function GradientPlaceholder({
       </div>
       
       {/* コンテンツ */}
-      <div className="relative z-10 text-center p-4">
-        <h3 className={`${props.textColor} font-bold text-sm sm:text-base md:text-lg leading-tight line-clamp-3 mb-2`}>
+      <div className="relative z-10 text-center p-2 sm:p-3 md:p-4 flex flex-col justify-center h-full">
+        <h3 className={`${props.textColor} font-bold text-xs sm:text-sm md:text-base leading-tight line-clamp-3 mb-1 sm:mb-2`}>
           {props.displayTitle}
         </h3>
-        <span className={`${props.textColor} opacity-80 text-xs sm:text-sm font-medium`}>
+        <span className={`${props.textColor} opacity-80 text-[10px] sm:text-xs md:text-sm font-medium`}>
           {props.displayContentType}
         </span>
       </div>

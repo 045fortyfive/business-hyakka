@@ -165,29 +165,32 @@ export function CategoryCarousel({
                 <div className={`p-[2px] rounded-xl bg-gradient-to-br ${getBorderGradientClass()} h-[160px] sm:h-[180px] md:h-[200px]`}>
                   <div className="bg-white rounded-lg overflow-hidden h-full flex flex-col">
                     <Link href={`${contentPath}${item.fields.slug}`} className="flex flex-col h-full">
-                      {/* 画像部分 - 正方形の上半分 */}
-                      <div className="relative w-full" style={{ height: 'calc(50% - 1px)' }}>
-                        {hasImage ? (
-                          <Image
-                            src={imageUrl!}
-                            alt={item.fields.title}
-                            fill
-                            sizes="(max-width: 640px) 160px, (max-width: 768px) 180px, 200px"
-                            className="object-cover"
-                          />
-                        ) : (
-                          <GradientPlaceholder
-                            title={item.fields.title}
-                            categoryName={categoryName}
-                            contentType={contentType}
-                            className="w-full h-full rounded-t-lg"
-                          />
-                        )}
-                      </div>
-                      {/* 詳細部分 - 正方形の下半分 */}
-                      <div className="p-2 flex flex-col flex-grow" style={{ height: 'calc(50% - 1px)' }}>
-                        <h3 className="font-medium text-gray-900 text-xs sm:text-sm md:text-base leading-snug line-clamp-3">{item.fields.title}</h3>
-                      </div>
+                      {hasImage ? (
+                        <>
+                          {/* 画像部分 - 正方形の上半分 */}
+                          <div className="relative w-full" style={{ height: 'calc(50% - 1px)' }}>
+                            <Image
+                              src={imageUrl!}
+                              alt={item.fields.title}
+                              fill
+                              sizes="(max-width: 640px) 160px, (max-width: 768px) 180px, 200px"
+                              className="object-cover"
+                            />
+                          </div>
+                          {/* 詳細部分 - 正方形の下半分 */}
+                          <div className="p-2 flex flex-col flex-grow" style={{ height: 'calc(50% - 1px)' }}>
+                            <h3 className="font-medium text-gray-900 text-xs sm:text-sm md:text-base leading-snug line-clamp-3">{item.fields.title}</h3>
+                          </div>
+                        </>
+                      ) : (
+                        /* フルサイズグラデーション背景 - 画像なしカード */
+                        <GradientPlaceholder
+                          title={item.fields.title}
+                          categoryName={categoryName}
+                          contentType={contentType}
+                          className="w-full h-full rounded-lg"
+                        />
+                      )}
                     </Link>
                   </div>
                 </div>
