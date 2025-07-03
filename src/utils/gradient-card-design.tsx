@@ -6,9 +6,9 @@ export function generateGradientCardDesign(categoryName: string, title: string, 
     
     if (categoryLower.includes('ビジネス') || categoryLower.includes('business')) {
       return {
-        gradient: 'from-blue-500 via-blue-600 to-indigo-700',
+        gradient: 'from-blue-700 via-blue-800 to-indigo-900',
         textColor: 'text-white',
-        shadowColor: 'shadow-blue-500/30'
+        shadowColor: 'shadow-blue-700/30'
       };
     }
     

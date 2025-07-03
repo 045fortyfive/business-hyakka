@@ -237,7 +237,30 @@ export default async function Home() {
         ...category,
         content
       };
-    }).filter(item => item.content.length > 0);
+    });
+
+    // 優先表示するカテゴリ（コンテンツがなくても表示）
+    const priorityCategories = ['基礎ビジネススキル', '思考法', '業務改善'];
+
+    // 優先カテゴリを先に表示し、その後コンテンツがある他のカテゴリを表示
+    const priorityCategoryContents = categoryContents.filter(item =>
+      priorityCategories.includes(item.name)
+    );
+
+    const otherCategoryContents = categoryContents.filter(item =>
+      !priorityCategories.includes(item.name) && item.content.length > 0
+    );
+
+    const finalCategoryContents = [...priorityCategoryContents, ...otherCategoryContents];
+
+    // デバッグ用ログ
+    const categoryDebugInfo = categoryContents.map(cat => ({
+      name: cat.name,
+      contentCount: cat.content.length
+    }));
+    console.log('🏷️ カテゴリ別コンテンツ数:', categoryDebugInfo);
+    console.log('🎯 優先カテゴリ:', priorityCategoryContents.map(cat => `${cat.name}(${cat.content.length}件)`));
+    console.log('📋 最終表示カテゴリ:', finalCategoryContents.map(cat => `${cat.name}(${cat.content.length}件)`));
 
     return (
       <div className="container mx-auto px-4 py-4 sm:py-6 md:py-8">
@@ -296,7 +319,7 @@ export default async function Home() {
         <CategoryTags categories={categoriesData.items} />
 
         {/* カテゴリー別カルーセル - 動的に生成 */}
-        {categoryContents.map(category => (
+        {finalCategoryContents.map(category => (
           <CategoryCarousel
             key={category.id}
             title={category.name}
