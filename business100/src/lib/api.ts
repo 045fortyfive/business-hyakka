@@ -11,8 +11,8 @@ import {
 } from './types';
 
 // プレビューモードに応じたクライアントを取得する関数
-export function getClient() {
-  const { isEnabled } = draftMode();
+export async function getClient() {
+  const { isEnabled } = await draftMode();
   return isEnabled ? previewContentfulClient : contentfulClient;
 }
 
@@ -30,7 +30,7 @@ export async function getArticles(limit = 10, skip = 0): Promise<ContentCollecti
 
   try {
     // プレビューモードに応じたクライアントを取得
-    const client = getClient();
+    const client = await getClient();
 
     // Contentfulのクエリパラメータを表示
     console.log('Query parameters:', {
@@ -81,7 +81,7 @@ export async function getArticleBySlug(slug: string): Promise<Content | null> {
   console.log(`Fetching article by slug: ${slug}`);
   try {
     // プレビューモードに応じたクライアントを取得
-    const client = getClient();
+    const client = await getClient();
 
     const entries = await client.getEntries<Content['fields']>({
       content_type: CONTENT_TYPE.CONTENT,
@@ -104,7 +104,7 @@ export async function getVideos(limit = 10, skip = 0): Promise<ContentCollection
   console.log(`Fetching videos: limit=${limit}, skip=${skip}`);
   try {
     // プレビューモードに応じたクライアントを取得
-    const client = getClient();
+    const client = await getClient();
 
     const response = await client.getEntries<Content['fields']>({
       content_type: CONTENT_TYPE.CONTENT,
@@ -133,7 +133,7 @@ export async function getVideoBySlug(slug: string): Promise<Content | null> {
   console.log(`Fetching video by slug: ${slug}`);
   try {
     // プレビューモードに応じたクライアントを取得
-    const client = getClient();
+    const client = await getClient();
 
     const entries = await client.getEntries<Content['fields']>({
       content_type: CONTENT_TYPE.CONTENT,
@@ -156,7 +156,7 @@ export async function getAudios(limit = 10, skip = 0): Promise<ContentCollection
   console.log(`Fetching audios: limit=${limit}, skip=${skip}`);
   try {
     // プレビューモードに応じたクライアントを取得
-    const client = getClient();
+    const client = await getClient();
 
     const response = await client.getEntries<Content['fields']>({
       content_type: CONTENT_TYPE.CONTENT,
@@ -185,7 +185,7 @@ export async function getAudioBySlug(slug: string): Promise<Content | null> {
   console.log(`Fetching audio by slug: ${slug}`);
   try {
     // プレビューモードに応じたクライアントを取得
-    const client = getClient();
+    const client = await getClient();
 
     const entries = await client.getEntries<Content['fields']>({
       content_type: CONTENT_TYPE.CONTENT,
@@ -208,7 +208,7 @@ export async function getCategories(): Promise<CategoryCollection> {
   console.log('Fetching categories');
   try {
     // プレビューモードに応じたクライアントを取得
-    const client = getClient();
+    const client = await getClient();
 
     const response = await client.getEntries<Category['fields']>({
       content_type: CONTENT_TYPE.CATEGORY,
@@ -232,7 +232,7 @@ export async function getCategories(): Promise<CategoryCollection> {
 // 特定のカテゴリを取得
 export async function getCategoryBySlug(slug: string): Promise<Category | null> {
   // プレビューモードに応じたクライアントを取得
-  const client = getClient();
+  const client = await getClient();
 
   const entries = await client.getEntries<Category['fields']>({
     content_type: CONTENT_TYPE.CATEGORY,
@@ -263,7 +263,7 @@ export async function getContentByCategory(categorySlug: string, limit = 10, ski
 
   try {
     // プレビューモードに応じたクライアントを取得
-    const client = getClient();
+    const client = await getClient();
 
     // カテゴリに属する記事を取得
     const articles = await client.getEntries<Content['fields']>({
@@ -319,7 +319,7 @@ export async function searchContent(query: string, limit = 10, skip = 0) {
 
   try {
     // プレビューモードに応じたクライアントを取得
-    const client = getClient();
+    const client = await getClient();
 
     // 記事を検索
     const articles = await client.getEntries<Content['fields']>({

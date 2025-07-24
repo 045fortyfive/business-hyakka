@@ -130,14 +130,18 @@ export function SimpleCardCarousel({
         {/* 背景ぼかし効果 - 白ベースでぼかしを強化 */}
         <div className="absolute inset-0 z-0 overflow-hidden">
           <div className="absolute inset-0 w-full h-full bg-white">
-            <Image
-              src={slides[currentSlide]?.imageUrl || '/placeholder.svg'}
-              alt="Background"
-              fill
-              className="object-cover scale-125 blur-2xl opacity-50"
-              priority
-              unoptimized={true}
-            />
+            {slides[currentSlide]?.imageUrl ? (
+              <Image
+                src={slides[currentSlide].imageUrl}
+                alt="Background"
+                fill
+                className="object-cover scale-125 blur-2xl opacity-50"
+                priority
+                unoptimized={true}
+              />
+            ) : (
+              <div className="w-full h-full bg-gradient-to-br from-blue-200 via-purple-200 to-pink-200 opacity-50" />
+            )}
           </div>
           <div className="absolute inset-0 bg-gradient-to-br from-white/80 via-gray-100/80 to-white/80 backdrop-blur-sm" />
         </div>
@@ -175,20 +179,29 @@ export function SimpleCardCarousel({
                       <div className="bg-white rounded-lg flex flex-col h-full">
                         {/* 画像部分 */}
                         <div className="relative w-full h-[85px] sm:h-[102px] md:h-[119px]">
-                          <Image
-                            src={slide.imageUrl || '/placeholder.svg'}
-                            alt={slide.title}
-                            fill
-                            className="object-cover"
-                            sizes="(max-width: 640px) 240px, (max-width: 768px) 280px, 320px"
-                            priority={isActive}
-                            unoptimized={true}
-                          />
+                          {slide.imageUrl ? (
+                            <Image
+                              src={slide.imageUrl}
+                              alt={slide.title}
+                              fill
+                              className="object-cover"
+                              sizes="(max-width: 640px) 240px, (max-width: 768px) 280px, 320px"
+                              priority={isActive}
+                              unoptimized={true}
+                            />
+                          ) : (
+                            // 画像がない場合のグラデーション背景
+                            <div className="w-full h-full bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 flex items-center justify-center">
+                              <div className="text-center text-white p-2">
+                                <h4 className="text-xs sm:text-sm font-bold line-clamp-2">{slide.title}</h4>
+                              </div>
+                            </div>
+                          )}
 
                           {/* カテゴリーバッジ */}
                           {slide.category && (
                             <div className="absolute top-0 right-0 m-1 sm:m-1.5 md:m-2">
-                              <span className="inline-block text-[10px] sm:text-xs md:text-sm font-medium px-1.5 sm:px-2 md:px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-700">
+                              <span className="inline-block text-[10px] sm:text-xs md:text-sm font-medium px-1.5 sm:px-2 md:px-2.5 py-0.5 rounded-full bg-white/90 text-gray-800">
                                 {slide.category}
                               </span>
                             </div>

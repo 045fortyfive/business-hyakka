@@ -55,17 +55,20 @@ export default async function Home() {
 
     // ヒーローカルーセル用のスライドを作成
     const heroSlides = [];
+    const addedIds = new Set(); // 重複を防ぐためのSet
 
     // すべての記事をヒーローカルーセルに追加
     articlesData.items.forEach(article => {
-      if (article.fields && article.fields.title) {
+      if (article.fields && article.fields.title && !addedIds.has(article.sys.id)) {
+        addedIds.add(article.sys.id);
+
         // カテゴリー情報の取得
         const category = article.fields.category && article.fields.category.length > 0
           ? article.fields.category[0]?.fields?.name
           : "ビジネススキル";
 
         // 画像URLの取得
-        let imageUrl = "/placeholder.svg";
+        let imageUrl = null;
         if (article.fields.featuredImage && article.fields.featuredImage.fields && article.fields.featuredImage.fields.file) {
           const fileUrl = article.fields.featuredImage.fields.file.url;
           // 画像URLの形式に応じて適切に処理
@@ -82,7 +85,7 @@ export default async function Home() {
 
         console.log(`Hero slide for article "${article.fields.title}":`, {
           id: article.sys.id,
-          imageUrl: imageUrl,
+          imageUrl: imageUrl || 'no image',
           category: category,
         });
 
@@ -100,14 +103,16 @@ export default async function Home() {
 
     // 動画コンテンツもヒーローカルーセルに追加
     videosData.items.forEach(video => {
-      if (video.fields && video.fields.title) {
+      if (video.fields && video.fields.title && !addedIds.has(video.sys.id)) {
+        addedIds.add(video.sys.id);
+
         // カテゴリー情報の取得
         const category = video.fields.category && video.fields.category.length > 0
           ? video.fields.category[0]?.fields?.name
           : "ビジネススキル";
 
         // 画像URLの取得
-        let imageUrl = "/placeholder.svg";
+        let imageUrl = null;
         if (video.fields.featuredImage && video.fields.featuredImage.fields && video.fields.featuredImage.fields.file) {
           const fileUrl = video.fields.featuredImage.fields.file.url;
           // 画像URLの形式に応じて適切に処理
@@ -137,14 +142,16 @@ export default async function Home() {
 
     // 音声コンテンツもヒーローカルーセルに追加
     audiosData.items.forEach(audio => {
-      if (audio.fields && audio.fields.title) {
+      if (audio.fields && audio.fields.title && !addedIds.has(audio.sys.id)) {
+        addedIds.add(audio.sys.id);
+
         // カテゴリー情報の取得
         const category = audio.fields.category && audio.fields.category.length > 0
           ? audio.fields.category[0]?.fields?.name
           : "ビジネススキル";
 
         // 画像URLの取得
-        let imageUrl = "/placeholder.svg";
+        let imageUrl = null;
         if (audio.fields.featuredImage && audio.fields.featuredImage.fields && audio.fields.featuredImage.fields.file) {
           const fileUrl = audio.fields.featuredImage.fields.file.url;
           // 画像URLの形式に応じて適切に処理
