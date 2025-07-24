@@ -27,23 +27,33 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const gaId = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
+
+  // デバッグ用：Google Analytics IDの確認
+  console.log('Google Analytics ID:', gaId);
+
   return (
     <html lang="ja" className={notoSansJP.variable}>
-      <body className="font-sans antialiased min-h-screen flex flex-col" suppressHydrationWarning={true}>
+      <head>
         {/* Google Analytics */}
-        <Script
-          src="https://www.googletagmanager.com/gtag/js?id=G-SW7KLEVEGE"
-          strategy="afterInteractive"
-        />
-        <Script id="google-analytics" strategy="afterInteractive">
-          {`
-            window.dataLayer = window.dataLayer || [];
-            function gtag(){dataLayer.push(arguments);}
-            gtag('js', new Date());
-            gtag('config', 'G-SW7KLEVEGE');
-          `}
-        </Script>
-
+        {gaId && (
+          <>
+            <Script
+              src={`https://www.googletagmanager.com/gtag/js?id=${gaId}`}
+              strategy="afterInteractive"
+            />
+            <Script id="google-analytics" strategy="afterInteractive">
+              {`
+                window.dataLayer = window.dataLayer || [];
+                function gtag(){dataLayer.push(arguments);}
+                gtag('js', new Date());
+                gtag('config', '${gaId}');
+              `}
+            </Script>
+          </>
+        )}
+      </head>
+      <body className="font-sans antialiased min-h-screen flex flex-col" suppressHydrationWarning={true}>
         <Header />
         <main className="flex-grow">{children}</main>
         <Footer />
