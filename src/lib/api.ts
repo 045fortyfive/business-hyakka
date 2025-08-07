@@ -321,33 +321,46 @@ export const getContentByCategory = cache(async (categorySlug: string, limit = 1
 });
 
 // 特定のスラッグのコンテンツを取得（コンテンツタイプを指定可能）
-export const getContentBySlug = cache(async (slug: string, contentType: string = 'article'): Promise<Content | null> => {
-  console.log(`Fetching content by slug: ${slug}, type: ${contentType}`);
+export const getContentBySlug = cache(async (slug: string, contentType?: string): Promise<Content | null> => {
+  console.log(`Fetching content by slug: ${slug}, type: ${contentType || 'any'}`);
   try {
     // プレビューモードに応じたクライアントを取得
     const client = await getClient();
 
-    // contentTypeに応じたフィルタリング
-    let contentTypeFilter;
-    switch (contentType) {
-      case 'article':
-        contentTypeFilter = CONTENT_TYPES.ARTICLE;
-        break;
-      case 'video':
-        contentTypeFilter = CONTENT_TYPES.VIDEO;
-        break;
-      case 'audio':
-        contentTypeFilter = CONTENT_TYPES.AUDIO;
-        break;
-      default:
-        contentTypeFilter = CONTENT_TYPES.ARTICLE;
+    // コンテンツタイプが指定されている場合はそれでフィルタリング
+    if (contentType) {
+      let contentTypeFilter;
+      switch (contentType) {
+        case 'article':
+          contentTypeFilter = CONTENT_TYPES.ARTICLE;
+          break;
+        case 'video':
+          contentTypeFilter = CONTENT_TYPES.VIDEO;
+          break;
+        case 'audio':
+          contentTypeFilter = CONTENT_TYPES.AUDIO;
+          break;
+        default:
+          contentTypeFilter = CONTENT_TYPES.ARTICLE;
+      }
+
+      const entries = await client.getEntries<Content['fields']>({
+        content_type: CONTENT_TYPE.CONTENT,
+        'fields.contentType': contentTypeFilter,
+        'fields.slug': slug,
+        include: 3,
+        limit: 1,
+      });
+
+      console.log(`Found ${entries.items.length} contents with slug: ${slug} and type: ${contentType}`);
+      return entries.items.length > 0 ? entries.items[0] : null;
     }
 
+    // コンテンツタイプが指定されていない場合は全てのタイプから検索
     const entries = await client.getEntries<Content['fields']>({
       content_type: CONTENT_TYPE.CONTENT,
-      'fields.contentType': contentTypeFilter,
       'fields.slug': slug,
-      include: 3, // 関連コンテンツも含めて取得
+      include: 3,
       limit: 1,
     });
 

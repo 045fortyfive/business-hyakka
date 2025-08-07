@@ -58,3 +58,27 @@ export const CONTENT_TYPES = {
   VIDEO: '動画',
   AUDIO: '音声',
 };
+
+// スキルカテゴリの定義
+export const SKILL_CATEGORIES = {
+  'management-skills': {
+    name: 'マネジメントスキル',
+    slug: 'management-skills',
+    description: 'チームマネジメント、リーダーシップに関するスキル',
+  },
+  'basic-business-skills': {
+    name: '基礎ビジネススキル',
+    slug: 'basic-business-skills',
+    description: 'ビジネスの基本的なスキルと知識',
+  },
+  'thinking-methods': {
+    name: '思考法',
+    slug: 'thinking-methods',
+    description: '論理的思考、問題解決の手法',
+  },
+  'business-improvement': {
+    name: '業務改善',
+    slug: 'business-improvement',
+    description: '効率化、プロセス改善に関するスキル',
+  }
+} as const;
