@@ -5,6 +5,7 @@ import { getContentByCategory, getCategories } from "@/lib/api";
 import ContentCard from "@/components/ContentCard";
 import CategoryNav from "@/components/CategoryNav";
 import { getImageProps } from "@/lib/utils";
+import { SKILL_CATEGORIES } from "@/lib/types";
 
 // 1時間ごとに再検証
 export const revalidate = 3600;
@@ -13,10 +14,11 @@ export const revalidate = 3600;
 export async function generateMetadata({
   params,
 }: {
-  params: { slug: string };
+  params: { slug: string } | Promise<{ slug: string }>;
 }): Promise<Metadata> {
   try {
-    const { category } = await getContentByCategory(params.slug);
+    const resolvedParams = await params as { slug: string };
+    const { category } = await getContentByCategory(resolvedParams.slug);
 
     if (!category || !category.fields) {
       return {
@@ -74,17 +76,18 @@ export async function generateStaticParams() {
 export default async function CategoryPage({
   params,
 }: {
-  params: { slug: string };
+  params: { slug: string } | Promise<{ slug: string }>;
 }) {
   try {
+    const resolvedParams = await params as { slug: string };
     // slugの検証
-    if (!params.slug || params.slug === 'undefined' || params.slug.trim() === '') {
-      console.error(`Invalid category slug: "${params.slug}"`);
+    if (!resolvedParams.slug || resolvedParams.slug === 'undefined' || resolvedParams.slug.trim() === '') {
+      console.error(`Invalid category slug: "${(resolvedParams as any).slug}"`);
       notFound();
     }
 
     // カテゴリに属するコンテンツを取得
-    const { articles, videos, audios, category } = await getContentByCategory(params.slug);
+    const { articles, videos, audios, category } = await getContentByCategory(resolvedParams.slug);
 
     // カテゴリが見つからない場合は404ページを表示
     if (!category || !category.fields) {
@@ -95,7 +98,11 @@ export default async function CategoryPage({
     // カテゴリのslugが正しく設定されているか確認
     if (!category.fields.slug || category.fields.slug === 'undefined') {
       console.error(`Category "${category.fields.name}" has invalid slug: "${category.fields.slug}"`);
-      // この場合は一時的にカテゴリ名をslugとして使用
+      // スキルカテゴリに一致するスラッグがあれば補正
+      const matched = Object.values(SKILL_CATEGORIES).find(c => c.name === category.fields.name);
+      if (matched) {
+        (category.fields as any).slug = matched.slug;
+      }
     }
 
     // カテゴリ一覧を取得
