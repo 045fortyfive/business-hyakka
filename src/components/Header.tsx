@@ -4,7 +4,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useState } from 'react';
 import SearchBar from './SearchBar';
-import { SKILL_CATEGORIES } from '@/lib/types';
+import { SKILL_CATEGORIES, SKILL_TO_CATEGORY_SLUG } from '@/lib/types';
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -34,15 +34,18 @@ export default function Header() {
 
           {/* デスクトップナビゲーション */}
           <nav className="hidden md:flex space-x-6">
-            {Object.entries(SKILL_CATEGORIES).map(([key, category]) => (
-              <Link
-                key={key}
-                href={`/categories/${category.slug}`}
-                className="text-gray-600 hover:text-gray-900 text-sm font-medium whitespace-nowrap"
-              >
-                {category.name}
-              </Link>
-            ))}
+            {Object.entries(SKILL_CATEGORIES).map(([key, category]) => {
+              const mapped = SKILL_TO_CATEGORY_SLUG[category.slug] ?? category.slug;
+              return (
+                <Link
+                  key={key}
+                  href={`/categories/${mapped}`}
+                  className="text-gray-600 hover:text-gray-900 text-sm font-medium whitespace-nowrap"
+                >
+                  {category.name}
+                </Link>
+              );
+            })}
           </nav>
 
           {/* 検索バー */}
@@ -88,16 +91,19 @@ export default function Header() {
         {isMenuOpen && (
           <div className="md:hidden mt-2 pb-2">
             <nav className="flex flex-col space-y-2">
-              {Object.entries(SKILL_CATEGORIES).map(([key, category]) => (
-                <Link
-                  key={key}
-                  href={`/categories/${category.slug}`}
-                  className="text-gray-600 hover:text-gray-900 text-sm font-medium"
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  {category.name}
-                </Link>
-              ))}
+              {Object.entries(SKILL_CATEGORIES).map(([key, category]) => {
+                const mapped = SKILL_TO_CATEGORY_SLUG[category.slug] ?? category.slug;
+                return (
+                  <Link
+                    key={key}
+                    href={`/categories/${mapped}`}
+                    className="text-gray-600 hover:text-gray-900 text-sm font-medium"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    {category.name}
+                  </Link>
+                );
+              })}
             </nav>
             <div className="mt-2">
               <SearchBar />

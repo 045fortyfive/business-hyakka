@@ -64,8 +64,8 @@ export async function generateStaticParams() {
     // 既存カテゴリのスラッグ
     const contentfulSlugs = validCategories.map((c) => c.fields.slug);
 
-    // スキルカテゴリのスラッグ（必ず含める）
-    const skillSlugs = Object.values(SKILL_CATEGORIES).map((c) => c.slug);
+    // スキルカテゴリのスラッグ（必ず含める）: Contentfulの実カテゴリslugにマップ
+    const skillSlugs = Object.values(SKILL_CATEGORIES).map((c) => SKILL_TO_CATEGORY_SLUG[c.slug] ?? c.slug);
 
     // 重複を除外したスラッグ集合
     const slugs = Array.from(new Set([...contentfulSlugs, ...skillSlugs]));

@@ -82,3 +82,12 @@ export const SKILL_CATEGORIES = {
     description: '効率化、プロセス改善に関するスキル',
   }
 } as const;
+
+// スキルスラッグ -> Contentfulカテゴリ・スラッグのマッピング
+// 例: management-skills -> managementskill（Contentful上の実在カテゴリ）
+export const SKILL_TO_CATEGORY_SLUG: Record<string, string> = {
+  'management-skills': 'managementskill',
+  'basic-business-skills': 'basic-business-skill',
+  'thinking-methods': 'sikouhou',
+  'business-improvement': 'gyoumukaizen',
+};
