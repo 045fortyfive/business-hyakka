@@ -1,19 +1,20 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+import { SKILL_TO_CATEGORY_SLUG } from '@/lib/types';
 
 // レガシーURLから新しいスキルカテゴリURLへのマッピング
 const LEGACY_URL_REDIRECTS = {
-  '/articles': '/categories/basic-business-skills',
-  '/videos': '/categories/thinking-methods', 
-  '/audios': '/categories/business-improvement',
-  '/categories': '/', // カテゴリ一覧は新しいホームページへ
+  '/articles': '/categories/basic-business-skill', // 実カテゴリslug
+  '/videos': '/categories/sikouhou',
+  '/audios': '/categories/Business-improvement',
+  '/categories': '/', // カテゴリ一覧はトップへ
 } as const;
 
-// デフォルトのスキルカテゴリマッピング（コンテンツタイプ別）
+// デフォルトのスキルカテゴリマッピング（typeクエリ用）
 const CONTENT_TYPE_TO_SKILL_MAPPING = {
-  'article': 'basic-business-skills',
-  'video': 'thinking-methods',
-  'audio': 'business-improvement'
+  'article': 'basic-business-skill',
+  'video': 'sikouhou',
+  'audio': 'Business-improvement'
 } as const;
 
 export function middleware(request: NextRequest) {
@@ -23,71 +24,55 @@ export function middleware(request: NextRequest) {
   if (pathname in LEGACY_URL_REDIRECTS) {
     const redirectUrl = LEGACY_URL_REDIRECTS[pathname as keyof typeof LEGACY_URL_REDIRECTS];
     const newUrl = new URL(redirectUrl, request.url);
-    
-    // クエリパラメータを保持
-    if (search) {
-      newUrl.search = search;
-    }
-    
-    console.log(`Redirecting legacy URL: ${pathname} -> ${redirectUrl}`);
-    return NextResponse.redirect(newUrl, 301); // 永続的リダイレクト
+    if (search) newUrl.search = search; // クエリ保持
+    return NextResponse.redirect(newUrl, 301);
   }
 
-  // 個別コンテンツページのリダイレクト処理
-  // /articles/[slug], /videos/[slug], /audios/[slug] -> /content/[slug]
+  // 個別コンテンツページ -> /content/[slug]
   const contentTypeMatch = pathname.match(/^\/(articles|videos|audios)\/(.+)$/);
   if (contentTypeMatch) {
-    const [, contentType, slug] = contentTypeMatch;
+    const [, , slug] = contentTypeMatch;
     const newUrl = new URL(`/content/${slug}`, request.url);
-    
-    // クエリパラメータを保持
-    if (search) {
-      newUrl.search = search;
-    }
-    
-    console.log(`Redirecting content URL: ${pathname} -> /content/${slug}`);
-    return NextResponse.redirect(newUrl, 301); // 永続的リダイレクト
+    if (search) newUrl.search = search;
+    return NextResponse.redirect(newUrl, 301);
   }
 
-  // カテゴリページでのクエリパラメータ処理
-  // /categories/[slug]?type=article などを適切に処理
+  // /categories/[slug] の正規化: スキル表記/大小文字揺れをContentful実slugへ
+  const catMatch = pathname.match(/^\/categories\/(.+)$/);
+  if (catMatch) {
+    const raw = catMatch[1];
+    const mapped = (SKILL_TO_CATEGORY_SLUG as any)[raw] ?? (SKILL_TO_CATEGORY_SLUG as any)[raw.toLowerCase()];
+    if (mapped && mapped !== raw) {
+      const url = new URL(`/categories/${mapped}`, request.url);
+      if (search) url.search = search;
+      return NextResponse.redirect(url, 308);
+    }
+  }
+
+  // /categories/[slug]?type=article など -> 実カテゴリslugへ
   const categoryMatch = pathname.match(/^\/categories\/(.+)$/);
   if (categoryMatch && search.includes('type=')) {
     const url = new URL(request.url);
     const contentType = url.searchParams.get('type');
-    
     if (contentType && contentType in CONTENT_TYPE_TO_SKILL_MAPPING) {
-      // typeパラメータを削除して、適切なスキルカテゴリにリダイレクト
       url.searchParams.delete('type');
-      
-      // 既存のカテゴリスラグがスキルカテゴリでない場合は、コンテンツタイプに基づいてリダイレクト
       const skillCategory = CONTENT_TYPE_TO_SKILL_MAPPING[contentType as keyof typeof CONTENT_TYPE_TO_SKILL_MAPPING];
       const newUrl = new URL(`/categories/${skillCategory}`, request.url);
-      
-      // 他のクエリパラメータを保持
-      for (const [key, value] of url.searchParams.entries()) {
-        newUrl.searchParams.set(key, value);
-      }
-      
-      console.log(`Redirecting category with type filter: ${pathname}?${search} -> /categories/${skillCategory}`);
-      return NextResponse.redirect(newUrl, 302); // 一時的リダイレクト
+      // 他のクエリを保持
+      for (const [key, value] of url.searchParams.entries()) newUrl.searchParams.set(key, value);
+      return NextResponse.redirect(newUrl, 302);
     }
   }
 
-  // その他のリクエストはそのまま通す
   return NextResponse.next();
 }
 
-// ミドルウェアを適用するパスを設定
 export const config = {
   matcher: [
-    // レガシーコンテンツタイプURL
     '/articles/:path*',
-    '/videos/:path*', 
+    '/videos/:path*',
     '/audios/:path*',
-    // カテゴリURL（クエリパラメータ付き）
     '/categories/:path*',
-    // 除外するパス
     '/((?!api|_next/static|_next/image|favicon.ico).*)',
   ],
 };

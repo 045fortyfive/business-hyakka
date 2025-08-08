@@ -89,5 +89,5 @@ export const SKILL_TO_CATEGORY_SLUG: Record<string, string> = {
   'management-skills': 'managementskill',
   'basic-business-skills': 'basic-business-skill',
   'thinking-methods': 'sikouhou',
-  'business-improvement': 'gyoumukaizen',
+  'business-improvement': 'Business-improvement',
 };
