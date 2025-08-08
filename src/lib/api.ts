@@ -253,7 +253,7 @@ export const getCategoryBySlug = cache(async (slug: string): Promise<Category | 
   }
 
   // Contentfulにカテゴリが存在しない場合、既知のスキルカテゴリに一致するなら合成カテゴリを返す
-  const skill = (Object.values(SKILL_CATEGORIES) as Array<{ name: string; slug: string; description?: string }>).find(
+  const skill = (Object.values(SKILL_CATEGORIES) as Array<{ name: string; slug: string; description?: string }> ).find(
     (s) => s.slug === slug,
   );
   if (skill) {
@@ -270,6 +270,17 @@ export const getCategoryBySlug = cache(async (slug: string): Promise<Category | 
   }
 
   return null;
+});
+
+// タグを slug で取得
+export const getTagBySlug = cache(async (slug: string): Promise<Tag | null> => {
+  const client = await getClient();
+  const entries = await client.getEntries<Tag['fields']>({
+    content_type: CONTENT_TYPE.TAG,
+    'fields.slug': slug,
+    limit: 1,
+  });
+  return entries.items.length > 0 ? (entries.items[0] as unknown as Tag) : null;
 });
 
 // カテゴリに属するコンテンツを取得
@@ -294,7 +305,55 @@ export const getContentByCategory = cache(async (categorySlug: string, limit = 1
     // プレビューモードに応じたクライアントを取得
     const client = await getClient();
 
-    // カテゴリに属する記事を取得
+    // スキルカテゴリ（合成カテゴリ）の場合はタグで取得
+    const isSkillCategory = typeof category.sys?.id === 'string' && category.sys.id.startsWith('skill-');
+    if (isSkillCategory) {
+      const tag = await getTagBySlug(category.fields.slug);
+      if (!tag) {
+        console.warn(`No tag found for skill slug "${category.fields.slug}". Returning empty content.`);
+        return {
+          articles: { items: [], total: 0, skip: 0, limit, includes: {} },
+          videos: { items: [], total: 0, skip: 0, limit, includes: {} },
+          audios: { items: [], total: 0, skip: 0, limit, includes: {} },
+          category,
+        };
+      }
+
+      const [articles, videos, audios] = await Promise.all([
+        client.getEntries<Content['fields']>({
+          content_type: CONTENT_TYPE.CONTENT,
+          'fields.contentType': CONTENT_TYPES.ARTICLE,
+          'fields.tags.sys.id': (tag as any).sys.id,
+          order: '-sys.createdAt',
+          limit,
+          skip,
+          include: 2,
+        }),
+        client.getEntries<Content['fields']>({
+          content_type: CONTENT_TYPE.CONTENT,
+          'fields.contentType': CONTENT_TYPES.VIDEO,
+          'fields.tags.sys.id': (tag as any).sys.id,
+          order: '-sys.createdAt',
+          limit,
+          skip,
+          include: 2,
+        }),
+        client.getEntries<Content['fields']>({
+          content_type: CONTENT_TYPE.CONTENT,
+          'fields.contentType': CONTENT_TYPES.AUDIO,
+          'fields.tags.sys.id': (tag as any).sys.id,
+          order: '-sys.createdAt',
+          limit,
+          skip,
+          include: 2,
+        }),
+      ]);
+
+      console.log(`Found (by tag) ${articles.items.length} articles, ${videos.items.length} videos, ${audios.items.length} audios for skill "${category.fields.name}"`);
+      return { articles, videos, audios, category };
+    }
+
+    // 通常カテゴリ：カテゴリIDで取得
     const articles = await client.getEntries<Content['fields']>({
       content_type: CONTENT_TYPE.CONTENT,
       'fields.contentType': CONTENT_TYPES.ARTICLE,
@@ -306,7 +365,6 @@ export const getContentByCategory = cache(async (categorySlug: string, limit = 1
     });
     console.log(`Found ${articles.items.length} articles in category "${category.fields.name}"`);
 
-    // カテゴリに属する動画を取得
     const videos = await client.getEntries<Content['fields']>({
       content_type: CONTENT_TYPE.CONTENT,
       'fields.contentType': CONTENT_TYPES.VIDEO,
@@ -318,7 +376,6 @@ export const getContentByCategory = cache(async (categorySlug: string, limit = 1
     });
     console.log(`Found ${videos.items.length} videos in category "${category.fields.name}"`);
 
-    // カテゴリに属する音声を取得
     const audios = await client.getEntries<Content['fields']>({
       content_type: CONTENT_TYPE.CONTENT,
       'fields.contentType': CONTENT_TYPES.AUDIO,
