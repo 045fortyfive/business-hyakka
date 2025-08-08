@@ -8,7 +8,8 @@ import {
   CategoryCollection,
   Tag,
   TagCollection,
-  CONTENT_TYPES
+  CONTENT_TYPES,
+  SKILL_CATEGORIES
 } from './types';
 
 // プレビューモードに応じたクライアントを取得する関数
@@ -247,7 +248,28 @@ export const getCategoryBySlug = cache(async (slug: string): Promise<Category | 
     limit: 1,
   });
 
-  return entries.items.length > 0 ? entries.items[0] : null;
+  if (entries.items.length > 0) {
+    return entries.items[0];
+  }
+
+  // Contentfulにカテゴリが存在しない場合、既知のスキルカテゴリに一致するなら合成カテゴリを返す
+  const skill = (Object.values(SKILL_CATEGORIES) as Array<{ name: string; slug: string; description?: string }>).find(
+    (s) => s.slug === slug,
+  );
+  if (skill) {
+    // Category 型の最低限のフィールドを満たすダミーエントリを作成
+    const fakeCategory: any = {
+      sys: { id: `skill-${skill.slug}` },
+      fields: {
+        name: skill.name,
+        slug: skill.slug,
+        description: skill.description ?? '',
+      },
+    };
+    return fakeCategory as Category;
+  }
+
+  return null;
 });
 
 // カテゴリに属するコンテンツを取得
