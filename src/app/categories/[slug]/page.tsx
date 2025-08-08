@@ -61,15 +61,23 @@ export async function generateStaticParams() {
       }
     );
 
-    console.log(`Generating static params for ${validCategories.length} valid categories out of ${categoriesData.items.length} total`);
+    // 既存カテゴリのスラッグ
+    const contentfulSlugs = validCategories.map((c) => c.fields.slug);
 
-    return validCategories.map((category) => ({
-      slug: category.fields.slug,
-    }));
+    // スキルカテゴリのスラッグ（必ず含める）
+    const skillSlugs = Object.values(SKILL_CATEGORIES).map((c) => c.slug);
+
+    // 重複を除外したスラッグ集合
+    const slugs = Array.from(new Set([...contentfulSlugs, ...skillSlugs]));
+
+    console.log(`Generating static params for ${slugs.length} total slugs (Contentful: ${contentfulSlugs.length}, Skills: ${skillSlugs.length})`);
+
+    return slugs.map((slug) => ({ slug }));
   } catch (error) {
     console.error('Error in generateStaticParams for categories:', error);
-    // エラーが発生した場合は空の配列を返す
-    return [];
+    // エラーが発生した場合でもスキルカテゴリだけは返す
+    const skillSlugs = Object.values(SKILL_CATEGORIES).map((c) => ({ slug: c.slug }));
+    return skillSlugs;
   }
 }
 
