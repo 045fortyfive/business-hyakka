@@ -381,7 +381,7 @@ export default async function Home() {
         <div className="bg-red-50 border border-red-200 p-8 rounded-lg text-center mb-8">
           <h2 className="text-xl font-bold text-red-700 mb-2">データの取得中にエラーが発生しました</h2>
           <p className="text-red-600">
-            コンテンツの準備中です。しばらくしてからもう一度お試しください。
+            コンテンツの準備中です。しばらくしてからもう一度お試しください
           </p>
         </div>
       </div>
