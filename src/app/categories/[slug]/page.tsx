@@ -5,7 +5,7 @@ import { getContentByCategory, getCategories } from "@/lib/api";
 import ContentCard from "@/components/ContentCard";
 import CategoryNav from "@/components/CategoryNav";
 import { getImageProps } from "@/lib/utils";
-import { SKILL_CATEGORIES } from "@/lib/types";
+import { SKILL_CATEGORIES, SKILL_TO_CATEGORY_SLUG } from "@/lib/types";
 
 // 1時間ごとに再検証
 export const revalidate = 3600;
@@ -65,7 +65,7 @@ export async function generateStaticParams() {
     const contentfulSlugs = validCategories.map((c) => c.fields.slug);
 
     // スキルカテゴリのスラッグ（必ず含める）: Contentfulの実カテゴリslugにマップ
-    const skillSlugs = Object.values(SKILL_CATEGORIES).map((c) => SKILL_TO_CATEGORY_SLUG[c.slug] ?? c.slug);
+    const skillSlugs = Object.values(SKILL_CATEGORIES).map((c) => (SKILL_TO_CATEGORY_SLUG as Record<string,string>)[c.slug] ?? c.slug);
 
     // 重複を除外したスラッグ集合
     const slugs = Array.from(new Set([...contentfulSlugs, ...skillSlugs]));

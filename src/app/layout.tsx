@@ -7,6 +7,7 @@ import { BackgroundProvider } from "@/contexts/BackgroundContext";
 import BackgroundWrapper from "@/components/BackgroundWrapper";
 import BackgroundControl from "@/components/BackgroundControl";
 import { PreviewWrapper } from "@/components/preview";
+import GoogleAnalytics from "@/components/GoogleAnalytics";
 
 const notoSansJP = Noto_Sans_JP({
   subsets: ["latin"],
@@ -54,6 +55,7 @@ export default function RootLayout({
               <main className="flex-grow">{children}</main>
               <Footer />
               <BackgroundControl />
+              <GoogleAnalytics measurementId={process.env.NEXT_PUBLIC_GA_ID || ''} />
             </PreviewWrapper>
           </BackgroundWrapper>
         </body>
