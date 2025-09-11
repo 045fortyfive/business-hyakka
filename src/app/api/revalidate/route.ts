@@ -23,8 +23,12 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     console.log('📦 Webhook payload received:', JSON.stringify(body, null, 2));
 
-    // 3. イベントタイプの確認
-    const eventType = request.headers.get('x-contentful-webhook-name');
+    // 3. イベントタイプの確認（Contentfulはヘッダー名が複数パターン）
+    const eventType =
+      request.headers.get('x-contentful-webhook-name') ||
+      request.headers.get('x-contentful-topic') ||
+      request.headers.get('X-Contentful-Topic') || // 一部環境で大文字化される場合に備える
+      'unknown';
     console.log('📡 Event type:', eventType);
 
     // 4. コンテンツタイプとエントリ情報の特定
@@ -57,14 +61,23 @@ export async function POST(request: NextRequest) {
         revalidatedPaths.push('/articles');
         
         // 記事詳細ページ（スラッグが分かる場合）
-        const articleSlug = body.fields?.slug?.['en-US'] || body.fields?.slug;
-        if (articleSlug) {
+        // ロケール非依存でslugを取得（例: en-US, ja-JP などどのキーでもOK）
+        const slugField: any = body.fields?.slug;
+        const articleSlug =
+          typeof slugField === 'string'
+            ? slugField
+            : slugField && typeof slugField === 'object'
+              ? (Object.values(slugField) as unknown[]).find((v) => typeof v === 'string' && (v as string).trim() !== '')
+              : undefined;
+        if (typeof articleSlug === 'string' && articleSlug) {
           const articlePath = `/articles/${articleSlug}`;
           revalidatePath(articlePath);
           revalidatedPaths.push(articlePath);
           console.log(`📝 Article slug found: ${articleSlug}`);
+        } else {
+          console.log('⚠️ Article slug not found in payload (locale-specific field missing).');
         }
-        
+
         // ホームページ（最新記事が表示される可能性）
         revalidatePath('/');
         revalidatedPaths.push('/');
