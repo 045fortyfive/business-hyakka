@@ -52,17 +52,17 @@ export function middleware(request: NextRequest) {
     response.headers.set('Access-Control-Allow-Origin', 'https://app.contentful.com');
     response.headers.set('Access-Control-Allow-Credentials', 'true');
     
-    // CSP を Live Preview 用に調整
+    // CSP を Live Preview 用に調整（GTM/GA許可）
     const csp = [
       "default-src 'self'",
-      "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://app.contentful.com https://*.contentful.com",
+      "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://app.contentful.com https://*.contentful.com https://www.googletagmanager.com",
       "style-src 'self' 'unsafe-inline'",
       "img-src 'self' data: https: blob:",
       "font-src 'self' data:",
       "media-src 'self' https://downloads.ctfassets.net https://images.ctfassets.net https://*.ctfassets.net",
-      "connect-src 'self' https://cdn.contentful.com https://api.contentful.com https://preview.contentful.com https://app.contentful.com https://*.contentful.com",
+      "connect-src 'self' https://cdn.contentful.com https://api.contentful.com https://preview.contentful.com https://app.contentful.com https://*.contentful.com https://www.google-analytics.com https://www.googletagmanager.com",
       "frame-ancestors 'self' https://app.contentful.com https://*.contentful.com",
-      "frame-src 'self' https://app.contentful.com https://*.contentful.com",
+      "frame-src 'self' https://app.contentful.com https://*.contentful.com https://www.googletagmanager.com",
       "object-src 'none'",
       "base-uri 'self'",
     ].join('; ');
