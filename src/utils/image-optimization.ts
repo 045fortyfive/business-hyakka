@@ -41,7 +41,7 @@ export function optimizeContentfulImage(
   const {
     width,
     height,
-    quality = 85, // PCでの高品質表示のため品質を向上
+    quality = 75, // 適切な品質でクリアな表示
     format = 'webp',
     fit = 'fill',
     focus = 'center'
@@ -73,7 +73,7 @@ export function generateResponsiveSrcSet(
     const optimizedUrl = optimizeContentfulImage(originalUrl, {
       width,
       format: 'webp',
-      quality: 85 // PCでの高品質表示のため品質を向上
+      quality: 75 // 適切な品質でクリアな表示
     });
     return `${optimizedUrl} ${width}w`;
   }).join(', ');
@@ -93,14 +93,14 @@ export function generateRetinaResponsiveSrcSet(
 ): string {
   if (!originalUrl) return '';
 
-  const densities = [1, 1.5, 2, 3]; // 1x, 1.5x, 2x, 3x対応
+  const densities = [1, 1.5, 2]; // 1x, 1.5x, 2x対応
 
   const srcSet = densities.map(density => {
     const width = Math.round(baseWidth * density);
     const optimizedUrl = optimizeContentfulImage(originalUrl, {
       width,
       format: 'webp',
-      quality: density > 2 ? 90 : 85 // 高密度では更に高品質
+      quality: 75 // 一貫した品質
     });
     return `${optimizedUrl} ${density}x`;
   }).join(', ');

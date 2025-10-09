@@ -32,7 +32,7 @@ export function OptimizedImage({
   fill = false,
   className = '',
   priority = false,
-  quality = 85,
+  quality = 75,
   sizes = '(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw',
   useRetina = true,
   placeholder = 'blur',
@@ -119,9 +119,20 @@ export function OptimizedCardImage({
   const [imageError, setImageError] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
 
-  if (imageError) {
+  // URLの検証
+  if (!src || src.trim() === '') {
+    console.error('OptimizedCardImage: Empty or invalid src provided')
     return (
-      <div className={`bg-gray-200 flex items-center justify-center ${className}`}>
+      <div className="bg-gray-200 flex items-center justify-center h-full w-full">
+        <span className="text-gray-400 text-sm">画像URLが無効です</span>
+      </div>
+    )
+  }
+
+  if (imageError) {
+    console.error('OptimizedCardImage: Failed to load image:', src)
+    return (
+      <div className="bg-gray-200 flex items-center justify-center h-full w-full">
         <span className="text-gray-400 text-sm">画像を読み込めませんでした</span>
       </div>
     )
@@ -142,7 +153,7 @@ export function OptimizedCardImage({
           isLoading ? 'opacity-0' : 'opacity-100'
         } ${className}`}
         priority={priority}
-        quality={90}
+        quality={75}
         sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, 33vw"
         srcSet={srcSet}
         placeholder="blur"
@@ -201,7 +212,7 @@ export function OptimizedHeroImage({
           isLoading ? 'opacity-0' : 'opacity-100'
         } ${className}`}
         priority={priority}
-        quality={95}
+        quality={80}
         sizes="100vw"
         srcSet={srcSet}
         placeholder="blur"

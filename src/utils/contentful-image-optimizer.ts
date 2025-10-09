@@ -9,30 +9,30 @@ import { optimizeContentfulImage, generateResponsiveSrcSet, generateRetinaRespon
  * PC向け高品質画像設定
  */
 export const PC_HIGH_QUALITY_SETTINGS = {
-  // カード画像用（小さいサイズでも高品質）
+  // カード画像用（適切な品質でクリアな表示）
   card: {
-    quality: 90,
+    quality: 75,
     format: 'webp' as const,
     sizes: '(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw'
   },
-  
-  // ヒーロー画像用（最高品質）
+
+  // ヒーロー画像用（高品質）
   hero: {
-    quality: 95,
+    quality: 80,
     format: 'webp' as const,
     sizes: '100vw'
   },
-  
-  // サムネイル用（高品質でコンパクト）
+
+  // サムネイル用（バランス重視）
   thumbnail: {
-    quality: 88,
+    quality: 75,
     format: 'webp' as const,
     sizes: '(max-width: 640px) 50vw, (max-width: 768px) 33vw, 25vw'
   },
-  
+
   // 記事内画像用（バランス重視）
   article: {
-    quality: 85,
+    quality: 75,
     format: 'webp' as const,
     sizes: '(max-width: 768px) 100vw, (max-width: 1024px) 80vw, 60vw'
   }
@@ -103,15 +103,14 @@ export function generateRetinaForPC(
   type: keyof typeof PC_HIGH_QUALITY_SETTINGS
 ) {
   const settings = PC_HIGH_QUALITY_SETTINGS[type]
-  const densities = [1, 1.5, 2, 3] // 1x, 1.5x, 2x, 3x対応
-  
+  const densities = [1, 1.5, 2] // 1x, 1.5x, 2x対応
+
   return densities.map(density => {
     const width = Math.round(baseWidth * density)
-    const quality = density > 2 ? Math.min(settings.quality + 5, 95) : settings.quality
-    
+
     const optimizedUrl = optimizeContentfulImage(url, {
       width,
-      quality,
+      quality: settings.quality,
       format: settings.format,
       fit: 'fill'
     })
