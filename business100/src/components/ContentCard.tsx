@@ -1,7 +1,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { formatDate } from '@/lib/utils';
-import { OptimizedCardImage } from '@/components/OptimizedImage';
+import { optimizeForPC } from '@/utils/contentful-image-optimizer';
 
 // コンテンツカードのプロパティ型定義
 interface ContentCardProps {
@@ -96,10 +96,17 @@ export default function ContentCard({
       <Link href={contentPath}>
         <div className="relative h-36 sm:h-40 md:h-48 w-full">
           {thumbnail ? (
-            <OptimizedCardImage
-              src={thumbnail.url}
+            <Image
+              src={optimizeForPC(thumbnail.url, 'card', {
+                width: 400,
+                height: 250,
+                quality: 82
+              })}
               alt={thumbnail.alt || title}
+              fill
               className="object-cover"
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+              quality={82}
               priority={false}
             />
           ) : (

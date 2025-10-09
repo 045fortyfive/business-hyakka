@@ -5,15 +5,23 @@ import { filterVisibleCategories } from '@/config/categories';
 export default async function Footer() {
   const currentYear = new Date().getFullYear();
 
-  // Contentfulからカテゴリーデータを取得
-  const categoriesData = await getCategories();
-  const visibleCategories = filterVisibleCategories(categoriesData.items);
+  let orderedCategories: any[] = [];
 
-  // 指定された順序でカテゴリーを並び替え
-  const categoryOrder = ['基本ビジネススキル', 'コミュニケーション', '業務改善'];
-  const orderedCategories = categoryOrder
-    .map(name => visibleCategories.find(cat => cat.fields.name === name))
-    .filter(Boolean) as typeof visibleCategories;
+  try {
+    // Contentfulからカテゴリーデータを取得
+    const categoriesData = await getCategories();
+    const visibleCategories = filterVisibleCategories(categoriesData.items);
+
+    // 指定された順序でカテゴリーを並び替え
+    const categoryOrder = ['基本ビジネススキル', 'コミュニケーション', '業務改善'];
+    orderedCategories = categoryOrder
+      .map(name => visibleCategories.find(cat => cat.fields.name === name))
+      .filter(Boolean) as typeof visibleCategories;
+  } catch (error) {
+    console.error('Error fetching categories for footer:', error);
+    // エラー時はフォールバック（空の配列）
+    orderedCategories = [];
+  }
 
   return (
     <footer className="bg-gray-800 text-white py-8">
@@ -64,16 +72,27 @@ export default async function Footer() {
           <div>
             <h3 className="text-xl font-semibold mb-4">主要カテゴリ</h3>
             <ul className="space-y-2">
-              {orderedCategories.map((category) => (
-                <li key={category.sys.id}>
-                  <Link
-                    href={`/categories/${category.fields.slug}`}
-                    className="text-gray-300 hover:text-white"
-                  >
-                    {category.fields.name}
-                  </Link>
-                </li>
-              ))}
+              {orderedCategories.length > 0 ? (
+                orderedCategories.map((category) => (
+                  <li key={category.sys.id}>
+                    <Link
+                      href={`/categories/${category.fields.slug}`}
+                      className="text-gray-300 hover:text-white"
+                    >
+                      {category.fields.name}
+                    </Link>
+                  </li>
+                ))
+              ) : (
+                // フォールバック表示
+                <>
+                  <li>
+                    <Link href="/categories" className="text-gray-300 hover:text-white">
+                      カテゴリ一覧
+                    </Link>
+                  </li>
+                </>
+              )}
             </ul>
           </div>
         </div>

@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { optimizeForPC } from '@/utils/contentful-image-optimizer'
 
 interface SimpleCardSlide {
   id: string
@@ -132,7 +133,11 @@ export function SimpleCardCarousel({
           <div className="absolute inset-0 w-full h-full bg-white">
             {slides[currentSlide]?.imageUrl ? (
               <Image
-                src={slides[currentSlide].imageUrl}
+                src={optimizeForPC(slides[currentSlide].imageUrl, 'hero', {
+                  width: 1200,
+                  height: 600,
+                  quality: 60
+                })}
                 alt="Background"
                 fill
                 className="object-cover scale-125 blur-2xl opacity-50"
@@ -181,12 +186,16 @@ export function SimpleCardCarousel({
                         <div className="relative w-full h-[85px] sm:h-[102px] md:h-[119px]">
                           {slide.imageUrl ? (
                             <Image
-                              src={slide.imageUrl}
+                              src={optimizeForPC(slide.imageUrl, 'card', {
+                                width: 320,
+                                height: 180,
+                                quality: 82
+                              })}
                               alt={slide.title}
                               fill
                               className="object-cover"
                               sizes="(max-width: 640px) 240px, (max-width: 768px) 280px, 320px"
-                              quality={75}
+                              quality={82}
                               priority={isActive}
                             />
                           ) : (
