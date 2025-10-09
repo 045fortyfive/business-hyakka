@@ -18,19 +18,25 @@ interface ImageOptimizationOptions {
  * @returns 最適化された画像URL
  */
 export function optimizeContentfulImage(
-  originalUrl: string, 
+  originalUrl: string,
   options: ImageOptimizationOptions = {}
 ): string {
-  if (!originalUrl) return '';
+  if (!originalUrl) {
+    console.warn('optimizeContentfulImage: Empty URL provided');
+    return '';
+  }
 
   // URLの正規化
   let url = originalUrl;
   if (url.startsWith('//')) {
     url = `https:${url}`;
+  } else if (!url.startsWith('http://') && !url.startsWith('https://')) {
+    url = `https://${url}`;
   }
 
   // Contentfulの画像URLでない場合はそのまま返す
   if (!url.includes('images.ctfassets.net')) {
+    console.log('optimizeContentfulImage: Not a Contentful image, returning as-is:', url.substring(0, 50));
     return url;
   }
 

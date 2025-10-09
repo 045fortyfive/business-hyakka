@@ -129,9 +129,11 @@ export default function ContentCard({
   let gradientClass = '';
   let iconSvg = '';
 
-  if (thumbnail) {
+  if (thumbnail && thumbnail.url) {
     imageUrl = thumbnail.url;
+    console.log('ContentCard using thumbnail:', { title, url: imageUrl });
   } else {
+    console.log('ContentCard no thumbnail:', { title, thumbnail });
     // 画像がない場合は、Unsplash画像またはグラデーションカードを使用
     const shouldUseUnsplash = Math.random() > 0.8; // 20%の確率でUnsplash画像を使用（グラデーションカードを80%表示）
 
@@ -163,7 +165,7 @@ export default function ContentCard({
             <OptimizedCardImage
               src={imageUrl}
               alt={thumbnail?.alt || title}
-              className="object-cover"
+              className="object-cover h-full w-full"
               priority={false}
             />
           ) : (

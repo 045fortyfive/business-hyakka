@@ -167,11 +167,17 @@ export default async function CategoryPage({
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                 {allContents.map((content) => {
                   const contentType = content.contentType;
-                  const thumbnail = contentType === 'article' && content.fields.featuredImage
-                    ? getImageProps(content.fields.featuredImage)
-                    : content.fields.thumbnail
-                    ? getImageProps(content.fields.thumbnail)
-                    : undefined;
+
+                  // サムネイル画像の取得
+                  let thumbnail = undefined;
+
+                  if (contentType === 'article' && content.fields.featuredImage) {
+                    thumbnail = getImageProps(content.fields.featuredImage);
+                    console.log('Article thumbnail:', { title: content.fields.title, thumbnail });
+                  } else if (content.fields.thumbnail) {
+                    thumbnail = getImageProps(content.fields.thumbnail);
+                    console.log('Content thumbnail:', { title: content.fields.title, thumbnail });
+                  }
 
                   return (
                     <ContentCard
@@ -183,7 +189,7 @@ export default async function CategoryPage({
                         name: category.fields.name,
                         slug: category.fields.slug,
                       }}
-                      thumbnail={thumbnail}
+                      thumbnail={thumbnail || undefined}
                       contentType={contentType}
                       description={contentType === 'article' ? content.fields.seoDescription : content.fields.description}
                     />
