@@ -18,7 +18,7 @@ export const PC_HIGH_QUALITY_SETTINGS = {
 
   // ヒーロー画像用（高品質）
   hero: {
-    quality: 80,
+    quality: 82,
     format: 'webp' as const,
     sizes: '100vw'
   },

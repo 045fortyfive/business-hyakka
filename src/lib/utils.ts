@@ -73,19 +73,32 @@ export function generateUnsplashImageUrl(category: string, width: number, height
  */
 export function getImageProps(asset?: Asset) {
   if (!asset || !asset.fields || !asset.fields.file) {
+    console.warn('getImageProps: Invalid asset provided', { asset: asset ? 'exists' : 'null' });
     return null;
   }
 
   const { file, title } = asset.fields;
-  const url = `https:${file.url}`;
-  const { width, height } = file.details.image || { width: 800, height: 600 };
 
-  return {
+  // URLの検証と正規化
+  if (!file.url) {
+    console.error('getImageProps: file.url is missing', { title });
+    return null;
+  }
+
+  // URLが//で始まる場合はhttps:を追加、それ以外はそのまま
+  const url = file.url.startsWith('//') ? `https:${file.url}` : file.url;
+  const { width, height } = file.details?.image || { width: 800, height: 600 };
+
+  const result = {
     url,
     width,
     height,
     alt: title || '',
   };
+
+  console.log('getImageProps: Generated props', { url, width, height, alt: result.alt });
+
+  return result;
 }
 
 /**

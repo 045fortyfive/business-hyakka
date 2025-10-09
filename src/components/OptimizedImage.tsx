@@ -212,7 +212,7 @@ export function OptimizedHeroImage({
           isLoading ? 'opacity-0' : 'opacity-100'
         } ${className}`}
         priority={priority}
-        quality={80}
+        quality={82}
         sizes="100vw"
         srcSet={srcSet}
         placeholder="blur"

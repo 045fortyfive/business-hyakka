@@ -141,14 +141,16 @@ export function HeroCarousel({
         {/* 背景ブラー効果 - 明るさ調整 */}
         <div className="absolute inset-0 z-0 overflow-hidden">
           {slides.length > 0 && slides[currentSlide].imageUrl && (
-            <OptimizedHeroImage
+            <Image
               src={slides[currentSlide].imageUrl}
               alt="Background"
-              className="object-cover scale-150 blur-sm opacity-40"
-              priority
+              fill
+              className="object-cover scale-150 blur-2xl opacity-30"
+              quality={30}
+              priority={false}
             />
           )}
-          <div className="absolute inset-0 bg-gradient-to-r from-black/50 via-black/30 to-black/50 backdrop-blur-lg" />
+          <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/40 to-black/60 backdrop-blur-lg" />
         </div>
 
         {/* 画像カルーセル */}
