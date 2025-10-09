@@ -1,6 +1,7 @@
 import { Metadata } from "next";
 import Link from "next/link";
 import { getCategories } from "@/lib/api";
+import { filterVisibleCategories } from "@/config/categories";
 
 // メタデータ
 export const metadata: Metadata = {
@@ -15,13 +16,16 @@ export default async function CategoriesPage() {
   // カテゴリ一覧を取得
   const categoriesData = await getCategories();
 
+  // フィルタリングされたカテゴリ（設定ファイルに基づいて非表示カテゴリを除外）
+  const visibleCategories = filterVisibleCategories(categoriesData.items);
+
   return (
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-3xl font-bold mb-8">カテゴリ一覧</h1>
-      
-      {categoriesData.items.length > 0 ? (
+
+      {visibleCategories.length > 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          {categoriesData.items.map((category) => (
+          {visibleCategories.map((category) => (
             <Link
               key={category.sys.id}
               href={`/categories/${category.fields.slug}`}

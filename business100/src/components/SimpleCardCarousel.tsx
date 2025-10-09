@@ -136,8 +136,8 @@ export function SimpleCardCarousel({
                 alt="Background"
                 fill
                 className="object-cover scale-125 blur-2xl opacity-50"
+                quality={60}
                 priority
-                unoptimized={true}
               />
             ) : (
               <div className="w-full h-full bg-gradient-to-br from-blue-200 via-purple-200 to-pink-200 opacity-50" />
@@ -186,8 +186,8 @@ export function SimpleCardCarousel({
                               fill
                               className="object-cover"
                               sizes="(max-width: 640px) 240px, (max-width: 768px) 280px, 320px"
+                              quality={75}
                               priority={isActive}
-                              unoptimized={true}
                             />
                           ) : (
                             // 画像がない場合のグラデーション背景

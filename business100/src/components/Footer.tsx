@@ -1,7 +1,19 @@
 import Link from 'next/link';
+import { getCategories } from '@/lib/api';
+import { filterVisibleCategories } from '@/config/categories';
 
-export default function Footer() {
+export default async function Footer() {
   const currentYear = new Date().getFullYear();
+
+  // Contentfulからカテゴリーデータを取得
+  const categoriesData = await getCategories();
+  const visibleCategories = filterVisibleCategories(categoriesData.items);
+
+  // 指定された順序でカテゴリーを並び替え
+  const categoryOrder = ['基本ビジネススキル', 'コミュニケーション', '業務改善'];
+  const orderedCategories = categoryOrder
+    .map(name => visibleCategories.find(cat => cat.fields.name === name))
+    .filter(Boolean) as typeof visibleCategories;
 
   return (
     <footer className="bg-gray-800 text-white py-8">
@@ -48,42 +60,20 @@ export default function Footer() {
             </ul>
           </div>
 
-          {/* カテゴリ */}
+          {/* カテゴリ - Contentfulから動的に取得 */}
           <div>
             <h3 className="text-xl font-semibold mb-4">主要カテゴリ</h3>
             <ul className="space-y-2">
-              <li>
-                <Link
-                  href="/categories/basic-business-skills"
-                  className="text-gray-300 hover:text-white"
-                >
-                  基本ビジネススキル
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/categories/communication"
-                  className="text-gray-300 hover:text-white"
-                >
-                  コミュニケーション
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/categories/management"
-                  className="text-gray-300 hover:text-white"
-                >
-                  マネジメント
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/categories/business-improvement"
-                  className="text-gray-300 hover:text-white"
-                >
-                  業務改善
-                </Link>
-              </li>
+              {orderedCategories.map((category) => (
+                <li key={category.sys.id}>
+                  <Link
+                    href={`/categories/${category.fields.slug}`}
+                    className="text-gray-300 hover:text-white"
+                  >
+                    {category.fields.name}
+                  </Link>
+                </li>
+              ))}
             </ul>
           </div>
         </div>
