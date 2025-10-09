@@ -55,14 +55,14 @@ export function middleware(request: NextRequest) {
     // CSP を Live Preview 用に調整（GTM/GA許可）
     const csp = [
       "default-src 'self'",
-      "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://app.contentful.com https://*.contentful.com https://www.googletagmanager.com",
+      "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://app.contentful.com https://*.contentful.com https://www.googletagmanager.com https://*.googletagmanager.com",
       "style-src 'self' 'unsafe-inline'",
       "img-src 'self' data: https: blob:",
       "font-src 'self' data:",
       "media-src 'self' https://downloads.ctfassets.net https://images.ctfassets.net https://*.ctfassets.net",
-      "connect-src 'self' https://cdn.contentful.com https://api.contentful.com https://preview.contentful.com https://app.contentful.com https://*.contentful.com https://www.google-analytics.com https://www.googletagmanager.com",
+      "connect-src 'self' https://cdn.contentful.com https://api.contentful.com https://preview.contentful.com https://app.contentful.com https://*.contentful.com https://www.google-analytics.com https://www.googletagmanager.com https://*.googletagmanager.com",
       "frame-ancestors 'self' https://app.contentful.com https://*.contentful.com",
-      "frame-src 'self' https://app.contentful.com https://*.contentful.com https://www.googletagmanager.com",
+      "frame-src 'self' https://app.contentful.com https://*.contentful.com https://www.googletagmanager.com https://www.youtube.com https://www.youtube-nocookie.com",
       "object-src 'none'",
       "base-uri 'self'",
     ].join('; ');

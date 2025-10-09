@@ -5,7 +5,6 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { GradientPlaceholder } from '@/utils/gradient-card-design'
-import { OptimizedHeroImage } from '@/components/OptimizedImage'
 
 interface HeroSlide {
   id: string
@@ -198,12 +197,15 @@ export function HeroCarousel({
                         {slide.imageUrl ? (
                           /* 画像ありカード */
                           <div className="relative aspect-square overflow-hidden">
-                            <OptimizedHeroImage
+                            <Image
                               src={slide.imageUrl}
                               alt={slide.title}
+                              fill
                               className={`object-cover transition-transform duration-500 ${
                                 isActive ? 'scale-105' : 'scale-100'
                               }`}
+                              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                              quality={82}
                               priority={isActive}
                             />
                             {slide.category && (

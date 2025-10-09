@@ -1,7 +1,6 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { formatDate, generateUnsplashImageUrl } from '@/lib/utils';
-import { OptimizedCardImage } from '@/components/OptimizedImage';
 
 // カテゴリに応じたグラデーションクラスを取得
 function getCategoryGradientClass(categoryName: string): string {
@@ -162,10 +161,13 @@ export default function ContentCard({
               </div>
             </div>
           ) : imageUrl ? (
-            <OptimizedCardImage
+            <Image
               src={imageUrl}
               alt={thumbnail?.alt || title}
-              className="object-cover h-full w-full"
+              fill
+              className="object-cover"
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+              quality={75}
               priority={false}
             />
           ) : (
