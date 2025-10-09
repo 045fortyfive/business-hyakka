@@ -15,8 +15,13 @@ const nextConfig = {
     ],
     // 外部ドメインからの画像を許可
     domains: ['images.ctfassets.net', 'njazjixymhdfjiag.public.blob.vercel-storage.com'],
-    // 画像の最適化を無効化（ローカル画像をそのまま使用）
-    unoptimized: true,
+    // 画像最適化設定を有効化
+    formats: ['image/webp', 'image/avif'],
+    deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
+    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
+    minimumCacheTTL: 60,
+    dangerouslyAllowSVG: true,
+    contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
   },
   eslint: {
     // 本番ビルド時にESLintチェックを無効にする

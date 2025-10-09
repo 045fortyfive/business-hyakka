@@ -1,6 +1,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { formatDate } from '@/lib/utils';
+import { OptimizedCardImage } from '@/components/OptimizedImage';
 
 // コンテンツカードのプロパティ型定義
 interface ContentCardProps {
@@ -95,11 +96,9 @@ export default function ContentCard({
       <Link href={contentPath}>
         <div className="relative h-36 sm:h-40 md:h-48 w-full">
           {thumbnail ? (
-            <Image
+            <OptimizedCardImage
               src={thumbnail.url}
               alt={thumbnail.alt || title}
-              fill
-              sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, 33vw"
               className="object-cover"
               priority={false}
             />

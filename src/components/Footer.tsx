@@ -26,21 +26,6 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/articles" className="text-gray-300 hover:text-white">
-                  記事一覧
-                </Link>
-              </li>
-              <li>
-                <Link href="/videos" className="text-gray-300 hover:text-white">
-                  動画一覧
-                </Link>
-              </li>
-              <li>
-                <Link href="/audios" className="text-gray-300 hover:text-white">
-                  音声一覧
-                </Link>
-              </li>
-              <li>
                 <Link href="/categories" className="text-gray-300 hover:text-white">
                   カテゴリ一覧
                 </Link>

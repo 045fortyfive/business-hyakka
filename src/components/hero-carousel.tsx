@@ -5,6 +5,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { GradientPlaceholder } from '@/utils/gradient-card-design'
+import { OptimizedHeroImage } from '@/components/OptimizedImage'
 
 interface HeroSlide {
   id: string
@@ -140,10 +141,9 @@ export function HeroCarousel({
         {/* 背景ブラー効果 - 明るさ調整 */}
         <div className="absolute inset-0 z-0 overflow-hidden">
           {slides.length > 0 && slides[currentSlide].imageUrl && (
-            <Image
+            <OptimizedHeroImage
               src={slides[currentSlide].imageUrl}
               alt="Background"
-              fill
               className="object-cover scale-150 blur-sm opacity-40"
               priority
             />
@@ -196,14 +196,13 @@ export function HeroCarousel({
                         {slide.imageUrl ? (
                           /* 画像ありカード */
                           <div className="relative aspect-square overflow-hidden">
-                            <Image
+                            <OptimizedHeroImage
                               src={slide.imageUrl}
                               alt={slide.title}
-                              fill
-                              priority={isActive}
                               className={`object-cover transition-transform duration-500 ${
                                 isActive ? 'scale-105' : 'scale-100'
                               }`}
+                              priority={isActive}
                             />
                             {slide.category && (
                               <div className="absolute top-3 left-3 bg-black/60 backdrop-blur-sm text-white text-xs font-medium px-2.5 py-1 rounded-full">

@@ -175,15 +175,6 @@ export default function CustomImage({
         // アクセシビリティの改善
         loading={priority ? 'eager' : 'lazy'}
       />
-      
-      {/* キャプション */}
-      {(title || description) && (
-        <figcaption className="text-sm text-gray-600 mt-2 text-center italic">
-          {title && <span className="font-medium">{title}</span>}
-          {title && description && <span className="mx-1">-</span>}
-          {description && <span>{description}</span>}
-        </figcaption>
-      )}
     </div>
   );
 }

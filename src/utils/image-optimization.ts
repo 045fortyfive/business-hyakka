@@ -38,11 +38,11 @@ export function optimizeContentfulImage(
   const urlObj = new URL(url);
   
   // 最適化パラメータを追加
-  const { 
-    width, 
-    height, 
-    quality = 80, 
-    format = 'webp', 
+  const {
+    width,
+    height,
+    quality = 85, // PCでの高品質表示のため品質を向上
+    format = 'webp',
     fit = 'fill',
     focus = 'center'
   } = options;
@@ -64,18 +64,45 @@ export function optimizeContentfulImage(
  * @returns srcSet文字列
  */
 export function generateResponsiveSrcSet(
-  originalUrl: string, 
-  breakpoints: number[] = [640, 768, 1024, 1280, 1536]
+  originalUrl: string,
+  breakpoints: number[] = [640, 768, 1024, 1280, 1536, 1920, 2560]
 ): string {
   if (!originalUrl) return '';
 
   const srcSet = breakpoints.map(width => {
-    const optimizedUrl = optimizeContentfulImage(originalUrl, { 
+    const optimizedUrl = optimizeContentfulImage(originalUrl, {
       width,
       format: 'webp',
-      quality: 80 
+      quality: 85 // PCでの高品質表示のため品質を向上
     });
     return `${optimizedUrl} ${width}w`;
+  }).join(', ');
+
+  return srcSet;
+}
+
+/**
+ * 高解像度ディスプレイ対応のsrcSetを生成
+ * @param originalUrl 元の画像URL
+ * @param baseWidth ベースとなる幅
+ * @returns srcSet文字列
+ */
+export function generateRetinaResponsiveSrcSet(
+  originalUrl: string,
+  baseWidth: number
+): string {
+  if (!originalUrl) return '';
+
+  const densities = [1, 1.5, 2, 3]; // 1x, 1.5x, 2x, 3x対応
+
+  const srcSet = densities.map(density => {
+    const width = Math.round(baseWidth * density);
+    const optimizedUrl = optimizeContentfulImage(originalUrl, {
+      width,
+      format: 'webp',
+      quality: density > 2 ? 90 : 85 // 高密度では更に高品質
+    });
+    return `${optimizedUrl} ${density}x`;
   }).join(', ');
 
   return srcSet;
