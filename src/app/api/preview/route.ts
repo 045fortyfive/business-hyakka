@@ -1,5 +1,4 @@
 import { draftMode } from 'next/headers'
-import { redirect } from 'next/navigation'
 import { NextRequest, NextResponse } from 'next/server'
 
 /**
@@ -78,7 +77,7 @@ export async function OPTIONS(request: NextRequest) {
 
 export async function GET(request: NextRequest) {
   const startTime = Date.now();
-  const { searchParams, origin } = new URL(request.url);
+  const { searchParams } = new URL(request.url);
   
   // IPアドレスやUser-Agentの取得（セキュリティログ用）
   const clientIP = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown';
@@ -220,19 +219,19 @@ export async function GET(request: NextRequest) {
     
     // 6. ドラフトモードの有効化
     console.log('🟢 Enabling draft mode...');
-    
+
     try {
-      draftMode().enable();
+      (await draftMode()).enable();
       console.log('✅ Draft mode enabled successfully');
     } catch (draftError) {
       console.error('❌ Failed to enable draft mode:', draftError);
       return new NextResponse(
-        JSON.stringify({ 
-          error: 'Failed to enable preview mode', 
+        JSON.stringify({
+          error: 'Failed to enable preview mode',
           message: 'Could not activate draft mode',
           timestamp: new Date().toISOString()
-        }), 
-        { 
+        }),
+        {
           status: 500,
           headers: getPreviewHeaders()
         }

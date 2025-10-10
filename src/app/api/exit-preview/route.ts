@@ -25,9 +25,9 @@ export async function GET(request: NextRequest) {
   try {
     // ドラフトモードを無効化
     console.log('🔴 Disabling draft mode...');
-    
+
     try {
-      draftMode().disable();
+      (await draftMode()).disable();
       console.log('✅ Draft mode disabled successfully');
     } catch (draftError) {
       console.error('❌ Failed to disable draft mode:', draftError);
@@ -78,9 +78,9 @@ export async function POST(request: NextRequest) {
     
     // ドラフトモードを無効化
     console.log('🔴 Disabling draft mode...');
-    
+
     try {
-      draftMode().disable();
+      (await draftMode()).disable();
       console.log('✅ Draft mode disabled successfully');
     } catch (draftError) {
       console.error('❌ Failed to disable draft mode:', draftError);

@@ -63,15 +63,6 @@ const sampleData = [
   },
 ];
 
-// グラデーションカラーの配列
-const gradientColors = [
-  'blue-purple',
-  'green-blue',
-  'orange-red',
-  'pink-purple',
-  'yellow-orange'
-] as const;
-
 export default function AuroraCardSamplesPage() {
   const [contentfulItems, setContentfulItems] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);

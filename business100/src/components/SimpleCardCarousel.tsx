@@ -189,13 +189,13 @@ export function SimpleCardCarousel({
                               src={optimizeForPC(slide.imageUrl, 'card', {
                                 width: 640,
                                 height: 360,
-                                quality: 50
+                                quality: 95
                               })}
                               alt={slide.title}
                               fill
                               className="object-cover"
                               sizes="(max-width: 640px) 480px, (max-width: 768px) 560px, 640px"
-                              quality={50}
+                              quality={95}
                               priority={isActive}
                             />
                           ) : (

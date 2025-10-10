@@ -116,12 +116,30 @@ export default async function CategoryPage({
     // カテゴリ一覧を取得
     const categoriesData = await getCategories();
 
-    // 全コンテンツを統合して日付順にソート
-    const allContents = [
-      ...(articles?.items || []).map((item: any) => ({ ...item, contentType: 'article' as const })),
-      ...(videos?.items || []).map((item: any) => ({ ...item, contentType: 'video' as const })),
-      ...(audios?.items || []).map((item: any) => ({ ...item, contentType: 'audio' as const }))
-    ].sort((a, b) => {
+    // 全コンテンツを統合して日付順にソート（重複を排除）
+    const contentMap = new Map();
+
+    // 記事を追加
+    (articles?.items || []).forEach((item: any) => {
+      contentMap.set(item.sys.id, { ...item, contentType: 'article' as const });
+    });
+
+    // 動画を追加（既存のIDは上書きしない）
+    (videos?.items || []).forEach((item: any) => {
+      if (!contentMap.has(item.sys.id)) {
+        contentMap.set(item.sys.id, { ...item, contentType: 'video' as const });
+      }
+    });
+
+    // 音声を追加（既存のIDは上書きしない）
+    (audios?.items || []).forEach((item: any) => {
+      if (!contentMap.has(item.sys.id)) {
+        contentMap.set(item.sys.id, { ...item, contentType: 'audio' as const });
+      }
+    });
+
+    // Mapから配列に変換してソート
+    const allContents = Array.from(contentMap.values()).sort((a, b) => {
       const dateA = new Date(a.fields.publishDate || a.sys.createdAt);
       const dateB = new Date(b.fields.publishDate || b.sys.createdAt);
       return dateB.getTime() - dateA.getTime();

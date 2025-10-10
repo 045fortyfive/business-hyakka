@@ -177,15 +177,12 @@ export default async function MdxArticlePage({ params }: Props) {
         </div>
       </div>
     );
-  } catch (error) {
+  } catch {
     // Contentfulからの取得に失敗した場合はファイルシステムから取得
     const { content } = getMdxBySlug(slug);
 
     // 記事の内容からTOCを生成
     const toc = extractTocFromMdx(content);
-
-    // カテゴリーに応じたグラデーションクラスを設定
-    const gradientClass = 'from-blue-400 via-sky-500 to-indigo-600';
 
     return (
       <div className="container mx-auto px-4 py-6 md:py-8 max-w-7xl flex justify-center">

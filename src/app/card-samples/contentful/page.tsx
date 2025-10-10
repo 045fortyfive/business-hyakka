@@ -20,15 +20,6 @@ async function getContentfulData() {
 export default async function ContentfulCardSamplesPage() {
   const contentfulItems = await getContentfulData();
   
-  // グラデーションカラーの配列
-  const gradientColors = [
-    'blue-purple',
-    'green-blue',
-    'orange-red',
-    'pink-purple',
-    'yellow-orange'
-  ] as const;
-  
   return (
     <div className="container mx-auto py-12 px-4">
       <h1 className="text-3xl font-bold text-center mb-12">Contentfulデータを使用したカードサンプル (1:1.6)</h1>

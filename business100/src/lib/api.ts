@@ -5,8 +5,6 @@ import {
   ContentCollection,
   Category,
   CategoryCollection,
-  Tag,
-  TagCollection,
   CONTENT_TYPES
 } from './types';
 
@@ -243,8 +241,8 @@ export async function getCategoryBySlug(slug: string): Promise<Category | null> 
   return entries.items.length > 0 ? entries.items[0] : null;
 }
 
-// カテゴリに属するコンテンツを取得
-export async function getContentByCategory(categorySlug: string, limit = 10, skip = 0) {
+// カテゴリに属するコンテンツを取得（統合版）
+export async function getContentByCategory(categorySlug: string, limit = 100, skip = 0) {
   console.log(`Fetching content by category slug: ${categorySlug}`);
 
   // カテゴリを取得
@@ -252,9 +250,7 @@ export async function getContentByCategory(categorySlug: string, limit = 10, ski
   if (!category) {
     console.log(`Category with slug "${categorySlug}" not found`);
     return {
-      articles: { items: [], total: 0, skip: 0, limit, includes: {} },
-      videos: { items: [], total: 0, skip: 0, limit, includes: {} },
-      audios: { items: [], total: 0, skip: 0, limit, includes: {} },
+      content: { items: [], total: 0, skip: 0, limit, includes: {} },
       category: null
     };
   }
@@ -265,49 +261,51 @@ export async function getContentByCategory(categorySlug: string, limit = 10, ski
     // プレビューモードに応じたクライアントを取得
     const client = await getClient();
 
-    // カテゴリに属する記事を取得
-    const articles = await client.getEntries<Content['fields']>({
+    // カテゴリに属する全コンテンツを取得（contentTypeフィルタなし）
+    const allContent = await client.getEntries<Content['fields']>({
       content_type: CONTENT_TYPE.CONTENT,
-      'fields.contentType': CONTENT_TYPES.ARTICLE,
       'fields.category.sys.id': category.sys.id,
       order: '-sys.createdAt',
       limit,
       skip,
       include: 2,
     });
-    console.log(`Found ${articles.items.length} articles in category "${category.fields.name}"`);
 
-    // カテゴリに属する動画を取得
-    const videos = await client.getEntries<Content['fields']>({
-      content_type: CONTENT_TYPE.CONTENT,
-      'fields.contentType': CONTENT_TYPES.VIDEO,
-      'fields.category.sys.id': category.sys.id,
-      order: '-sys.createdAt',
-      limit,
-      skip,
-      include: 2,
+    console.log(`Found ${allContent.items.length} total content items in category "${category.fields.name}"`);
+
+    // スラグベースで重複を排除
+    const uniqueContentMap = new Map<string, typeof allContent.items[0]>();
+
+    for (const item of allContent.items) {
+      const slug = item.fields.slug;
+      if (slug && !uniqueContentMap.has(slug)) {
+        uniqueContentMap.set(slug, item);
+      }
+    }
+
+    // Mapから配列に変換し、作成日時でソート
+    const uniqueItems = Array.from(uniqueContentMap.values()).sort((a, b) => {
+      const dateA = new Date(a.sys.createdAt).getTime();
+      const dateB = new Date(b.sys.createdAt).getTime();
+      return dateB - dateA; // 降順（新しい順）
     });
-    console.log(`Found ${videos.items.length} videos in category "${category.fields.name}"`);
 
-    // カテゴリに属する音声を取得
-    const audios = await client.getEntries<Content['fields']>({
-      content_type: CONTENT_TYPE.CONTENT,
-      'fields.contentType': CONTENT_TYPES.AUDIO,
-      'fields.category.sys.id': category.sys.id,
-      order: '-sys.createdAt',
-      limit,
+    console.log(`After deduplication: ${uniqueItems.length} unique content items`);
+
+    // ContentCollection形式で返す
+    const content: ContentCollection = {
+      items: uniqueItems,
+      total: uniqueItems.length,
       skip,
-      include: 2,
-    });
-    console.log(`Found ${audios.items.length} audios in category "${category.fields.name}"`);
+      limit,
+      includes: allContent.includes || {},
+    };
 
-    return { articles, videos, audios, category };
+    return { content, category };
   } catch (error) {
     console.error(`Error fetching content for category "${categorySlug}":`, error);
     return {
-      articles: { items: [], total: 0, skip: 0, limit, includes: {} },
-      videos: { items: [], total: 0, skip: 0, limit, includes: {} },
-      audios: { items: [], total: 0, skip: 0, limit, includes: {} },
+      content: { items: [], total: 0, skip: 0, limit, includes: {} },
       category
     };
   }

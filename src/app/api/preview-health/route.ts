@@ -109,7 +109,17 @@ async function testLivePreview(request: NextRequest) {
   });
 }
 
-function generateRecommendations(testResults: any) {
+interface TestResults {
+  environmentVariables: {
+    previewSecret: boolean;
+    spaceId: boolean;
+    accessToken: boolean;
+  };
+  draftMode: { isEnabled: boolean };
+  previewUrl: string;
+}
+
+function generateRecommendations(testResults: TestResults) {
   const recommendations = [];
   
   if (!testResults.environmentVariables.previewSecret) {

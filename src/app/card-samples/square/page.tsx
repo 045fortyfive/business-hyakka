@@ -81,15 +81,6 @@ export default function SquareCardSamplesPage() {
   // ローディング中はサンプルデータを表示
   const displayItems = loading || contentfulItems.length === 0 ? sampleData : contentfulItems;
 
-  // グラデーションカラーの配列
-  const gradientColors = [
-    'blue-purple',
-    'green-blue',
-    'orange-red',
-    'pink-purple',
-    'yellow-orange'
-  ] as const;
-
   return (
     <div className="container mx-auto py-12 px-4">
       <h1 className="text-3xl font-bold text-center mb-12">正方形カードデザインサンプル (444 x 444)</h1>

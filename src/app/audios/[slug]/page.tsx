@@ -1,6 +1,6 @@
 import { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { getAudioBySlug, getAudios } from "@/lib/api";
+import { getAudioBySlug } from "@/lib/api";
 import { renderContentfulMdx } from "@/utils/mdx-utils";
 import UniversalContentRenderer from "@/components/UniversalContentRenderer";
 import { PreviewWrapper } from "@/components/preview";

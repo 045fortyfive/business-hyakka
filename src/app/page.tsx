@@ -4,10 +4,9 @@ import { ContentSection } from "@/components/content-section";
 import { CategorySection } from "@/components/category-section";
 import { CategoryTags } from "@/components/category-tags";
 import { CategoryCarousel } from "@/components/category-carousel";
-import { getImageProps } from "@/lib/utils";
-import { CONTENT_TYPES } from "@/lib/types";
 import { CategoryName } from "@/utils/category-colors";
-import { generateUnsplashImageUrl, generateGradientCardDesign } from "@/utils/image-utils";
+import { generateUnsplashImageUrl } from "@/utils/image-utils";
+import Link from "next/link";
 
 // Webhookからの再検証で即座更新、フォールバックとして毎日再検証
 export const revalidate = 86400; // 24時間（フォールバック）
@@ -306,24 +305,24 @@ export default async function Home() {
                 記事、動画、音声で、いつでもどこでもビジネススキルを学べます
               </p>
               <div className="flex flex-wrap gap-4">
-                <a
+                <Link
                   href="/articles"
                   className="bg-white text-blue-700 hover:bg-gray-100 px-6 py-3 rounded-full font-medium transition-colors"
                 >
                   記事を読む
-                </a>
-                <a
+                </Link>
+                <Link
                   href="/videos"
                   className="bg-transparent border-2 border-white text-white hover:bg-white/10 px-6 py-3 rounded-full font-medium transition-colors"
                 >
                   動画を見る
-                </a>
-                <a
+                </Link>
+                <Link
                   href="/mdx-articles/ai-skills"
                   className="bg-transparent border-2 border-purple-300 text-white hover:bg-white/10 px-6 py-3 rounded-full font-medium transition-colors"
                 >
                   MDX記事を見る
-                </a>
+                </Link>
               </div>
             </div>
           </section>

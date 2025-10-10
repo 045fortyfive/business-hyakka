@@ -6,7 +6,6 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { BackgroundProvider } from "@/contexts/BackgroundContext";
 import BackgroundWrapper from "@/components/BackgroundWrapper";
-import BackgroundControl from "@/components/BackgroundControl";
 import { PreviewWrapper } from "@/components/preview";
 
 

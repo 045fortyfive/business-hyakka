@@ -52,6 +52,23 @@ export interface ContentFields {
 export type Content = Entry<ContentFields>;
 export type ContentCollection = EntryCollection<ContentFields>;
 
+// Contentful v11用の型ガード関数
+export function isContentFields(fields: {} | ContentFields): fields is ContentFields {
+  return 'title' in fields && 'slug' in fields;
+}
+
+export function isCategoryFields(fields: {} | CategoryFields): fields is CategoryFields {
+  return 'name' in fields && 'slug' in fields;
+}
+
+export function isTagFields(fields: {} | TagFields): fields is TagFields {
+  return 'name' in fields && 'slug' in fields;
+}
+
+export function isAuthorFields(fields: {} | AuthorFields): fields is AuthorFields {
+  return 'name' in fields;
+}
+
 // コンテンツタイプの定義
 export const CONTENT_TYPES = {
   ARTICLE: '記事',

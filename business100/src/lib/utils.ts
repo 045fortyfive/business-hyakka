@@ -37,7 +37,7 @@ export function getImageProps(asset?: Asset) {
 
   const { file, title } = asset.fields;
   const url = `https:${file.url}`;
-  const { width, height } = file.details.image || { width: 800, height: 600 };
+  const { width, height } = file.details?.image || { width: 800, height: 600 };
 
   return {
     url,
