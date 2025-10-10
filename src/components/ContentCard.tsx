@@ -175,10 +175,12 @@ export default function ContentCard({
               <span className="text-gray-400 text-3xl sm:text-4xl">{contentTypeIcon()}</span>
             </div>
           )}
+          {/* バッジを非表示化（設定により無効化）
           <div className="absolute top-0 right-0 bg-blue-600 text-white px-1.5 py-0.5 sm:px-2 sm:py-1 text-xs font-semibold rounded-bl-lg flex items-center space-x-1">
             <span>{contentTypeIcon()}</span>
             <span>{contentType === 'article' ? '記事' : contentType === 'video' ? '動画' : '音声'}</span>
           </div>
+          */}
         </div>
       </Link>
 

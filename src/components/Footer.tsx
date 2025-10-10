@@ -1,7 +1,30 @@
 import Link from 'next/link';
+import { getCategories } from '@/lib/api';
+import { filterVisibleCategories } from '@/config/categories';
 
-export default function Footer() {
+export default async function Footer() {
   const currentYear = new Date().getFullYear();
+
+  // Contentfulからカテゴリを取得し、表示可能なものだけをフィルタリング
+  let categories: Array<{ name: string; slug: string }> = [];
+  try {
+    const categoriesData = await getCategories();
+    const visibleCategories = filterVisibleCategories(categoriesData.items);
+
+    // カテゴリ名からslugを生成（日本語名をそのままエンコード）
+    categories = visibleCategories.map((category) => ({
+      name: category.fields.name,
+      slug: encodeURIComponent(category.fields.name),
+    }));
+  } catch (error) {
+    console.error('Footer: カテゴリ取得エラー', error);
+    // エラー時はフォールバック（基本的なカテゴリのみ表示）
+    categories = [
+      { name: '基礎ビジネススキル', slug: encodeURIComponent('基礎ビジネススキル') },
+      { name: '思考法', slug: encodeURIComponent('思考法') },
+      { name: '業務改善', slug: encodeURIComponent('業務改善') },
+    ];
+  }
 
   return (
     <footer className="bg-gray-800 text-white py-8">
@@ -33,42 +56,20 @@ export default function Footer() {
             </ul>
           </div>
 
-          {/* カテゴリ */}
+          {/* カテゴリ（Contentfulから動的取得） */}
           <div>
             <h3 className="text-xl font-semibold mb-4">主要カテゴリ</h3>
             <ul className="space-y-2">
-              <li>
-                <Link
-                  href="/categories/basic-business-skills"
-                  className="text-gray-300 hover:text-white"
-                >
-                  基本ビジネススキル
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/categories/communication"
-                  className="text-gray-300 hover:text-white"
-                >
-                  コミュニケーション
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/categories/management"
-                  className="text-gray-300 hover:text-white"
-                >
-                  マネジメント
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/categories/business-improvement"
-                  className="text-gray-300 hover:text-white"
-                >
-                  業務改善
-                </Link>
-              </li>
+              {categories.map((category) => (
+                <li key={category.slug}>
+                  <Link
+                    href={`/categories/${category.slug}`}
+                    className="text-gray-300 hover:text-white"
+                  >
+                    {category.name}
+                  </Link>
+                </li>
+              ))}
             </ul>
           </div>
         </div>

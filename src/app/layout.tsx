@@ -74,7 +74,8 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
               <Header />
               <main className="flex-grow">{children}</main>
               <Footer />
-              <BackgroundControl />
+              {/* BackgroundControl（画面右下の設定UI）を非表示化 */}
+              {/* <BackgroundControl /> */}
             </PreviewWrapper>
           </BackgroundWrapper>
         </body>

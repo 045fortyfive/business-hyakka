@@ -145,8 +145,9 @@ export function HeroCarousel({
               alt="Background"
               fill
               className="object-cover scale-150 blur-2xl opacity-30"
-              quality={30}
+              quality={60}
               priority={false}
+              sizes="100vw"
             />
           )}
           <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/40 to-black/60 backdrop-blur-lg" />
@@ -204,8 +205,8 @@ export function HeroCarousel({
                               className={`object-cover transition-transform duration-500 ${
                                 isActive ? 'scale-105' : 'scale-100'
                               }`}
-                              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                              quality={82}
+                              sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, (max-width: 1280px) 33vw, 25vw"
+                              quality={95}
                               priority={isActive}
                             />
                             {slide.category && (
