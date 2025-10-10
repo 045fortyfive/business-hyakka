@@ -11,18 +11,18 @@ export default async function Footer() {
     const categoriesData = await getCategories();
     const visibleCategories = filterVisibleCategories(categoriesData.items);
 
-    // カテゴリ名からslugを生成（日本語名をそのままエンコード）
+    // Contentfulから取得した正しいslugを使用
     categories = visibleCategories.map((category) => ({
-      name: category.fields.name,
-      slug: encodeURIComponent(category.fields.name),
+      name: category.fields.name as string,
+      slug: category.fields.slug as string,
     }));
   } catch (error) {
     console.error('Footer: カテゴリ取得エラー', error);
-    // エラー時はフォールバック（基本的なカテゴリのみ表示）
+    // エラー時はフォールバック（types.tsで定義されたマッピングを使用）
     categories = [
-      { name: '基礎ビジネススキル', slug: encodeURIComponent('基礎ビジネススキル') },
-      { name: '思考法', slug: encodeURIComponent('思考法') },
-      { name: '業務改善', slug: encodeURIComponent('業務改善') },
+      { name: '基礎ビジネススキル', slug: 'basic-business-skill' },
+      { name: '思考法', slug: 'sikouhou' },
+      { name: '業務改善', slug: 'Business-improvement' },
     ];
   }
 
