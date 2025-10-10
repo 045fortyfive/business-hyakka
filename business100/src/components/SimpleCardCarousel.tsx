@@ -134,14 +134,14 @@ export function SimpleCardCarousel({
             {slides[currentSlide]?.imageUrl ? (
               <Image
                 src={optimizeForPC(slides[currentSlide].imageUrl, 'hero', {
-                  width: 1200,
-                  height: 600,
-                  quality: 60
+                  width: 2400,
+                  height: 1200,
+                  quality: 85
                 })}
                 alt="Background"
                 fill
                 className="object-cover scale-125 blur-2xl opacity-50"
-                quality={60}
+                quality={85}
                 priority
               />
             ) : (
@@ -187,15 +187,15 @@ export function SimpleCardCarousel({
                           {slide.imageUrl ? (
                             <Image
                               src={optimizeForPC(slide.imageUrl, 'card', {
-                                width: 320,
-                                height: 180,
-                                quality: 82
+                                width: 640,
+                                height: 360,
+                                quality: 95
                               })}
                               alt={slide.title}
                               fill
                               className="object-cover"
-                              sizes="(max-width: 640px) 240px, (max-width: 768px) 280px, 320px"
-                              quality={82}
+                              sizes="(max-width: 640px) 480px, (max-width: 768px) 560px, 640px"
+                              quality={95}
                               priority={isActive}
                             />
                           ) : (

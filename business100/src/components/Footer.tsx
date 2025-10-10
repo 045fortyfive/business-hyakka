@@ -12,8 +12,8 @@ export default async function Footer() {
     const categoriesData = await getCategories();
     const visibleCategories = filterVisibleCategories(categoriesData.items);
 
-    // 指定された順序でカテゴリーを並び替え
-    const categoryOrder = ['基本ビジネススキル', 'コミュニケーション', '業務改善'];
+    // 指定された順序でカテゴリーを並び替え（実際のContentfulのカテゴリー名に合わせる）
+    const categoryOrder = ['基礎ビジネススキル', '思考法', '業務改善'];
     orderedCategories = categoryOrder
       .map(name => visibleCategories.find(cat => cat.fields.name === name))
       .filter(Boolean) as typeof visibleCategories;
