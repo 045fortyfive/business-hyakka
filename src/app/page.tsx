@@ -23,20 +23,20 @@ export default async function Home() {
   try {
     console.log('データ取得開始...');
 
-    // 最新の記事、動画、音声を取得（業務改善カテゴリのコンテンツも含めるため数を増加）
-    const articlesPromise = getArticles(25).catch(error => {
+    // 最新の記事、動画、音声を取得（全カテゴリで十分な数を表示するため取得数を増加）
+    const articlesPromise = getArticles(50).catch(error => {
       console.error('記事の取得に失敗:', error);
-      return { items: [], total: 0, skip: 0, limit: 25, includes: {} };
+      return { items: [], total: 0, skip: 0, limit: 50, includes: {} };
     });
 
-    const videosPromise = getVideos(10).catch(error => {
+    const videosPromise = getVideos(30).catch(error => {
       console.error('動画の取得に失敗:', error);
-      return { items: [], total: 0, skip: 0, limit: 10, includes: {} };
+      return { items: [], total: 0, skip: 0, limit: 30, includes: {} };
     });
 
-    const audiosPromise = getAudios(15).catch(error => {
+    const audiosPromise = getAudios(30).catch(error => {
       console.error('音声の取得に失敗:', error);
-      return { items: [], total: 0, skip: 0, limit: 15, includes: {} };
+      return { items: [], total: 0, skip: 0, limit: 30, includes: {} };
     });
 
     const categoriesPromise = getCategories().catch(error => {
