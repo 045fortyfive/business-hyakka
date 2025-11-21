@@ -4,7 +4,18 @@ import Image from 'next/image';
 import Link from 'next/link';
 import VideoPlayer from './VideoPlayer';
 import AudioPlayer from './AudioPlayer';
-import { generateHeadingId } from '@/utils/toc-generator';
+import { generateHeadingId, extractTextFromHeadingNode } from '@/utils/toc-generator';
+
+// Helper function to check for YouTube URLs and extract video ID
+function isYouTubeUrl(url: string): string | null {
+  if (!url) return null;
+  const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+  const match = url.match(regExp);
+  if (match && match[2].length === 11) {
+    return match[2];
+  }
+  return null;
+}
 
 interface RichTextRendererProps {
   content: any; // Contentfulのリッチテキストドキュメント
@@ -44,11 +55,39 @@ export default function RichTextRenderer({
       ),
     },
     renderNode: {
-      [BLOCKS.PARAGRAPH]: (node: any, children: React.ReactNode) => (
-        <p className="mb-4 leading-relaxed">{children}</p>
-      ),
+      [BLOCKS.PARAGRAPH]: (node: any, children: React.ReactNode) => {
+        // Check if paragraph contains a single, plain text node that is a YouTube URL
+        if (
+          node.content &&
+          node.content.length === 1 &&
+          node.content[0].nodeType === 'text' &&
+          (node.content[0].marks === undefined || node.content[0].marks.length === 0)
+        ) {
+          const textValue = node.content[0].value.trim();
+          const videoId = isYouTubeUrl(textValue);
+
+          if (videoId) {
+            return (
+              <div className="my-6">
+                <iframe
+                  className="youtube-embed mx-auto"
+                  width="560"
+                  height="315"
+                  src={`https://www.youtube.com/embed/${videoId}`}
+                  title="YouTube video player"
+                  frameBorder="0"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                ></iframe>
+              </div>
+            );
+          }
+        }
+        // Default paragraph rendering
+        return <p className="mb-4 leading-relaxed">{children}</p>;
+      },
       [BLOCKS.HEADING_1]: (node: any, children: React.ReactNode) => {
-        const text = node.content.map((content: any) => content.value || '').join('');
+        const text = extractTextFromHeadingNode(node); // Use centralized text extraction
         const id = generateHeadingId(text, headingCounter++);
         return (
           <h1 id={id} className="text-3xl font-bold mt-8 mb-4 scroll-mt-16">
@@ -57,7 +96,7 @@ export default function RichTextRenderer({
         );
       },
       [BLOCKS.HEADING_2]: (node: any, children: React.ReactNode) => {
-        const text = node.content.map((content: any) => content.value || '').join('');
+        const text = extractTextFromHeadingNode(node); // Use centralized text extraction
         const id = generateHeadingId(text, headingCounter++);
         return (
           <h2 id={id} className="text-2xl font-bold mt-6 mb-3 scroll-mt-16">
@@ -66,7 +105,7 @@ export default function RichTextRenderer({
         );
       },
       [BLOCKS.HEADING_3]: (node: any, children: React.ReactNode) => {
-        const text = node.content.map((content: any) => content.value || '').join('');
+        const text = extractTextFromHeadingNode(node); // Use centralized text extraction
         const id = generateHeadingId(text, headingCounter++);
         return (
           <h3 id={id} className="text-xl font-bold mt-5 mb-2 scroll-mt-16">
@@ -75,7 +114,7 @@ export default function RichTextRenderer({
         );
       },
       [BLOCKS.HEADING_4]: (node: any, children: React.ReactNode) => {
-        const text = node.content.map((content: any) => content.value || '').join('');
+        const text = extractTextFromHeadingNode(node); // Use centralized text extraction
         const id = generateHeadingId(text, headingCounter++);
         return (
           <h4 id={id} className="text-lg font-bold mt-4 mb-2 scroll-mt-16">
@@ -214,11 +253,40 @@ export default function RichTextRenderer({
             );
 
           // 動画の場合
-          case 'video':
+          case 'video': {
+            const videoUrl = entry.fields.videoUrlEmbed;
+            const videoId = isYouTubeUrl(videoUrl);
+
+            if (videoId) {
+              return (
+                <div className="my-6">
+                  <iframe
+                    width="560"
+                    height="315"
+                    src={`https://www.youtube.com/embed/${videoId}`}
+                    title={entry.fields.title || 'YouTube video player'}
+                    frameBorder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                    className="youtube-embed mx-auto"
+                  ></iframe>
+                  <h3 className="text-lg font-semibold mt-2 text-center">
+                    <Link
+                      href={`/videos/${entry.fields.slug}`}
+                      className="text-blue-600 hover:underline"
+                    >
+                      {entry.fields.title}
+                    </Link>
+                  </h3>
+                </div>
+              );
+            }
+
+            // Fallback to existing VideoPlayer for non-YouTube URLs
             return (
               <div className="my-6">
                 <VideoPlayer
-                  videoUrl={entry.fields.videoUrlEmbed}
+                  videoUrl={videoUrl}
                   title={entry.fields.title}
                 />
                 <h3 className="text-lg font-semibold mt-2">
@@ -264,8 +332,28 @@ export default function RichTextRenderer({
       },
       [INLINES.HYPERLINK]: (node: any, children: React.ReactNode) => {
         const { uri } = node.data;
-        const isInternal = uri.startsWith('/');
+        const videoId = isYouTubeUrl(uri);
 
+        if (videoId) {
+          // If it's a YouTube video URL, render the iframe embed
+          return (
+            <div className="my-6"> {/* Added a div wrapper for block display and margin */}
+              <iframe
+                width="560"
+                height="315"
+                src={`https://www.youtube.com/embed/${videoId}`}
+                title="YouTube video player" // Generic title
+                frameBorder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+                className="youtube-embed mx-auto" // Reusing class from previous embed
+              ></iframe>
+            </div>
+          );
+        }
+
+        // Otherwise, render as a normal hyperlink
+        const isInternal = uri.startsWith('/');
         return (
           <Link
             href={uri}

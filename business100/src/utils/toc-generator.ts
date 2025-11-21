@@ -29,15 +29,16 @@ export function generateTableOfContents(document: any): TocItem[] {
       node.nodeType === BLOCKS.HEADING_4
     ) {
       // 見出しのテキストを取得
-      const text = node.content
-        .map((content: any) => content.value || '')
-        .join('');
+      const text = extractTextFromHeadingNode(node); // Use centralized text extraction
 
       // 見出しレベルを取得（H1=1, H2=2, H3=3, H4=4）
       const level = parseInt(node.nodeType.slice(-1));
 
-      // 一意のIDを生成
-      const id = `heading-${currentId++}`;
+      // 一意のIDを生成 (RichTextRendererと合わせる)
+      // const id = `heading-${currentId++}`; // 古いID生成方法
+      const tocItemIndex = currentId++; // Use currentId for the index in ToC generation context
+      const id = generateHeadingId(text, tocItemIndex);
+      console.log('[toc-generator] Generated ToC item ID:', id, 'for text:', text, 'with index:', tocItemIndex);
 
       headings.push({
         id,
@@ -81,17 +82,36 @@ export function generateTableOfContents(document: any): TocItem[] {
     stack[stack.length - 1].push(heading);
   });
 
-  // ダミーの見出しを削除
+  // ダミーの見出しを削除し、子要素を昇格させる
   function cleanupDummies(items: TocItem[]): TocItem[] {
-    return items
-      .filter(item => item.text !== '')
-      .map(item => ({
-        ...item,
-        children: cleanupDummies(item.children),
-      }));
+    return items.flatMap(item => {
+      if (item.text !== '') {
+        // テキストを持つ有効なアイテムは保持し、子要素も再帰的に処理
+        return [{
+          ...item,
+          children: cleanupDummies(item.children),
+        }];
+      } else {
+        // テキストがないダミーアイテムは削除し、その子要素を現在のレベルに昇格させる
+        // 子要素もダミー要素を含む可能性があるため、再帰的に処理
+        return cleanupDummies(item.children);
+      }
+    });
   }
 
   return cleanupDummies(toc);
+}
+
+/**
+ * Extracts the text content from a Contentful heading node.
+ * @param node The Contentful heading node.
+ * @returns The concatenated text content, or an empty string if node is invalid.
+ */
+export function extractTextFromHeadingNode(node: any): string {
+  if (node && node.content && Array.isArray(node.content)) {
+    return node.content.map((contentNode: any) => contentNode.value || '').join('');
+  }
+  return '';
 }
 
 /**
@@ -104,8 +124,23 @@ export function generateHeadingId(text: string, index: number): string {
   // テキストをスラッグ化（日本語対応）
   const slug = text
     .toLowerCase()
-    .replace(/[^\w\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF\s]/g, '')
+    .replace(/[^\w぀-ゟ゠-ヿ一-龯\s]/g, '') // Changed regex to match prompt's description
     .replace(/\s+/g, '-');
   
-  return `heading-${slug}-${index}`;
+  const generatedId = `heading-${slug}-${index}`;
+  // The console.log here will show IDs generated for RichTextRenderer context AND for ToC items,
+  // as generateTableOfContents also calls this function.
+  console.log('[toc-generator] generateHeadingId CALLED. Text:', text, 'Index:', index, 'Resulting ID:', generatedId);
+  return generatedId;
+}
+
+/**
+ * Alias for generateTableOfContents to maintain compatibility with components
+ * that may be calling this older or alternative name.
+ * @param document Contentful rich text document
+ * @returns Array of TocItem
+ */
+export function extractTocFromContentfulRichText(document: any): TocItem[] {
+  console.warn('[toc-generator] DEPRECATION WARNING: extractTocFromContentfulRichText is deprecated. Please use generateTableOfContents instead.');
+  return generateTableOfContents(document);
 }
